@@ -1,0 +1,27 @@
+{
+  "name": "poiApi",
+  "version": "0.0.1",
+  "description": "a node.js implementation of the OpenStreetMap API",
+  "keywords": ["express", "nps", "OpenStreetMap", "API"],
+  "author": "Jim McAndrew <jim_mcandrew@partner.nps.gov>",
+  "contributors": [
+    {
+      "name": "Jim McAndrew",
+      "email": "jim_mcandrew@partner.nps.gov"
+    },
+    {
+      "name": "Nate Irwin",
+      "email": "nate_irwin@nps.gov"
+    }
+  ],
+  "scripts": {
+    "start": "node app"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/nationalparkservice/scratch"
+  },
+  "dependencies": {
+    "jsontoxml": "*"
+  }
+}
