@@ -1,4 +1,4 @@
-var osmXml = require('./osmXml'),
+var xmlJs = require('../../xmljs_translator'),
 config = require('../config'),
 errorList = require('./errorList');
 
@@ -16,14 +16,39 @@ var getParams = function(req) {
 };
 
 var modifiedResults = function(req, res) {
+
+    var buildResponse = function(result) {
+      // Converts the JSON response to pretty print, jsonp, or XML
+      var indent = getParams(req).pretty ? 2 : null,
+      response = {};
+
+      if (req.params && req.params.format === 'json' || req.params.format === 'jsonp') {
+        // Pretty Print JSON
+        response.result = JSON.stringify(result,null,indent);
+        response.contentType = 'application/json';
+
+        // Check for jsonp
+        if (getParams(req).callback) {
+          response.contentType = 'application/javascript';
+          response.result = [getParams(req).callback, '(', result, ');'].join('');
+        }
+      } else {
+        // OSM XML
+        response.contentType = 'application/xml';
+        response.result = xmlJs.xmlify(result, {'prettyPrint': indent});
+      }
+
+      return response;
+    };
+
   return {
     send: function(inData) {
-      var contentType,
-      indent = getParams(req).pretty ? 2 : null;
+      // Send is used to report data back to the browser
+      var result, response;
 
       // All OSM data is wrapped in an OSM tag
       // http://wiki.openstreetmap.org/wiki/API_v0.6#XML_Format
-      var result = {
+      result = {
         'osm': JSON.parse(JSON.stringify(config.appInfo))
       };
 
@@ -38,40 +63,32 @@ var modifiedResults = function(req, res) {
         }
       }
 
-      if (req.params && req.params.format === 'json' || req.params.format === 'jsonp') {
-        // Pretty Print JSON
-        result = JSON.stringify(result,null,indent);
-        contentType = 'application/json';
-
-        // Check for jsonp
-        if (getParams(req).callback) {
-          contentType = 'application/javascript';
-          result = [getParams(req).callback, '(', result, ');'].join('');
-        }
-      } else {
-        // OSM XML
-        contentType = 'application/xml';
-        result = osmXml.convert(result, {'prettyPrint': indent});
-      }
-
-      res.set('Content-Type', contentType);
-      res.send(result);
+      response = buildResponse(result);
+      res.set('Content-Type', response.contentType);
+      res.send(response.result);
     },
     status: function(statusCode, description) {
-      var returnLines = [],
+      // Status is used for error reporting
+      var result,
       contentType = 'text/html';
 
-      // Create a description page (this will need to be updated to use our normal template)
-      if (errorList[statusCode]) {
-        returnLines.push('<h1>' + statusCode + ': ' + errorList[statusCode] + '</h1>');
-      } else {
-        returnLines.push('<h1> Error: ' + statusCode + '</h1>');
+      // Build a description of the error
+      result = {
+        "error" : {
+          "message": errorList[statusCode],
+          "status": statusCode
+        },
+        parameters: getParams(req)
+      };
+
+      // Ignore the status code if the 'suppress_response_codes' tag is set
+      if (getParams(req).suppress_status_codes) {
+        statusCode = 200;
       }
-      if (description) {
-        returnLines.push('<hr><h4><span style=\'color:dd0000;\'>Description:</span>' + description + '</h4>');
-      }
-      res.set('Content-Type', contentType);
-      res.status(statusCode).send(returnLines.join(''));
+
+      response = buildResponse(result);
+      res.set('Content-Type', response.contentType);
+      res.status(statusCode).send(response.result);
     }
   };
 };
@@ -83,7 +100,7 @@ var addMethod = function(method, path, callback, app) {
 
   // Add the version number to the path
   var newPath = ['/', config.appInfo.version, '/', path, '.:format?'].join('');
-  console.log(newPath);
+  console.log('addMethod', newPath);
 
   //create the get request
   method = method.toLowerCase();
