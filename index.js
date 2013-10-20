@@ -1,9 +1,8 @@
 var express = require('express'),
-apiWrapper = require('./tools/apiWrapper'),
-osmApi = require('./tools/osmApi'),
-allowXSS = require('./tools/allowXSS'),
 app = express(),
-poiApp = apiWrapper(app);
+poiApp = require('./tools/apiWrapper')(app),
+api06 = require('./apis/0.6'),
+allowXSS = require('./tools/allowXSS');
 exports.routes = function() {
 
   // From http://wiki.openstreetmap.org/wiki/API_v0.6#General_information
@@ -14,7 +13,7 @@ exports.routes = function() {
   allowXSS(app);
 
   // API Calls
-  osmApi.apiCalls.map(function(apiCall) {
+  api06.map(function(apiCall) {
     poiApp.allow(apiCall.method, apiCall.path, apiCall.process);
   });
 
