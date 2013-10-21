@@ -73,6 +73,7 @@ echo -e "\033[33m──━━━━━━━━━━━━━━━━━━━
 
 wget https://raw.github.com/openstreetmap/openstreetmap-website/master/db/structure.sql
 wget https://raw.github.com/openstreetmap/osmosis/master/package/script/pgsnapshot_schema_0.6.sql
+wget https://raw.github.com/openstreetmap/osm2pgsql/master/900913.sql
 
 cd $cur_dir
 echo -e "\033[32m"
