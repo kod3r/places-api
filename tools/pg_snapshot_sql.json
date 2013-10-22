@@ -1,0 +1,32 @@
+{
+  "node": {
+    "read": {
+      "statement": "SELECT",
+      "columns": {
+        "id": "nodes.id",
+        "visible": "'true'",
+        "lat": "ST_Y(nodes.geom)",
+        "lon": "ST_X(nodes.geom)",
+        "changeset": "nodes.changeset_id",
+        "user": "users.name",
+        "version": "nodes.version",
+        "iud": "nodes.user_id",
+        "timestamp": "nodes.tstamp AT TIME ZONE 'UTC'"
+      ],
+      "tables": "nodes join users on nodes.user_id = users.id",
+      "where": ["nodes.id = {{id}}"]
+    }
+  },
+  "way": {
+    "statement": "SELECT",
+    "columns": {
+      "id",
+      "visible",
+      "version",
+      "changeset",
+      "timestamp"
+      "user"
+      "uid"
+    }.
+  }
+}

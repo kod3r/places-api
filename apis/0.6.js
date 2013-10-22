@@ -12,8 +12,7 @@ var respond = function(res, dbResult){
 
 // These are all the calls we need to handle
 // http://wiki.openstreetmap.org/wiki/API_v0.6_(Archive)#Status
-exports = module.exports = [
-  {
+exports = module.exports = [{
   'name': 'GET capabilities',
   'description': 'Returns server capabilities.',
   'method': 'GET',
@@ -29,7 +28,7 @@ exports = module.exports = [
   'path': 'node/:id',
   'process': function(req, res) {
     // Lookup the node in the database
-    respond(res, database.node.read({'id': req.params.id}));
+    database.node.read(req, res, {'id': req.params.id}, respond);
   }
 },
 {
@@ -111,7 +110,7 @@ exports = module.exports = [
   'path': 'way/:id',
   'process': function(req, res) {
     // Lookup the node in the database
-    respond(res, database.way.read({'id': req.params.id}));
+    database.way.read(req, res, {'id': req.params.id}, respond);
   }
 },
 {
@@ -192,7 +191,7 @@ exports = module.exports = [
   'method': 'GET',
   'path': 'relation/:id',
   'process': function(req, res) {
-    respond(res, database.relation.read({'id': req.params.id}));
+    database.relation.read(req, res, {'id': req.params.id}, respond);
   }
 },
 {
@@ -273,7 +272,7 @@ exports = module.exports = [
   'method': 'GET',
   'path': 'changeset/:id',
   'process': function(req, res) {
-    respond(res, database.changeset.read({'id': req.params.id}));
+    database.changeset.read(req, res, {'id': req.params.id}, respond);
   }
 },
 {
@@ -367,7 +366,6 @@ exports = module.exports = [
   'path': 'changes',
   'process': function(req, res) {
     // How is this different from changesets?
-    respond(res, database.changesets.read({'time_period': req.params.time_period}));
+    respond(res, database.changesets.read({'time_period': req.params.timePeriod}));
   }
-}
-]; 
+}];
