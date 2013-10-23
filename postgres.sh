@@ -1,10 +1,12 @@
 #!/bin/bash
 echo "╔══════════════════════════════════╗"
-echo "     Installing postgresql 9.1"
+echo "     Installing postgresql 9.3"
 echo "╚══════════════════════════════════╝"
 
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main" >> /etc/apt/sources.list.d/postgresql.list'
 apt-get -y update
-apt-get -y install postgresql postgresql-contrib libpq-dev postgresql-server-dev-all postgresql-client-common
+apt-get -y install postgresql-9.3 postgresql-contrib-9.3 libpq-dev postgresql-server-dev-all postgresql-client-common
 
 # Set up user information
 echo "╔══════════════════════════════════╗"

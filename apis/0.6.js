@@ -1,10 +1,12 @@
 var config = require('../config');
+var queries = require('./apiSql');
 var database = require('../tools/database');
 
 var respond = function(res, dbResult){
   // Determines if there is an error and routes it to 'status', otherwise route the data to 'send'
   if (dbResult.error) {
-    res.status(dbResult.error.code, dbResult.error.description);
+    console.log(dbResult);
+    res.status(dbResult.error.code, dbResult.error.description, dbResult.details);
   } else {
     res.send(dbResult.data);
   }
@@ -28,8 +30,11 @@ exports = module.exports = [{
   'path': 'node/:id',
   'process': function(req, res) {
     // Lookup the node in the database
-    var query = 'SELECT nodes.id, \'true\' as visible, ST_Y(nodes.geom) as lat, ST_X(nodes.geom) as lon, nodes.changeset_id as changeset, users.name as user, nodes.version, nodes.user_id as iud, nodes.tstamp AT TIME ZONE \'UTC\' as timestamp, nodes.tags as tag FROM nodes JOIN users on nodes.user_id = users.id WHERE nodes.id = {{id}};';
-    database.query(req, res, 'node', query, {'id': req.params.id}, respond);
+    var query = queries.select.nodes.concat(queries.where.where, queries.where.nodes.id).join('\n');
+    database(req, res).query(query, 'node', respond);
+
+
+    //'SELECT nodes.id, \'true\' as visible, ST_Y(nodes.geom) as lat, ST_X(nodes.geom) as lon, nodes.changeset_id as changeset, users.name as user, nodes.version, nodes.user_id as iud, nodes.tstamp AT TIME ZONE \'UTC\' as timestamp, nodes.tags as tag FROM nodes JOIN users on nodes.user_id = users.id WHERE nodes.id = {{id}};';
   }
 },
 {
@@ -65,7 +70,11 @@ exports = module.exports = [{
   'method': 'GET',
   'path': 'node/:id/history',
   'process': function(req, res) {
-    respond(res, database.node.read({'id': req.params.id,'history': true}));
+    // Lookup the node in the database
+    //var query = 'SELECT nodes.id, \'true\' as visible, ST_Y(nodes.geom) as lat, ST_X(nodes.geom) as lon, nodes.changeset_id as changeset, users.name as user, nodes.version, nodes.user_id as iud, nodes.tstamp AT TIME ZONE \'UTC\' as timestamp, nodes.tags as tag FROM nodes JOIN users on nodes.user_id = users.id WHERE nodes.id = {{id}};';
+    
+    var query = queries.select.nodes.concat(queries.where.where, queries.where.nodes.history).join('\n');
+    database(req, res).query(query, 'node', respond);
   }
 },
 {
@@ -110,8 +119,11 @@ exports = module.exports = [{
   'method': 'GET',
   'path': 'way/:id',
   'process': function(req, res) {
-    var query = 'SELECT ways.id, \'true\' as visible, ways.changeset_id as changeset, users.name as user, ways.version as version, ways.user_id as iud, ways.nodes as nd, ways.tstamp AT TIME ZONE \'UTC\' as timestamp, ways.tags as tag FROM ways JOIN users on ways.user_id = users.id WHERE ways.id = {{id}};';
-    database.query(req, res, 'way', query, {'id': req.params.id}, respond);
+    //var query = 'SELECT ways.id, \'true\' as visible, ways.changeset_id as changeset, users.name as user, ways.version as version, ways.user_id as iud, ways.nodes as nd, ways.tstamp AT TIME ZONE \'UTC\' as timestamp, ways.tags as tag FROM ways JOIN users on ways.user_id = users.id WHERE ways.id = {{id}};';
+    //database.query(req, res, 'way', query, {'id': req.params.id}, respond);
+
+    var query = queries.select.ways.concat(queries.where.where, queries.where.ways.id).join('\n');
+    database(req, res).query(query, 'way', respond);
   }
 },
 {
@@ -147,7 +159,9 @@ exports = module.exports = [{
   'method': 'GET',
   'path': 'way/:id/history',
   'process': function(req, res) {
-    respond(res, database.way.read({'id': req.params.id,'history': true}));
+    var query = queries.select.ways.concat(queries.where.where, queries.where.ways.history).join('\n');
+    database(req, res).query(query, 'way', respond);
+
   }
 },
 {

@@ -17,29 +17,29 @@ var getParams = function(req) {
 
 var modifiedResults = function(req, res) {
 
-    var buildResponse = function(result) {
-      // Converts the JSON response to pretty print, jsonp, or XML
-      var indent = getParams(req).pretty ? 2 : null,
-      response = {};
+  var buildResponse = function(result) {
+    // Converts the JSON response to pretty print, jsonp, or XML
+    var indent = getParams(req).pretty ? 2 : null,
+    response = {};
 
-      if (req.params && req.params.format === 'json' || req.params.format === 'jsonp') {
-        // Pretty Print JSON
-        response.result = JSON.stringify(result,null,indent);
-        response.contentType = 'application/json';
+    if (req.params && req.params.format === 'json' || req.params.format === 'jsonp') {
+      // Pretty Print JSON
+      response.result = JSON.stringify(result,null,indent);
+      response.contentType = 'application/json';
 
-        // Check for jsonp
-        if (getParams(req).callback) {
-          response.contentType = 'application/javascript';
-          response.result = [getParams(req).callback, '(', result, ');'].join('');
-        }
-      } else {
-        // OSM XML
-        response.contentType = 'application/xml';
-        response.result = xmlJs.xmlify(result, {'prettyPrint': indent});
+      // Check for jsonp
+      if (getParams(req).callback) {
+        response.contentType = 'application/javascript';
+        response.result = [getParams(req).callback, '(', result, ');'].join('');
       }
+    } else {
+      // OSM XML
+      response.contentType = 'application/xml';
+      response.result = xmlJs.xmlify(result, {'prettyPrint': indent});
+    }
 
-      return response;
-    };
+    return response;
+  };
 
   return {
     send: function(inData) {
@@ -67,16 +67,16 @@ var modifiedResults = function(req, res) {
       res.set('Content-Type', response.contentType);
       res.send(response.result);
     },
-    status: function(statusCode, description) {
+    status: function(statusCode, description, details) {
       // Status is used for error reporting
-      var result,
-      contentType = 'text/html';
+      var result, response;
 
       // Build a description of the error
       result = {
-        "error" : {
-          "message": errorList[statusCode],
-          "status": statusCode
+        'error' : {
+          'message': errorList[statusCode],
+          'status': statusCode,
+          'details': details
         },
         parameters: getParams(req)
       };
