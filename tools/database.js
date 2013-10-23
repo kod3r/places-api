@@ -3,39 +3,78 @@ var pg = require('pg');
 var splitHstore = function(hstore) {
   var returnValue = [];
 
-  hstore.split(', ').map(function (tag) {
+  hstore.split('", "').map(function (tag) {
     var tags = tag.split('=>');
     returnValue.push({'k': tags[0].replace(/"$|^"/g, ''), 'v': tags[1].replace(/"$|^"/g, '')});
+    //returnValue.push(tag);
   });
 
   return returnValue;
 },
-parseResults = function (results) {
-  var returnValue = {node: {}};
+splitInts = function(ints) {
+  var returnValue = [];
+
+  ints.toString().split(',').map(function (val) {
+    returnValue.push({'ref': val});
+  });
+
+  return returnValue;
+},
+parseResults = function (results, type) {
+  var returnValue = {};
+  returnValue[type] = {};
 
   results.fields.map(function(field){
     if (results.rows[0][field.name]) {
-      if (field.dataTypeID === 25846 ) {
+      if (field.dataTypeID === 25846 || field.dataTypeID === 17987) {
         // hstore
-        returnValue.node[field.name] = splitHstore(results.rows[0][field.name]);
+        returnValue[type][field.name] = splitHstore(results.rows[0][field.name]);
       } else if (field.dataTypeID === 1184 ) {
         // timestamp
-        returnValue.node[field.name] = results.rows[0][field.name].toISOString();
+        returnValue[type][field.name] = results.rows[0][field.name].toISOString();
+      } else if (field.dataTypeID === 1016 ) {
+        // number array
+        returnValue[type][field.name] = splitInts(results.rows[0][field.name]);
       } else {
         // Text or something
-        returnValue.node[field.name] = results.rows[0][field.name].toString();
+        returnValue[type][field.name] = results.rows[0][field.name].toString();
       }
     }
   });
 
-  //  returnValue.test = results;
+//    returnValue.test = results;
   return returnValue;
+},
+dbQuery = function(req, res, type, query, fields, callback) {
+  var runQuery = function(query) {
+    var queryData = {};
+    var conString = 'postgres://username:password@server/database';
+    var client = new pg.Client(conString);
+    client.connect(function(err) {
+      if (err) {
+        queryData.error = err;
+        callback(res, queryData);
+      } else {
+        client.query(query, function(err, results) {
+          queryData.error = err;
+          queryData.data = parseResults(results, type);
+          callback(res, queryData);
+        });
+      }
+    });
+  };
+
+  for (var field in fields) {
+    query = query.replace('{{'+field+'}}', fields[field]);
+  }
+
+  runQuery(query);
 },
 dbProcess = function(req, res, method, type, fields, callback) {
   // Run the database call
   var runQuery = function(query) {
     var queryData = {};
-    var conString = 'postgres://username:password@server/database_name';
+    var conString = 'postgres://username:password@server/database';
     var client = new pg.Client(conString);
     client.connect(function(err) {
       if (err) {
@@ -147,6 +186,8 @@ exports = module.exports = function() {
   dataTypes.map(function(dataType) {
     returnValue[dataType] = createCrud(dataType);
   });
+
+  returnValue.query = dbQuery;
 
   return returnValue;
 }();

@@ -28,7 +28,8 @@ exports = module.exports = [{
   'path': 'node/:id',
   'process': function(req, res) {
     // Lookup the node in the database
-    database.node.read(req, res, {'id': req.params.id}, respond);
+    var query = 'SELECT nodes.id, \'true\' as visible, ST_Y(nodes.geom) as lat, ST_X(nodes.geom) as lon, nodes.changeset_id as changeset, users.name as user, nodes.version, nodes.user_id as iud, nodes.tstamp AT TIME ZONE \'UTC\' as timestamp, nodes.tags as tag FROM nodes JOIN users on nodes.user_id = users.id WHERE nodes.id = {{id}};';
+    database.query(req, res, 'node', query, {'id': req.params.id}, respond);
   }
 },
 {
@@ -109,8 +110,8 @@ exports = module.exports = [{
   'method': 'GET',
   'path': 'way/:id',
   'process': function(req, res) {
-    // Lookup the node in the database
-    database.way.read(req, res, {'id': req.params.id}, respond);
+    var query = 'SELECT ways.id, \'true\' as visible, ways.changeset_id as changeset, users.name as user, ways.version as version, ways.user_id as iud, ways.nodes as nd, ways.tstamp AT TIME ZONE \'UTC\' as timestamp, ways.tags as tag FROM ways JOIN users on ways.user_id = users.id WHERE ways.id = {{id}};';
+    database.query(req, res, 'way', query, {'id': req.params.id}, respond);
   }
 },
 {
