@@ -46,7 +46,7 @@
     },
     "ways": {
       "id": "ways.way_id = '{{id}}' AND ways.version IN (SELECT MAX(version) FROM ways WHERE way_id = '{{id}}')",
-      "history": "ways.way_id = '{{id}}' AND ways.version"
+      "history": "ways.way_id = '{{id}}'"
     }
   }
 }
