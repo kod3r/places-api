@@ -94,12 +94,13 @@ var modifiedResults = function(req, res) {
 };
 
 
-var addMethod = function(method, path, callback, app) {
+var addMethod = function(method, path, version, app, callback) {
 
   //Extends the API calls to allow for more modification
 
   // Add the version number to the path
-  var newPath = ['/', config.appInfo.version, '/', path, '.:format?'].join('');
+  version = version ? '/' + version : '';
+  var newPath = [version, '/', path, '.:format?'].join('');
   console.log('addMethod', newPath);
 
   //create the get request
@@ -119,7 +120,7 @@ var addMethod = function(method, path, callback, app) {
 exports = module.exports = function(app) {
   return {
     getParams: getParams,
-    allow: function(method, path, callback) {addMethod(method, path, callback, app);}
+    allow: function(method, path, version, callback) {addMethod(method, path, version, app, callback);}
   };
 };
 

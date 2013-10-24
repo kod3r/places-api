@@ -30,11 +30,8 @@ exports = module.exports = [{
   'path': 'node/:id',
   'process': function(req, res) {
     // Lookup the node in the database
-    var query = queries.select.nodes.concat(queries.where.where, queries.where.nodes.id).join('\n');
+    var query = queries.select.nodes.concat(queries.where.where, queries.where.id).join('\n');
     database(req, res).query(query, 'node', respond);
-
-
-    //'SELECT nodes.id, \'true\' as visible, ST_Y(nodes.geom) as lat, ST_X(nodes.geom) as lon, nodes.changeset_id as changeset, users.name as user, nodes.version, nodes.user_id as iud, nodes.tstamp AT TIME ZONE \'UTC\' as timestamp, nodes.tags as tag FROM nodes JOIN users on nodes.user_id = users.id WHERE nodes.id = {{id}};';
   }
 },
 {
@@ -70,10 +67,7 @@ exports = module.exports = [{
   'method': 'GET',
   'path': 'node/:id/history',
   'process': function(req, res) {
-    // Lookup the node in the database
-    //var query = 'SELECT nodes.id, \'true\' as visible, ST_Y(nodes.geom) as lat, ST_X(nodes.geom) as lon, nodes.changeset_id as changeset, users.name as user, nodes.version, nodes.user_id as iud, nodes.tstamp AT TIME ZONE \'UTC\' as timestamp, nodes.tags as tag FROM nodes JOIN users on nodes.user_id = users.id WHERE nodes.id = {{id}};';
-    
-    var query = queries.select.nodes.concat(queries.where.where, queries.where.nodes.history).join('\n');
+    var query = queries.select.nodes.concat(queries.where.where, queries.where.history).join('\n');
     database(req, res).query(query, 'node', respond);
   }
 },
@@ -119,10 +113,7 @@ exports = module.exports = [{
   'method': 'GET',
   'path': 'way/:id',
   'process': function(req, res) {
-    //var query = 'SELECT ways.id, \'true\' as visible, ways.changeset_id as changeset, users.name as user, ways.version as version, ways.user_id as iud, ways.nodes as nd, ways.tstamp AT TIME ZONE \'UTC\' as timestamp, ways.tags as tag FROM ways JOIN users on ways.user_id = users.id WHERE ways.id = {{id}};';
-    //database.query(req, res, 'way', query, {'id': req.params.id}, respond);
-
-    var query = queries.select.ways.concat(queries.where.where, queries.where.ways.id).join('\n');
+    var query = queries.select.ways.concat(queries.where.where, queries.where.id).join('\n');
     database(req, res).query(query, 'way', respond);
   }
 },
@@ -159,9 +150,8 @@ exports = module.exports = [{
   'method': 'GET',
   'path': 'way/:id/history',
   'process': function(req, res) {
-    var query = queries.select.ways.concat(queries.where.where, queries.where.ways.history).join('\n');
+    var query = queries.select.ways.concat(queries.where.where, queries.where.history).join('\n');
     database(req, res).query(query, 'way', respond);
-
   }
 },
 {
@@ -179,7 +169,7 @@ exports = module.exports = [{
   'method': 'GET',
   'path': 'way/:id/relations',
   'process': function(req, res) {
-    respond(res, database.way.read({'id': req.params.id,'relations': true}));
+    return [req,res];
   }
 },
 {
@@ -206,7 +196,8 @@ exports = module.exports = [{
   'method': 'GET',
   'path': 'relation/:id',
   'process': function(req, res) {
-    database.relation.read(req, res, {'id': req.params.id}, respond);
+    var query = queries.select.relations.concat(queries.where.where, queries.where.id).join('\n');
+    database(req, res).query(query, 'relation', respond);
   }
 },
 {
@@ -242,7 +233,8 @@ exports = module.exports = [{
   'method': 'GET',
   'path': 'relation/:id/history',
   'process': function(req, res) {
-    respond(res, database.relation.read({'id': req.params.id, 'history': true}));
+    var query = queries.select.relations.concat(queries.where.where, queries.where.history).join('\n');
+    database(req, res).query(query, 'relation', respond);
   }
 },
 {
@@ -260,7 +252,7 @@ exports = module.exports = [{
   'method': 'GET',
   'path': 'relation/:id/relations',
   'process': function(req, res) {
-    respond(res, database.relation.read({'id': req.params.id, 'relations': true}));
+    respond(res, database.relation.read({'id': req.params.id, 'relation': true}));
   }
 },
 {
@@ -278,7 +270,7 @@ exports = module.exports = [{
   'method': 'GET',
   'path': 'relations',
   'process': function(req, res) {
-    respond(res, database.relation.read({'relatons': req.params.relations}));
+    respond(res, database.relation.read({'relaton': req.params.relations}));
   }
 },
 {
@@ -287,7 +279,8 @@ exports = module.exports = [{
   'method': 'GET',
   'path': 'changeset/:id',
   'process': function(req, res) {
-    database.changeset.read(req, res, {'id': req.params.id}, respond);
+    var query = queries.select.changesets.concat(queries.where.where, queries.where.changeset.id).join('\n');
+    database(req, res).query(query, 'changeset', respond);
   }
 },
 {
@@ -360,8 +353,52 @@ exports = module.exports = [{
   'method': 'GET',
   'path': 'map',
   'process': function(req, res) {
-    // Not Sure?
-    respond(res, database.all.read({'bbox': req.params.bbox}));
+
+    var queryList = [{
+      'type': 'node',
+      'query': queries.select.nodes.concat(queries.where.where, 'nodes.node_id IN (select node_id from way_nodes where way_id IN (SELECT way_id from ways where way_id IN (select way_id from current_nodes join way_nodes on current_nodes.id = way_nodes.node_id  where latitude > {{minLat}}*10000000 AND longitude > {{minLon}}*10000000 AND latitude < {{maxLat}}*10000000 AND longitude < {{maxLon}}*10000000))) ').join('\n')
+    }, {
+      'type': 'way',
+      'query': queries.select.ways.concat(queries.where.where, 'way_id IN (SELECT way_id from ways where way_id IN (select way_id from current_nodes join way_nodes on current_nodes.id = way_nodes.node_id  where latitude > {{minLat}}*10000000 AND longitude > {{minLon}}*10000000 AND latitude < {{maxLat}}*10000000 AND longitude < {{maxLon}}*10000000)) ').join('\n')
+    }, {
+      'type': 'relation',
+      'query': queries.select.relations.concat(queries.where.where, 'relation_id in  (select relation_id from relation_members where lower(member_type::text) = \'way\' and member_id in (SELECT way_id from ways where way_id IN (select way_id from current_nodes join way_nodes on current_nodes.id = way_nodes.node_id  where latitude > {{minLat}}*10000000 AND longitude > {{minLon}}*10000000 AND latitude < {{maxLat}}*10000000 AND longitude < {{maxLon}}*10000000)))').join('\n')
+    }, {
+      'type': 'relation',
+      'query': queries.select.relations.concat(queries.where.where, 'relation_id in (select relation_id from relation_members where lower(member_type::text) = \'node\' and member_id in (select node_id from way_nodes where way_id IN (SELECT way_id from ways where way_id IN (select way_id from current_nodes join way_nodes on current_nodes.id = way_nodes.node_id  where latitude > {{minLat}}*10000000 AND longitude > {{minLon}}*10000000 AND latitude < {{maxLat}}*10000000 AND longitude < {{maxLon}}*10000000))))').join('\n')
+    }],
+    responses = [],
+    appendData = function(inRes, data) {
+      var responseData = {};
+
+      // If there's an error, report it immediately
+      if (data.error && data.error.code && data.error.code === '500') {
+        respond(inRes, data);
+        responses = [];
+      } else {
+        // Add the data back to a result array
+        responses.push(data);
+      }
+      if (responses.length >= queryList.length) {
+        for (var record in responses) {
+          for (var obj in responses[record].data) {
+            responseData[obj] = responses[record].data[obj];
+          }
+        }
+        respond(inRes,{'data': responseData});
+      }
+
+    };
+
+    req.params.minLat = '39.7832127';
+    req.params.minLon = '-75.5419922';
+    req.params.maxLat = '39.7874339';
+    req.params.maxLon = '-75.5364990';
+
+    for (var queryIndex in queryList) {
+      database(req, res).query(queryList[queryIndex].query, queryList[queryIndex].type, appendData);
+    }
+
   }
 },
 {

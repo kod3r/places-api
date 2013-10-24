@@ -8,17 +8,19 @@ exports = module.exports = function(req, res) {
       var connectionString = 'postgres://osm:osm@10.147.146.121/osm_de_api';
       return new pg.Client(connectionString);
     }(),
-    addParams: function (query) {
+    addParams: function (query, type) {
       // TODO: This should use handlebars or something like it
       var newQuery = query,
-      re = function(name) {return new RegExp('{{'+name+'}}','g');};
-      for (var param in req.params) {
+      re = function(name) {return new RegExp('{{'+name+'}}','g');},
+      param;
+      for (param in req.params) {
         newQuery = newQuery.replace(re(param), req.params[param]);
       }
+      newQuery = newQuery.replace(re('&type&'), type);
+      console.log(newQuery);
       return newQuery;
     },
     query: function(query, type, callback) {
-      console.log('a', type);
       var queryResult = [];
       databaseTools.database.connect(function(err) {
         if (err) {
@@ -26,7 +28,7 @@ exports = module.exports = function(req, res) {
           queryResult.details = err;
           callback(res, queryResult);
         } else {
-          databaseTools.database.query(databaseTools.addParams(query), function(err, results) {
+          databaseTools.database.query(databaseTools.addParams(query, type), function(err, results) {
             if (err) {
               queryResult.error = {'code': '500'};
               queryResult.details = err;
@@ -52,22 +54,7 @@ exports = module.exports = function(req, res) {
       },
       '25846': function(hstore) {return databaseTools.translateField['17987'](hstore);},
       '114': function(json) {
-        // json
-        var returnValue = [], row, k;
-        if( Object.prototype.toString.call( json ) === '[object Object]' ) {
-          for (k in json) {
-            row = {'k': k, 'v': json[k]};
-            returnValue.push(row);
-          }
-        } else if ( Object.prototype.toString.call( json ) === '[object Array]' ) {
-          for (k in json) {
-            row = {'ref': json[k]};
-            returnValue.push(row);
-          }
-        } else {
-          returnValue = json;
-        }
-        return returnValue;
+        return json;
       },
       '1184': function (timestamp){
         // timestamp

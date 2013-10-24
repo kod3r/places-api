@@ -11,13 +11,13 @@
       "  changesets.user_id as uid,",
       "  nodes.latitude/10000000::float as lat,",
       "  nodes.longitude/10000000::float as lon,",
-      "  to_json(hstore_from_kv('node_tags', 'node_id', nodes.node_id, nodes.version)) as tag",
+      "  to_json(ARRAY(SELECT HSTORE(temp) FROM (SELECT k, v FROM node_tags WHERE node_id = nodes.node_id AND version = nodes.version) temp)) AS tag",
       "FROM",
       "  nodes",
       "  JOIN changesets ",
       "    ON nodes.changeset_id = changesets.id",
-      "   JOIN users",
-      "     ON changesets.user_id = users.id"
+      "     JOIN users",
+      "       ON changesets.user_id = users.id"
     ],
     "ways": [
       "SELECT",
@@ -28,25 +28,58 @@
       "  ways.timestamp AT TIME ZONE 'UTC' as timestamp,",
       "  users.display_name as user,",
       "  changesets.user_id as uid,",
-      "  to_json(ARRAY(select node_id from way_nodes where way_id = ways.way_id AND version = ways.version ORDER BY sequence_id)) AS nd,",
-      "  to_json(hstore_from_kv('way_tags', 'way_id', ways.way_id, ways.version)) as tag",
+      "  to_json(ARRAY(SELECT HSTORE(temp) FROM (SELECT node_id AS ref FROM way_nodes WHERE way_id = ways.way_id AND version = ways.version ORDER BY sequence_id) temp)) AS nd,",
+      "  to_json(ARRAY(SELECT HSTORE(temp) FROM (SELECT k, v FROM way_tags WHERE way_id = ways.way_id AND version = ways.version) temp)) AS tag",
       "FROM",
       "  ways",
       "  JOIN changesets",
       "    ON ways.changeset_id = changesets.id",
+      "    JOIN users",
+      "      ON changesets.user_id = users.id"
+    ],
+    "relations" : [
+      "SELECT",
+      "  relations.relation_id as id,",
+      "  relations.visible as visible,",
+      "  relations.version as version,",
+      "  relations.changeset_id as changeset,",
+      "  relations.timestamp AT TIME ZONE 'UTC' as timestamp,",
+      "  users.display_name as user,",
+      "  changesets.user_id as uid,",
+      "  to_json(array(select hstore(t) from (select lower(member_type::text) as type, member_id as ref, member_role as role from relation_members where relation_id = relations.relation_id)  t)) as member,",
+      "  to_json(array(select hstore(temp) from (select k, v from {{&type&}}_tags where {{&type&}}_id = {{&type&}}s.{{&type&}}_id) temp)) as tag",
+      "FROM",
+      "  relations",
+      "  JOIN changesets",
+      "    ON relations.changeset_id = changesets.id",
+      "    JOIN users",
+      "      ON changesets.user_id = users.id"
+    ],
+    "changesets": [
+      "SELECT",
+      "  changesets.id as id,",
+      "  users.display_name as user,",
+      "  changesets.user_id as uid,",
+      "  changesets.created_at AT TIME ZONE 'UTC' as created_at,",
+      "  changesets.closed_at AT TIME ZONE 'UTC' as closed_at,",
+      "  (select (closed_at>now() AND num_changes<=50000) AS open from changesets open where open.id = changesets.id) as open,",
+      "  changesets.min_lat/10000000::float as min_lat,",
+      "  changesets.min_lon/10000000::float as min_lon,",
+      "  changesets.max_lat/10000000::float as max_lat,",
+      "  changesets.max_lon/10000000::float as max_lon,",
+      "  to_json(array(select hstore(temp) from (select k, v from changeset_tags where changeset_id = changesets.id) temp)) as tag",
+      "FROM",
+      "  changesets",
       "  JOIN users",
       "    ON changesets.user_id = users.id"
     ]
   },
   "where": {
     "where": "WHERE",
-    "nodes": {
-      "id": "nodes.node_id = '{{id}}' AND nodes.version in (SELECT MAX(version) FROM nodes WHERE node_id = '{{id}}')",
-      "history": "nodes.node_id = '{{id}}'"
-    },
-    "ways": {
-      "id": "ways.way_id = '{{id}}' AND ways.version IN (SELECT MAX(version) FROM ways WHERE way_id = '{{id}}')",
-      "history": "ways.way_id = '{{id}}'"
+    "id": "{{&type&}}s.{{&type&}}_id = '{{id}}' AND {{&type&}}s.version IN (SELECT MAX(version) FROM {{&type&}}s WHERE {{&type&}}_id = '{{id}}')",
+    "history": "{{&type&}}s.{{&type&}}_id = '{{id}}'",
+    "changeset": {
+      "id":  "{{&type&}}s.id = '{{id}}'"
     }
   }
 }

@@ -1,5 +1,5 @@
-var express = require('express'),
-app = express(),
+var app = require('express')(),
+config = require('./config'),
 poiApp = require('./tools/apiWrapper')(app),
 api06 = require('./apis/0.6'),
 allowXSS = require('./tools/allowXSS');
@@ -14,7 +14,12 @@ exports.routes = function() {
 
   // API Calls
   api06.map(function(apiCall) {
-    poiApp.allow(apiCall.method, apiCall.path, apiCall.process);
+    poiApp.allow(apiCall.method, apiCall.path, '0.6', apiCall.process);
+  });
+
+  // Overall capabilities (this is sort of duplicated?
+  poiApp.allow('GET', 'capabilities', null, function(req, res) {
+    res.send({'api':config.capabilities});
   });
 
   return app;
