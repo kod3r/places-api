@@ -15,7 +15,6 @@ sudo -u postgres createlang -d $dbname plpgsql
 
 # Create the database extentions
 sudo -u postgres psql -d $dbname -c "CREATE EXTENSION hstore;"
-sudo -u postgres psql -d $dbname -c "CREATE EXTENSION tablefunc;"
 
 # Make sure we have the db structure file
 cd $home_dir/installation/osmosis/script

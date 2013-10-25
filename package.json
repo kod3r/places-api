@@ -23,6 +23,8 @@
     "url": "http://github.com/nationalparkservice/scratch"
   },
   "dependencies": {
-    "jsontoxml": "*"
+    "express": "*",
+    "pg": "*",
+    "xmljs_translator": "*"
   }
 }
