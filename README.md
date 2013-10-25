@@ -1,9 +1,9 @@
-poiApi
+poi-api
 ======
 
 Description
 -----------
-poiApi is an implementation of the [OpenStreetMap API](http://wiki.openstreetmap.org/wiki/API_v0.6) written in [node.js](http://nodejs.org/) as middleware for the [express.js](http://expressjs.com/) web application framework.
+poi-api is an implementation of the [OpenStreetMap API](http://wiki.openstreetmap.org/wiki/API_v0.6) written in [node.js](http://nodejs.org/) as middleware for the [express.js](http://expressjs.com/) web application framework.
 
 Installation
 ------------
@@ -13,7 +13,7 @@ First you need to install express
 
 go into the node_modules directory in install this application through git
 
-`git clone https://github.com/jimmyrocks/poiApi.git`
+`git clone https://github.com/jimmyrocks/poi-api.git`
 
 You will also need to install a few depencencies, I'll add that information later.
 

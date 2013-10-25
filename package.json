@@ -1,5 +1,5 @@
 {
-  "name": "poiApi",
+  "name": "poi-api",
   "version": "0.0.1",
   "description": "a node.js implementation of the OpenStreetMap API",
   "keywords": ["express", "nps", "OpenStreetMap", "API"],
