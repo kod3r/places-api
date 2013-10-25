@@ -4,10 +4,10 @@ var pg = require('pg');
 exports = module.exports = function(req, res) {
 
   var databaseTools = {
-    database: function () {
+    database: function (callback) {
       var connectionString = 'postgres://osm:osm@10.147.146.121/osm_de_api';
-      return new pg.Client(connectionString);
-    }(),
+      pg.connect(connectionString, callback);
+    },
     addParams: function (query, type) {
       // TODO: This should use handlebars or something like it
       var newQuery = query,
@@ -22,13 +22,13 @@ exports = module.exports = function(req, res) {
     },
     query: function(query, type, callback) {
       var queryResult = [];
-      databaseTools.database.connect(function(err) {
+      databaseTools.database(function(err, client, done) {
         if (err) {
           queryResult.error = {'code': '500'};
           queryResult.details = err;
           callback(res, queryResult);
         } else {
-          databaseTools.database.query(databaseTools.addParams(query, type), function(err, results) {
+          client.query(databaseTools.addParams(query, type), function(err, results) {
             if (err) {
               queryResult.error = {'code': '500'};
               queryResult.details = err;
@@ -36,6 +36,7 @@ exports = module.exports = function(req, res) {
               queryResult.data = databaseTools.parse(results, type);
             }
             callback(res, queryResult);
+            done();
           });
         }
       });
