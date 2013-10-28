@@ -2,7 +2,7 @@
   "select": {
     "all" : {
       "nodes": [
-        "SELECT DISTINCT",
+        "SELECT",
         "  nodes.node_id as id,",
         "  nodes.visible,",
         "  nodes.version,",
@@ -21,7 +21,7 @@
         "       ON changesets.user_id = users.id"
       ],
       "ways": [
-        "SELECT DISTINCT",
+        "SELECT",
         "  ways.way_id as id,",
         "  ways.visible as visible,",
         "  ways.version as version,",
@@ -39,7 +39,7 @@
         "      ON changesets.user_id = users.id"
       ],
       "relations": [
-        "SELECT DISTINCT",
+        "SELECT",
         "  relations.relation_id as id,",
         "  relations.visible as visible,",
         "  relations.version as version,",
@@ -63,7 +63,7 @@
         "      ON changesets.user_id = users.id"
       ],
       "changesets": [
-        "SELECT DISTINCT",
+        "SELECT",
         "  changesets.id as id,",
         "  users.display_name as user,",
         "  changesets.user_id as uid,",
@@ -83,7 +83,7 @@
     },
     "current": {
       "ways": [
-        "SELECT DISTINCT",
+        "SELECT",
         "  current_ways.id AS id,",
         "  current_ways.visible AS visible,",
         "  current_ways.version AS VERSION,",
@@ -117,7 +117,7 @@
         "    ON changesets.user_id = users.id"
       ],
       "nodes": [
-        "SELECT DISTINCT",
+        "SELECT",
         "  current_nodes.id as id,",
         "  current_nodes.visible,",
         "  current_nodes.version,",
@@ -138,7 +138,7 @@
         "       ON changesets.user_id = users.id"
       ],
       "relations": [
-        "SELECT DISINCT",
+        "SELECT",
         "  current_relations.id as id,",
         "  current_relations.visible as visible,",
         "  current_relations.version as version,",
@@ -185,13 +185,67 @@
         "  current_relation_members.relation_id",
         "FROM",
         "  current_relation_members"
+      ],
+      "waysWithNode": [
+        "SELECT DISTINCT",
+        "  current_way_nodes.way_id as way_id",
+        "FROM",
+        "  current_way_nodes",
+        "WHERE",
+        "  current_way_nodes.node_id = '{{id}}'"
+      ],
+      "relationsWithNode": [
+        "SELECT DISTINCT",
+        "  current_relation_members.relation_id AS relation_id",
+        "FROM",
+        "  current_relation_members",
+        "WHERE",
+        "  lower(current_relation_members.member_type::text) = 'node'",
+        "  AND current_relation_members.member_id = '{{id}}'"
+      ],
+      "relationsWithWay": [
+        "SELECT DISTINCT",
+        "  current_relation_members.relation_id AS relation_id",
+        "FROM",
+        "  current_relation_members",
+        "WHERE",
+        "  lower(current_relation_members.member_type::text) = 'way'",
+        "  AND current_relation_members.member_id = '{{id}}'"
+      ],
+      "relationsWithRelation": [
+        "SELECT DISTINCT",
+        "  current_relation_members.relation_id AS relation_id",
+        "FROM",
+        "  current_relation_members",
+        "WHERE",
+        "  lower(current_relation_members.member_type::text) = 'relation'",
+        "  AND current_relation_members.member_id = '{{id}}'"
+      ],
+      "waysInRelation": [
+        "SELECT DISTINCT",
+        "  current_relation_members.member_id AS way_id",
+        "FROM",
+        "  current_relation_members",
+        "WHERE",
+        "  lower(member_type::text) = 'way'",
+        "  AND relation_id = '{{id}}'"
+      ],
+      "nodesInRelation": [
+        "SELECT DISTINCT",
+        "  current_relation_members.member_id AS node_id",
+        "FROM",
+        "  current_relation_members",
+        "WHERE",
+        "  lower(member_type::text) = 'node'",
+        "  AND relation_id = '{{id}}'"
       ]
     }
   },
   "where": {
     "where": "WHERE",
     "all": {
-      "id": "{{&type&}}s.{{&type&}}_id = '{{id}}'"
+      "id": "{{&type&}}s.{{&type&}}_id = '{{id}}'",
+      "version": "{{&type&}}s.version = '{{version}}'"
     },
     "current": {
       "id": "current_{{&type&}}s.id = '{{id}}'"

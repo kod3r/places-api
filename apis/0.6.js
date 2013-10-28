@@ -1,14 +1,41 @@
-var config = require('../config');
-var queries = require('./apiSql');
-var database = require('../tools/database');
-
-var respond = function(res, dbResult){
+var config = require('../config'),
+queries = require('./apiSql'),
+database = require('../tools/database'),
+respond = function(res, dbResult){
   // Determines if there is an error and routes it to 'status', otherwise route the data to 'send'
   if (dbResult.error) {
+    console.log(dbResult);
     res.status(dbResult.error.code, dbResult.error.description, dbResult.details);
   } else {
     res.send(dbResult.data);
   }
+},
+multiRespond = function(queryList){
+  var responses = [],
+  processResponse = function(res, dbResult) {
+    var responseData = {};
+
+    // If there's an error, report it immediately
+    if (dbResult.error && dbResult.error.code && dbResult.error.code === '500') {
+      respond(res, dbResult);
+      responses = [];
+    } else {
+      // Add the data back to a result array
+      responses.push(dbResult);
+
+      // Check if we're ready to response to the browser
+      if (responses.length >= queryList.length) {
+        for (var record in responses) {
+          for (var obj in responses[record].data) {
+            responseData[obj] = responses[record].data[obj];
+          }
+        }
+        respond(res,{'data': responseData});
+      }
+    }
+  };
+
+  return processResponse;
 };
 
 // These are all the calls we need to handle
@@ -71,21 +98,17 @@ exports = module.exports = [{
   }
 },
 {
-  'name': 'GET node/#id/#version',
-  'description': 'Returns the XML for that version of the node.',
-  'method': 'GET',
-  'path': 'node/:id/:version',
-  'process': function(req, res) {
-    respond(res, database.node.read({'id': req.params.id, 'version': req.params.version}));
-  }
-},
-{
   'name': 'GET node/#id/ways',
   'description': 'Returns the XML for all ways that this node is part of.',
   'method': 'GET',
   'path': 'node/:id/ways',
   'process': function(req, res) {
-    respond(res, database.node.read({'id': req.params.id, 'ways': true}));
+    var query = queries.select.current.ways.concat(
+      'JOIN (',
+      queries.select.current.waysWithNode,
+      ') ways_with_node ON current_ways.id = ways_with_node.way_id'
+    ).join('\n');
+    database(req, res).query(query, 'way', respond);
   }
 },
 {
@@ -94,7 +117,22 @@ exports = module.exports = [{
   'method': 'GET',
   'path': 'node/:id/relations',
   'process': function(req, res) {
-    respond(res, database.node.read({'id': req.params.id, 'relations': true}));
+    var query = queries.select.current.relations.concat(
+      'JOIN (',
+      queries.select.current.relationsWithNode,
+      ') relations_with_node ON current_relations.id = relations_with_node.relation_id'
+    ).join('\n');
+    database(req, res).query(query, 'relation', respond);
+  }
+},
+{
+  'name': 'GET node/#id/#version',
+  'description': 'Returns the XML for that version of the node.',
+  'method': 'GET',
+  'path': 'node/:id/:version',
+  'process': function(req, res) {
+    var query = queries.select.all.nodes.concat('WHERE', queries.where.all.id, 'AND', queries.where.all.version).join('\n');
+    database(req, res).query(query, 'node', respond);
   }
 },
 {
@@ -103,7 +141,9 @@ exports = module.exports = [{
   'method': 'GET',
   'path': 'nodes',
   'process': function(req, res) {
-    respond(res, database.node.read({'nodes': req.params.nodes}));
+    var query = queries.select.current.nodes.concat('WHERE', 'current_nodes.id IN (\'{{nodes}}\')').join('\n');
+    req.params.nodes = req.query.nodes.split(',').join('\',\'');
+    database(req, res).query(query, 'node', respond);
   }
 },
 {
@@ -154,21 +194,17 @@ exports = module.exports = [{
   }
 },
 {
-  'name': 'GET way/#id/#version',
-  'description': 'Returns the XML for that version of the way.',
-  'method': 'GET',
-  'path': 'way/:id/:version',
-  'process': function(req, res) {
-    respond(res, database.way.read({'id': req.params.id,'version': req.params.version}));
-  }
-},
-{
   'name': 'GET way/#id/relations',
   'description': 'Returns the XML of all relations that this way is part of.',
   'method': 'GET',
   'path': 'way/:id/relations',
   'process': function(req, res) {
-    return [req,res];
+    var query = queries.select.current.relations.concat(
+      'JOIN (',
+      queries.select.current.relationsWithWay,
+      ') relations_with_way ON current_relations.id = relations_with_way.relation_id'
+    ).join('\n');
+    database(req, res).query(query, 'relation', respond);
   }
 },
 {
@@ -177,7 +213,34 @@ exports = module.exports = [{
   'method': 'GET',
   'path': 'way/:id/full',
   'process': function(req, res) {
-    respond(res, database.way.read({'id': req.params.id,'full': true}));
+    var queryList = [{
+      'type': 'way',
+      'query': queries.select.current.ways.concat('WHERE', queries.where.current.id).join('\n')
+    },
+    {
+      'type': 'node',
+      'query': queries.select.current.nodes.concat(
+        'JOIN (',
+        queries.select.current.nodesInWay,
+        'WHERE current_way_nodes.way_id = \'{{id}}\'',
+        ') nodes_in_way ON nodes_in_way.node_id = current_nodes.id'
+      ).join('\n')
+    }],
+    responses = multiRespond(queryList);
+
+    for (var queryIndex in queryList) {
+      database(req, res).query(queryList[queryIndex].query, queryList[queryIndex].type, responses);
+    }
+  }
+},
+{
+  'name': 'GET way/#id/#version',
+  'description': 'Returns the XML for that version of the way.',
+  'method': 'GET',
+  'path': 'way/:id/:version',
+  'process': function(req, res) {
+    var query = queries.select.all.ways.concat('WHERE', queries.where.all.id, 'AND', queries.where.all.version).join('\n');
+    database(req, res).query(query, 'way', respond);
   }
 },
 {
@@ -186,7 +249,9 @@ exports = module.exports = [{
   'method': 'GET',
   'path': 'ways',
   'process': function(req, res) {
-    respond(res, database.way.read({'ways': req.params.ways}));
+    var query = queries.select.current.ways.concat('WHERE', 'current_ways.id IN (\'{{ways}}\')').join('\n');
+    req.params.ways = req.query.ways.split(',').join('\',\'');
+    database(req, res).query(query, 'way', respond);
   }
 },
 {
@@ -237,21 +302,18 @@ exports = module.exports = [{
   }
 },
 {
-  'name': 'GET relation/#id/#version',
-  'description': 'Returns the XML for that version of the relation.',
-  'method': 'GET',
-  'path': 'relation/:id/:version',
-  'process': function(req, res) {
-    respond(res, database.relation.read({'id': req.params.id, 'version': req.params.version}));
-  }
-},
-{
   'name': 'GET relation/#id/relations',
   'description': 'Returns all relations that this relation appears in.',
   'method': 'GET',
   'path': 'relation/:id/relations',
   'process': function(req, res) {
-    respond(res, database.relation.read({'id': req.params.id, 'relation': true}));
+    var query = queries.select.current.relations.concat(
+      'JOIN (',
+      queries.select.current.relationsWithRelation,
+      ') relations_with_relation ON current_relations.id = relations_with_relation.relation_id'
+    ).join('\n');
+    database(req, res).query(query, 'relation', respond);
+
   }
 },
 {
@@ -260,7 +322,51 @@ exports = module.exports = [{
   'method': 'GET',
   'path': 'relation/:id/full',
   'process': function(req, res) {
-    respond(res, database.relation.read({'id': req.params.id, 'full': true}));
+    var queryList = [{
+      'type': 'relation',
+      'query': queries.select.current.relations.concat(
+        'JOIN (',
+        queries.select.current.relationsWithRelation,
+        'UNION',
+        'SELECT \'{{id}}\' as relation_id',
+        ') relations_with_relation ON current_relations.id = relations_with_relation.relation_id'
+      ).join('\n')
+    }, {
+      'type': 'way',
+      'query': queries.select.current.ways.concat(
+        'JOIN (',
+        queries.select.current.waysInRelation,
+        ') waysInRelation ON current_ways.id = waysInRelation.way_id'
+      ).join('\n')
+    }, {
+      'type': 'node',
+      'query': queries.select.current.nodes.concat(
+        'JOIN (',
+        queries.select.current.nodesInRelation,
+        'UNION',
+        queries.select.current.nodesInWay,
+        'JOIN (',
+        queries.select.current.waysInRelation,
+        ') ways_in_bbox ON current_way_nodes.way_id = ways_in_bbox.way_id',
+        ') nodesInRelation ON current_nodes.id = nodesInRelation.node_id'
+      ).join('\n')
+    }],
+    responses = multiRespond(queryList);
+
+    for (var queryIndex in queryList) {
+      database(req, res).query(queryList[queryIndex].query, queryList[queryIndex].type, responses);
+    }
+
+  }
+},
+{
+  'name': 'GET relation/#id/#version',
+  'description': 'Returns the XML for that version of the relation.',
+  'method': 'GET',
+  'path': 'relation/:id/:version',
+  'process': function(req, res) {
+    var query = queries.select.all.relations.concat('WHERE', queries.where.all.id, 'AND', queries.where.all.version).join('\n');
+    database(req, res).query(query, 'relation', respond);
   }
 },
 {
@@ -269,7 +375,9 @@ exports = module.exports = [{
   'method': 'GET',
   'path': 'relations',
   'process': function(req, res) {
-    respond(res, database.relation.read({'relaton': req.params.relations}));
+    var query = queries.select.current.relations.concat('WHERE', 'current_relations.id IN (\'{{relations}}\')').join('\n');
+    req.params.relations = req.query.relations.split(',').join('\',\'');
+    database(req, res).query(query, 'relation', respond);
   }
 },
 {
@@ -391,29 +499,7 @@ exports = module.exports = [{
         ') all_relations_in_bbox ON current_relations.id = all_relations_in_bbox.relation_id'
       ).join('\n')
     }],
-    responses = [],
-    appendData = function(inRes, data) {
-      var responseData = {};
-
-      // If there's an error, report it immediately
-      if (data.error && data.error.code && data.error.code === '500') {
-        console.log(data.details);
-        respond(inRes, data);
-        responses = [];
-      } else {
-        // Add the data back to a result array
-        responses.push(data);
-        if (responses.length >= queryList.length) {
-          for (var record in responses) {
-            for (var obj in responses[record].data) {
-              responseData[obj] = responses[record].data[obj];
-            }
-          }
-          respond(inRes,{'data': responseData});
-        }
-      }
-
-    };
+    responses = multiRespond(queryList);
 
     req.params.minLon = req.query.bbox.split(',')[0]; //'-75.5419922';
     req.params.minLat = req.query.bbox.split(',')[1]; //'39.7832127';
@@ -421,7 +507,7 @@ exports = module.exports = [{
     req.params.maxLat = req.query.bbox.split(',')[3]; //'39.7874339';
 
     for (var queryIndex in queryList) {
-      database(req, res).query(queryList[queryIndex].query, queryList[queryIndex].type, appendData);
+      database(req, res).query(queryList[queryIndex].query, queryList[queryIndex].type, responses);
     }
 
   }
