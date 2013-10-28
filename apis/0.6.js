@@ -2,9 +2,23 @@ var config = require('../config'),
 queries = require('./apiSql'),
 database = require('../tools/database'),
 respond = function(res, dbResult){
+  var fields = 0,
+  emptyFields = 0;
+  // Check for results
+  if (dbResult.data) {
+    for (var field in dbResult.data) {
+      fields++;
+      if (dbResult.data[field].length <= 0) {
+        emptyFields++;
+      }
+    }
+  }
+  if (!dbResult.data || emptyFields === fields) {
+    dbResult.error = dbResult.error ? dbResult.error : {'code': 404, 'description': 'No Data Returned', 'details': null};
+  }
+
   // Determines if there is an error and routes it to 'status', otherwise route the data to 'send'
   if (dbResult.error) {
-    console.log(dbResult);
     res.status(dbResult.error.code, dbResult.error.description, dbResult.details);
   } else {
     res.send(dbResult.data);
@@ -66,7 +80,7 @@ exports = module.exports = [{
   'method': 'PUT',
   'path': 'node/:id',
   'process': function(req, res) {
-    respond(res, database.node.update({'id': req.params.id}));
+    res.status('501', 'Not Implemented');
   }
 },
 {
@@ -75,7 +89,7 @@ exports = module.exports = [{
   'method': 'DELETE',
   'path': 'node/:id',
   'process': function(req, res) {
-    respond(res, database.node.delete({'id': req.params.id}));
+    res.status('501', 'Not Implemented');
   }
 },
 {
@@ -84,7 +98,7 @@ exports = module.exports = [{
   'method': 'PUT',
   'path': 'node/create',
   'process': function(req, res) {
-    respond(res, database.node.create({'id': req.params.id}));
+    res.status('501', 'Not Implemented');
   }
 },
 {
@@ -162,7 +176,7 @@ exports = module.exports = [{
   'method': 'PUT',
   'path': 'way/:id',
   'process': function(req, res) {
-    respond(res, database.way.update({'id': req.params.id}));
+    res.status('501', 'Not Implemented');
   }
 },
 {
@@ -171,7 +185,7 @@ exports = module.exports = [{
   'method': 'DELETE',
   'path': 'way/:id',
   'process': function(req, res) {
-    respond(res, database.way.delete({'id': req.params.id}));
+    res.status('501', 'Not Implemented');
   }
 },
 {
@@ -180,7 +194,7 @@ exports = module.exports = [{
   'method': 'PUT',
   'path': 'way/create',
   'process': function(req, res) {
-    respond(res, database.way.create({'id': req.params.id}));
+    res.status('501', 'Not Implemented');
   }
 },
 {
@@ -270,7 +284,7 @@ exports = module.exports = [{
   'method': 'PUT',
   'path': 'relation/:id',
   'process': function(req, res) {
-    respond(res, database.relation.update({'id': req.params.id}));
+    res.status('501', 'Not Implemented');
   }
 },
 {
@@ -279,7 +293,7 @@ exports = module.exports = [{
   'method': 'DELETE',
   'path': 'relation/:id',
   'process': function(req, res) {
-    respond(res, database.relation.delete({'id': req.params.id}));
+    res.status('501', 'Not Implemented');
   }
 },
 {
@@ -288,7 +302,7 @@ exports = module.exports = [{
   'method': 'PUT',
   'path': 'relation/create',
   'process': function(req, res) {
-    respond(res, database.relation.create({'id': req.params.id}));
+    res.status('501', 'Not Implemented');
   }
 },
 {
@@ -356,7 +370,6 @@ exports = module.exports = [{
     for (var queryIndex in queryList) {
       database(req, res).query(queryList[queryIndex].query, queryList[queryIndex].type, responses);
     }
-
   }
 },
 {
@@ -396,7 +409,7 @@ exports = module.exports = [{
   'method': 'PUT',
   'path': 'changeset/:id',
   'process': function(req, res) {
-    respond(res, database.changeset.update({'id': req.params.id}));
+    res.status('501', 'Not Implemented');
   }
 },
 {
@@ -405,7 +418,7 @@ exports = module.exports = [{
   'method': 'PUT',
   'path': 'changeset/create',
   'process': function(req, res) {
-    respond(res, database.changeset.create());
+    res.status('501', 'Not Implemented');
   }
 },
 {
@@ -414,7 +427,7 @@ exports = module.exports = [{
   'method': 'PUT',
   'path': 'changeset/:id/close',
   'process': function(req, res) {
-    respond(res, database.changeset.update({'id': req.params.id}));
+    res.status('501', 'Not Implemented');
   }
 },
 {
@@ -423,16 +436,17 @@ exports = module.exports = [{
   'method': 'POST',
   'path': 'changeset/:id/upload',
   'process': function(req, res) {
-    respond(res, database.changeset.update({'id': req.params.id}));
+    res.status('501', 'Not Implemented');
   }
 },
 {
+  // http://wiki.openstreetmap.org/wiki/OsmChange
   'name': 'GET changeset/#id/download',
   'description': 'Downloads all the changed elements in a changeset in OsmChange format.',
   'method': 'GET',
   'path': 'changeset/:id/download',
   'process': function(req, res) {
-    respond(res, database.changeset.read({'id': req.params.id, 'download': true}));
+    res.status('501', 'Not Implemented');
   }
 },
 {
@@ -441,7 +455,7 @@ exports = module.exports = [{
   'method': 'POST',
   'path': 'changeset/:id/expand_bbox',
   'process': function(req, res) {
-    respond(res, database.changeset.update({'id': req.params.id, 'expand_bbox': true}));
+    res.status('501', 'Not Implemented');
   }
 },
 {
@@ -451,7 +465,7 @@ exports = module.exports = [{
   'path': 'changesets',
   'process': function(req, res) {
     // Not sure?
-    respond(res, database.changeset.read({'query': req.params.query}));
+    res.status('501', 'Not Implemented');
   }
 },
 {
@@ -519,7 +533,7 @@ exports = module.exports = [{
   'path': 'trackpoints',
   'process': function(req, res) {
     // Paginate, trackpoints, not sure?
-    respond(res, database.all.read({'bbox': req.params.bbox}));
+    res.status('501', 'Not Implemented');
   }
 },
 {
@@ -529,6 +543,6 @@ exports = module.exports = [{
   'path': 'changes',
   'process': function(req, res) {
     // How is this different from changesets?
-    respond(res, database.changesets.read({'time_period': req.params.timePeriod}));
+    res.status('501', 'Not Implemented');
   }
 }];
