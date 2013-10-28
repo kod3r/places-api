@@ -30,7 +30,7 @@ var modifiedResults = function(req, res) {
       // Check for jsonp
       if (getParams(req).callback) {
         response.contentType = 'application/javascript';
-        response.result = [getParams(req).callback, '(', result, ');'].join('');
+        response.result = [getParams(req).callback, '(', JSON.stringify(result,null,indent), ');'].join('');
       }
     } else {
       // OSM XML
