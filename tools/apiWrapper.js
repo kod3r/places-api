@@ -1,25 +1,11 @@
 var xmlJs = require('../../xmljs_translator'),
 config = require('../config'),
-errorList = require('./errorList');
-
-var getParams = function(req) {
-  // Deal with any params after a question mark
-  var newParamsRaw = req._parsedUrl.query ? req._parsedUrl.query.split('&') : [];
-  var newParams = {};
-  newParamsRaw.map(function(params) {
-    var param = params.split(/=(.*)/, 2);
-    if (param.length === 2) {
-      newParams[param[0].toLowerCase()] = param[1];
-    }
-  });
-  return newParams;
-};
-
-var modifiedResults = function(req, res) {
+errorList = require('./errorList'),
+modifiedResults = function(req, res) {
 
   var buildResponse = function(result) {
     // Converts the JSON response to pretty print, jsonp, or XML
-    var indent = getParams(req).pretty ? 2 : null,
+    var indent = req.query.pretty ? 2 : null,
     response = {};
 
     if (req.params && req.params.format === 'json' || req.params.format === 'jsonp') {
@@ -28,9 +14,9 @@ var modifiedResults = function(req, res) {
       response.contentType = 'application/json';
 
       // Check for jsonp
-      if (getParams(req).callback) {
+      if (req.query.callback) {
         response.contentType = 'application/javascript';
-        response.result = [getParams(req).callback, '(', JSON.stringify(result,null,indent), ');'].join('');
+        response.result = [req.query.callback, '(', JSON.stringify(result,null,indent), ');'].join('');
       }
     } else {
       // OSM XML
@@ -78,11 +64,11 @@ var modifiedResults = function(req, res) {
           'status': statusCode,
           'details': details
         },
-        parameters: getParams(req)
+        parameters: req.query
       };
 
       // Ignore the status code if the 'suppress_response_codes' tag is set
-      if (getParams(req).suppress_status_codes) {
+      if (req.query.suppress_status_codes) {
         statusCode = 200;
       }
 
@@ -119,7 +105,6 @@ var addMethod = function(method, path, version, app, callback) {
 
 exports = module.exports = function(app) {
   return {
-    getParams: getParams,
     allow: function(method, path, version, callback) {addMethod(method, path, version, app, callback);}
   };
 };
