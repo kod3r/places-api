@@ -32,13 +32,10 @@
       "gpx": "online"
     }
   },
-  "xml": {
-    "header": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
-    "tags": {
-      "attribute": "attrs",
-      "text": "text",
-      "name": "name",
-      "children": "children"
-    }
+  "database": {
+    "username": "USERNAME",
+    "password": "PASSWORD",
+    "address": "localhost",
+    "name": "DATABASE_NAME"
   }
 }

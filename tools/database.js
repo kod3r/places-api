@@ -1,11 +1,19 @@
 var pg = require('pg');
-//var config = require('../config');
+var config = require('../config');
 
 exports = module.exports = function(req, res) {
 
   var databaseTools = {
     database: function (callback) {
-      var connectionString = 'postgres://osm:osm@10.147.146.121/osm_de_api';
+      var connectionString = [
+        'postgres://',
+        config.database.user,
+        ':',
+        config.database.password,
+        '@',
+        config.database.address,
+        '/',config.database.name
+      ].join('');
       pg.connect(connectionString, callback);
     },
     addParams: function (query, type) {
