@@ -7,7 +7,7 @@ exports = module.exports = function(req, res) {
     database: function (callback) {
       var connectionString = [
         'postgres://',
-        config.database.user,
+        config.database.username,
         ':',
         config.database.password,
         '@',
