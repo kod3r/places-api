@@ -1,11 +1,19 @@
 var pg = require('pg');
-//var config = require('../config');
+var config = require('../config');
 
 exports = module.exports = function(req, res) {
 
   var databaseTools = {
     database: function (callback) {
-      var connectionString = 'postgres://osm:osm@10.147.146.121/osm_de_api';
+      var connectionString = [
+        'postgres://',
+        config.database.username,
+        ':',
+        config.database.password,
+        '@',
+        config.database.address,
+        '/',config.database.name
+      ].join('');
       pg.connect(connectionString, callback);
     },
     addParams: function (query, type) {
@@ -17,11 +25,13 @@ exports = module.exports = function(req, res) {
         newQuery = newQuery.replace(re(param), req.params[param]);
       }
       newQuery = newQuery.replace(re('&type&'), type);
-      console.log(newQuery);
+      //console.log(newQuery);
       return newQuery;
     },
     query: function(query, type, callback) {
-      var queryResult = [];
+      var queryResult = [],
+      startTime = new Date();
+      console.log('starting ' + type);
       databaseTools.database(function(err, client, done) {
         if (err) {
           queryResult.error = {'code': '500'};
@@ -33,6 +43,7 @@ exports = module.exports = function(req, res) {
               queryResult.error = {'code': '500'};
               queryResult.details = err;
             } else {
+              console.log('finished ' + type + ' after: ' + (new Date() - startTime) + 'ms');
               queryResult.data = databaseTools.parse(results, type);
             }
             callback(res, queryResult);

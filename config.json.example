@@ -1,7 +1,7 @@
 {
   "appInfo": {
     "version": "0.6",
-    "name": "NPS poiApi",
+    "name": "NPS poi-api",
     "license": "http://www.copyright.gov/title17/92chap1.html#105",
     "copyright": "This project constitutes a work of the United States Government and is not subject to domestic copyright protection under 17 USC Section 105.",
     "attribution": "http://www.nps.gov"
@@ -32,13 +32,10 @@
       "gpx": "online"
     }
   },
-  "xml": {
-    "header": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
-    "tags": {
-      "attribute": "attrs",
-      "text": "text",
-      "name": "name",
-      "children": "children"
-    }
+  "database": {
+    "username": "USERNAME",
+    "password": "PASSWORD",
+    "address": "localhost",
+    "name": "DATABASE_NAME"
   }
 }

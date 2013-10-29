@@ -26,25 +26,28 @@ respond = function(res, dbResult){
 },
 multiRespond = function(queryList){
   var responses = [],
+  responded = false,
   processResponse = function(res, dbResult) {
     var responseData = {};
 
     // If there's an error, report it immediately
-    if (dbResult.error && dbResult.error.code && dbResult.error.code === '500') {
+    if (dbResult.error && dbResult.error.code && dbResult.error.code === '500' && !responded) {
       respond(res, dbResult);
+      responded = true;
       responses = [];
     } else {
       // Add the data back to a result array
       responses.push(dbResult);
 
       // Check if we're ready to response to the browser
-      if (responses.length >= queryList.length) {
+      if (responses.length >= queryList.length && !responded) {
         for (var record in responses) {
           for (var obj in responses[record].data) {
             responseData[obj] = responses[record].data[obj];
           }
         }
         respond(res,{'data': responseData});
+        responded = true;
       }
     }
   };
@@ -476,6 +479,17 @@ exports = module.exports = [{
   'process': function(req, res) {
 
     var queryList = [{
+      'type': 'bounds',
+      'query': queries.select.current.bounds.concat(
+        'JOIN (',
+        queries.select.current.nodesInWay,
+        'JOIN (',
+        queries.select.current.waysInBbox,
+        ') ways_in_bbox ON current_way_nodes.way_id = ways_in_bbox.way_id',
+        ') nodes_in_way ON current_nodes.id = nodes_in_way.node_id'
+      ).join('\n')
+    },
+    {
       'type': 'node',
       'query': queries.select.current.nodes.concat(
         'JOIN (',

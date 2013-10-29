@@ -1,6 +1,7 @@
 var xmlJs = require('../../xmljs_translator'),
 config = require('../config'),
 errorList = require('./errorList'),
+zlib = require('zlib'),
 modifiedResults = function(req, res) {
 
   var buildResponse = function(result) {
@@ -30,7 +31,7 @@ modifiedResults = function(req, res) {
   return {
     send: function(inData) {
       // Send is used to report data back to the browser
-      var result, response;
+      var result, response, buf;
 
       // All OSM data is wrapped in an OSM tag
       // http://wiki.openstreetmap.org/wiki/API_v0.6#XML_Format
@@ -51,7 +52,17 @@ modifiedResults = function(req, res) {
 
       response = buildResponse(result);
       res.set('Content-Type', response.contentType);
-      res.send(response.result);
+
+      // If the request headers accept gzip, return it in gzip
+      if (req.headers['accept-encoding'].split(',').indexOf('gzip') >= 0) {
+        res.set('Content-Encoding', 'gzip');
+        buf = new Buffer(response.result, 'utf-8');
+        zlib.gzip(buf, function (err, result) {
+          res.end(result);
+        });
+      } else {
+        res.send(response.result);
+      }
     },
     status: function(statusCode, description, details) {
       // Status is used for error reporting
