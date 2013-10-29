@@ -62,6 +62,15 @@
         "    JOIN users",
         "      ON changesets.user_id = users.id"
       ],
+      "bounds": [
+        "SELECT",
+        "  min(nodes.latitude)/10000000::float as minlat,",
+        "  min(nodes.longitude)/10000000::float as minlon,",
+        "  max(nodes.latitude)/10000000::float as maxlat,",
+        "  max(nodes.longitude)/10000000::float as maxlon",
+        "FROM",
+        "  nodes"
+      ],
       "changesets": [
         "SELECT",
         "  changesets.id as id,",
@@ -160,6 +169,15 @@
         "    ON current_relations.changeset_id = changesets.id",
         "    JOIN users",
         "      ON changesets.user_id = users.id"
+      ],
+      "bounds": [
+        "SELECT",
+        "  min(current_nodes.latitude)/10000000::float as minlat,",
+        "  min(current_nodes.longitude)/10000000::float as minlon,",
+        "  max(current_nodes.latitude)/10000000::float as maxlat,",
+        "  max(current_nodes.longitude)/10000000::float as maxlon",
+        "FROM",
+        "  current_nodes"
       ],
       "waysInBbox": [
         "SELECT DISTINCT",

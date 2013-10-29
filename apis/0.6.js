@@ -479,6 +479,17 @@ exports = module.exports = [{
   'process': function(req, res) {
 
     var queryList = [{
+      'type': 'bounds',
+      'query': queries.select.current.bounds.concat(
+        'JOIN (',
+        queries.select.current.nodesInWay,
+        'JOIN (',
+        queries.select.current.waysInBbox,
+        ') ways_in_bbox ON current_way_nodes.way_id = ways_in_bbox.way_id',
+        ') nodes_in_way ON current_nodes.id = nodes_in_way.node_id'
+      ).join('\n')
+    },
+    {
       'type': 'node',
       'query': queries.select.current.nodes.concat(
         'JOIN (',
