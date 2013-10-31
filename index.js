@@ -1,11 +1,11 @@
 var express = require('express'),
 app = express(),
-config = require('./config'),
-poiApp = require('./lib/apiWrapper')(app),
+config = require('./config');
+app.use(express.bodyParser());
+var poiApp = require('./lib/apiWrapper')(app),
 api06 = require('./lib/apis/0.6'),
 oauth = require('./lib/oauthConnect'),
 allowXSS = require('./lib/allowXSS');
-app.use(express.bodyParser());
 exports.routes = function() {
 
   // From http://wiki.openstreetmap.org/wiki/API_v0.6#General_information
