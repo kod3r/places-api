@@ -125,7 +125,13 @@
         "  JOIN users",
         "    ON changesets.user_id = users.id"
       ],
-      "nodes": [
+      "node": [
+        "SELECT",
+        " *",
+        "FROM",
+        "  current_nodes_formatted"
+      ],
+      "nodes_old": [
         "SELECT",
         "  current_nodes.id as id,",
         "  current_nodes.visible,",
