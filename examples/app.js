@@ -6,8 +6,13 @@ var express = require('express'),
 var app = express();
 app.set('port', process.env.PORT || 3000);
 
-// Link to the poiApt
+// OSM API
 app.use('/api', poiApi.routes());
+
+// oauth (prob move this into poi-api soon!
+app.use('/oauth', poiApi.oauth());
+
+// iD Editor
 app.use(express.static(path.join(__dirname, '/node_modules/iD')));
 
 app.listen(app.get('port'));
