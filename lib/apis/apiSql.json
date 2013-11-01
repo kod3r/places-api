@@ -192,6 +192,17 @@
         "  AND latitude < {{maxLat}}*10000000",
         "  AND longitude < {{maxLon}}*10000000"
       ],
+      "nodesInBbox": [
+        "SELECT DISTINCT",
+        "  current_nodes.id AS node_id",
+        "FROM",
+        "  current_nodes",
+        "WHERE",
+        "  latitude > {{minLat}}*10000000",
+        "  AND longitude > {{minLon}}*10000000",
+        "  AND latitude < {{maxLat}}*10000000",
+        "  AND longitude < {{maxLon}}*10000000"
+      ], 
       "nodesInWay": [
         "SELECT DISTINCT",
         "  current_way_nodes.node_id AS node_id",
