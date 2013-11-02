@@ -32,5 +32,8 @@ wget $dbfileUrl
 # Load the file into the database
 $home_dir/installation/osmosis/bin/osmosis --read-pbf file="$home_dir/installation/extracts/$dbfile" --write-apidb  database="$dbname" user="$user" password="$pass" validateSchemaVersion=no
 
+# Update the sequences
+sudo -u postgres psql -d $dbname -f $this_dir/sequences.sql
+
 cd $this_dir
 exit
