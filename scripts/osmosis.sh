@@ -27,7 +27,7 @@ sudo -u postgres psql -d $dbname -f $home_dir/installation/osmosis/script/struct
 # Download the extract
 mkdir -p $home_dir/installation/extracts
 cd $home_dir/installation/extracts
-#wget $dbfileUrl
+wget $dbfileUrl
 
 # Load the file into the database
 $home_dir/installation/osmosis/bin/osmosis --read-pbf file="$home_dir/installation/extracts/$dbfile" --write-apidb  database="$dbname" user="$user" password="$pass" validateSchemaVersion=no

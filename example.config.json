@@ -37,5 +37,10 @@
     "password": "PASSWORD",
     "address": "localhost",
     "name": "DATABASE_NAME"
+  },
+  "oauth": {
+    "server": "api06.dev.openstreetmap.org",
+    "consumerKey": "g3cmPe2OSqxkDmSIi8tOZjG4s1DYQtgtyYOOq1yx",
+    "consumerSecret": "VaqYSfpCGFOletdeDaPanfrpbrZbQh38ytBLo3mX"
   }
 }
