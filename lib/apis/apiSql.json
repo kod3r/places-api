@@ -127,12 +127,6 @@
       ],
       "nodes": [
         "SELECT",
-        " id, visible, version, changeset, timestamp, user, uid, lat, lon, tag",
-        "FROM",
-        "  current_nodes_formatted current_nodes"
-      ],
-      "nodes_old": [
-        "SELECT",
         "  current_nodes.id as id,",
         "  current_nodes.visible,",
         "  current_nodes.version,",
@@ -294,6 +288,7 @@
       "nodes": [
         "INSERT INTO",
         "  {{&type&}}s (",
+        "    {{&type&}}_id,",
         "    latitude,",
         "    longitude,",
         "    changeset_id,",
@@ -302,6 +297,7 @@
         "    tile,",
         "    version",
         "  ) VALUES (",
+        "    nextval('{{&type&}}_id_seq'),",
         "    '{{lat}}',",
         "    '{{lon}}',",
         "    '{{changeset}}',",
