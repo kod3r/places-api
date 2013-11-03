@@ -30,7 +30,7 @@ Installation has yet to be streamlined, so it's a little tricky, but it can be d
     `sudo bash postgres.sh`
     `sudo bash osmosis.sh`
 12. This will take a while, but after it's done, you're probably ready to run the server!
-    `cd ../../`
+    `cd ../../../`
     `node app.json`
 
 ##Usage
