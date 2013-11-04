@@ -27,6 +27,7 @@
     "express": "3.x",
     "pg": "2.8.2",
     "oauth": "0.9.10",
+    "q": "0.9.7",
     "xmljs_translator": "git+https://github.com/jimmyrocks/xmljs_translator.git#master",
     "poi-api": "git+https://github.com/nationalparkservice/poi-api.git#master",
     "iD": "git+https://github.com/nationalparkservice/iD.git"
