@@ -23,8 +23,10 @@
     "url": "http://github.com/nationalparkservice/scratch"
   },
   "dependencies": {
-    "express": "*",
-    "pg": "*",
-    "xmljs_translator": "*"
+    "express": "3.x",
+    "pg": "2.8.2",
+    "oauth": "0.9.10",
+    "q": "0.9.7",
+    "xmljs_translator": "git+https://github.com/jimmyrocks/xmljs_translator.git#master"
   }
 }
