@@ -68,14 +68,33 @@ wget http://bretth.dev.openstreetmap.org/osmosis-build/osmosis-latest.zip
 unzip osmosis-latest.zip
 sudo ln -s ./bin/osmosis /usr/bin/osmosis
 echo -e "\033[33m──━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━──\033[0m"
-echo            "  Downloading and Osmosis schemas for APIDB and pg_snapshot"
+echo            "  Downloading and Osmosis schemas for APIDB and pgsql functions"
 echo            "  More Information Here:"
 echo            "   http://wiki.openstreetmap.org/wiki/Database_schema#Database_Schema"
 echo -e "\033[33m──━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━──\033[0m"
 
+mkdir -p $home_dir/installation/db/functions/quad_tile
+mkdir -p $home_dir/installation/db/sql
+cd $home_dir/installation/db/sql
 wget https://raw.github.com/openstreetmap/openstreetmap-website/master/db/structure.sql
-wget https://raw.github.com/openstreetmap/osmosis/master/package/script/pgsnapshot_schema_0.6.sql
-wget https://raw.github.com/openstreetmap/osm2pgsql/master/900913.sql
+cd $home_dir/installation/db/functions
+wget https://github.com/openstreetmap/openstreetmap-website/raw/master/db/functions/maptile.c
+wget https://github.com/openstreetmap/openstreetmap-website/raw/master/db/functions/quadtile.c
+wget https://github.com/openstreetmap/openstreetmap-website/raw/master/db/functions/xid_to_int4.c
+wget https://raw.github.com/openstreetmap/openstreetmap-website/master/db/functions/Makefile
+cd $home_dir/installation/db/functions/quad_tile
+wget https://raw.github.com/openstreetmap/openstreetmap-website/master/lib/quad_tile/extconf.rb
+wget https://raw.github.com/openstreetmap/openstreetmap-website/master/lib/quad_tile/quad_tile.c
+wget https://raw.github.com/openstreetmap/openstreetmap-website/master/lib/quad_tile/quad_tile.h
+
+# Clean up the makefile
+sed -i 's/\.\.\/\.\.\/lib\/quad_tile/quad_tile/g' $home_dir/installation/db/functions/Makefile
+
+# Clean up the install scripts
+sed -i 's:/srv/www/master.osm.compton.nu/db/functions/:'$home_dir'/installation/db/functions/:g' $home_dir/installation/db/sql/structure.sql
+
+cd $home_dir/installation/db/functions/
+make
 
 cd $cur_dir
 echo -e "\033[32m"

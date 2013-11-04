@@ -16,13 +16,8 @@ sudo -u postgres createlang -d $dbname plpgsql
 # Create the database extentions
 sudo -u postgres psql -d $dbname -c "CREATE EXTENSION hstore;"
 
-# Make sure we have the db structure file
-cd $home_dir/installation/osmosis/script
-rm ./structure_api06.sql
-wget https://raw.github.com/openstreetmap/openstreetmap-website/master/db/structure.sql
-
 # Run the structure file
-sudo -u postgres psql -d $dbname -f $home_dir/installation/osmosis/script/structure.sql
+sudo -u postgres psql -d $dbname -f $home_dir/installation/db/sql/structure.sql
 
 # Download the extract
 mkdir -p $home_dir/installation/extracts
@@ -32,8 +27,8 @@ wget $dbfileUrl
 # Load the file into the database
 $home_dir/installation/osmosis/bin/osmosis --read-pbf file="$home_dir/installation/extracts/$dbfile" --write-apidb  database="$dbname" user="$user" password="$pass" validateSchemaVersion=no
 
-# Update the sequences
-sudo -u postgres psql -d $dbname -f $this_dir/sequences.sql
+# Update the sequences and functions
+sudo -u postgres psql -d $dbname -f $this_dir/poi-api-functions.sql
 
 cd $this_dir
 exit
