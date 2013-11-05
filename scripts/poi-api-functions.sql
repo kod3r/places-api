@@ -23,6 +23,7 @@ CREATE OR REPLACE FUNCTION upsert_node(
   integer,
   integer,
   bigint,
+  boolean,
   json
 ) RETURNS diffResult AS $upsert_node$
   DECLARE
@@ -30,8 +31,8 @@ CREATE OR REPLACE FUNCTION upsert_node(
     v_lat ALIAS FOR $2;
     v_lon ALIAS FOR $3;
     v_changeset ALIAS FOR $4;
-    v_tags ALIAS FOR $5;
-    v_visible boolean;
+    v_visible ALIAS FOR $5;
+    v_tags ALIAS FOR $6;
     v_timestamp timestamp without time zone;
     v_tile bigint;
     v_redaction integer;
@@ -163,7 +164,6 @@ CREATE OR REPLACE FUNCTION upsert_way(
     v_nodes ALIAS FOR $4;
     v_tags ALIAS FOR $5;
     v_timestamp timestamp without time zone;
-    v_tile bigint;
     v_redaction_id integer;
     v_new_id bigint;
     v_new_version bigint;
