@@ -50,10 +50,10 @@
         "  to_json(array(SELECT HSTORE(temp) FROM (",
         "    SELECT lower(member_type::text) as type, member_id as ref, member_role as role",
         "    FROM relation_members ",
-        "    WHERE {{&type&}}_id = {{&type&}}s.{{&type&}}_id",
+        "    WHERE relation_id = relations.relation_id",
         "  )  temp)) as member,",
         "  to_json(array(SELECT HSTORE(temp) FROM (",
-        "    SELECT k, v FROM {{&type&}}_tags WHERE {{&type&}}_id = {{&type&}}s.{{&type&}}_id",
+        "    SELECT k, v FROM relation_tags WHERE relation_id = relations.relation_id",
         "  ) temp)) as tag",
         "FROM",
         "  relations",
@@ -88,32 +88,6 @@
         "  changesets",
         "  JOIN users",
         "    ON changesets.user_id = users.id"
-      ],
-      "nextval": [
-        "SELECT",
-        "  COALESCE((",
-        "    SELECT",
-        "      {{&type&}}_id",
-        "    FROM",
-        "      {{&type&}}s",
-        "    WHERE",
-        "      {{&type&}}_id = '{{id}}'",
-        "    LIMIT 1",
-        "  ), (",
-        "    SELECT",
-        "      nextval('{{&type&}}_id_seq')",
-        "  )) AS new_id,",
-        "  COALESCE((",
-        "    SELECT",
-        "      MAX(version)",
-        "    FROM",
-        "      {{&type&}}s",
-        "    WHERE",
-        "      {{&type&}}_id = '{{id}}'",
-        "    GROUP BY",
-        "      {{&type&}}_id",
-        "    ), 0)",
-        "    +1 AS new_version;"
       ]
     },
     "current": {
@@ -228,7 +202,7 @@
         "  AND longitude > {{minLon}}*10000000",
         "  AND latitude < {{maxLat}}*10000000",
         "  AND longitude < {{maxLon}}*10000000"
-      ], 
+      ],
       "nodesInWay": [
         "SELECT DISTINCT",
         "  current_way_nodes.node_id AS node_id",
@@ -297,92 +271,33 @@
     }
   },
   "where": {
-    "where": "WHERE",
     "all": {
-      "id": "{{&type&}}s.{{&type&}}_id = '{{id}}'",
-      "version": "{{&type&}}s.version = '{{version}}'"
+      "node": {
+        "id": "nodes.node_id = '{{id}}'",
+        "version": "{{&type&}}s.version = '{{version}}'"
+      },
+      "way": {
+        "id": "ways.way_id = '{{id}}'",
+        "way": "ways.version = '{{version}}'"
+      },
+      "relation": {
+        "id": "relations.relation_id = '{{id}}'",
+        "relation": "relations.version = '{{version}}'"
+      }
     },
     "current": {
-      "id": "current_{{&type&}}s.id = '{{id}}'"
+      "node" : {
+        "id": "current_nodes.id = '{{id}}'"
+      },
+      "way": {
+        "id": "current_ways.id = '{{id}}'"
+      },
+      "relation": {
+        "id": "current_relations.id = '{{id}}'"
+      }
     },
     "changeset": {
-      "id":  "{{&type&}}s.id = '{{id}}'"
-    }
-  },
-  "insert": {
-    "all": {
-      "nodes": [
-        "INSERT INTO",
-        "  {{&type&}}s (",
-        "    {{&type&}}_id,",
-        "    latitude,",
-        "    longitude,",
-        "    changeset_id,",
-        "    visible,",
-        "    timestamp,",
-        "    tile,",
-        "    version",
-        "  ) VALUES (",
-        "    '{{new_id}}',",
-        "    '{{lat}}',",
-        "    '{{lon}}',",
-        "    '{{changeset}}',",
-        "    true,",
-        "    now(),",
-        "    '-1',",
-        "    '{{new_version}}'",
-        "  )"
-      ],
-      "nodeTags": [
-        "INSERT INTO",
-        "  {{&type&}}_tags (",
-        "    {{&type&}}_id,",
-        "    version,",
-        "    k,",
-        "    v",
-        "  ) VALUES (",
-        "    '{{new_id}}',",
-        "    '{{new_version}}',",
-        "    '{{k}}',",
-        "    '{{v}}'",
-        "  )"
-      ]
-    },
-    "current": {
-      "nodes": [
-        "INSERT INTO",
-        "  current_{{&type&}}s (",
-        "    id,",
-        "    latitude,",
-        "    longitude,",
-        "    changeset_id,",
-        "    visible,",
-        "    timestamp,",
-        "    tile,",
-        "    version",
-        "  ) VALUES (",
-        "    '{{new_id}}',",
-        "    '{{lat}}',",
-        "    '{{lon}}',",
-        "    '{{changeset}}',",
-        "    true,",
-        "    now(),",
-        "    '-1',",
-        "    '1'",
-        "  )"
-      ],
-      "nodeTags": [
-        "INSERT INTO",
-        "  current_{{&type&}}_tags (",
-        "    {{&type&}}_id,",
-        "    k,",
-        "    v",
-        "  ) VALUES (",
-        "    '{{new_id}}',",
-        "    '{{k}}',",
-        "    '{{v}}'",
-        "  )"
-      ]
+      "id":  "changesets.id = '{{id}}'"
     }
   }
 }
