@@ -78,7 +78,7 @@ if [ -d $includes_dir/db/ ]; then
 fi
 mkdir -p $includes_dir/db/functions/quad_tile
 mkdir -p $includes_dir/db/sql
-cd $home_dir/installation/db/sql
+cd $includes_dir/db/sql
 wget https://raw.github.com/openstreetmap/openstreetmap-website/master/db/structure.sql
 
 cd $includes_dir/db/functions
@@ -102,9 +102,6 @@ sudo -u postgres psql -c "ALTER USER osm WITH SUPERUSER;"
 sudo -u postgres dropdb $dbname
 sudo -u postgres createdb -E UTF8 $dbname
 sudo -u postgres createlang -d $dbname plpgsql
-
-# Create the database extentions
-sudo -u postgres psql -d $dbname -c "CREATE EXTENSION hstore;"
 
 # Run the structure file
 sudo -u postgres psql -d $dbname -f $includes_dir/db/sql/structure.sql
