@@ -10,7 +10,8 @@ pass=$2
 
 if [[ $user == "" ]]; then
   echo    "╔════════════════════════════════════════════════════════════════════════════╗"
-  read -p "  What do you want your OSM password to be?: " user
+  echo    "  USERNAME"
+  read -p "  What do you want your database user name to be?: " user
   if [[ $user == "" ]]; then
     user=osm
   fi
@@ -18,7 +19,8 @@ fi
 
 if [[ $pass == "" ]]; then
   echo    "╔════════════════════════════════════════════════════════════════════════════╗"
-  read -p "  What file do you want to download from geofabrik?: (default: delaware-latest.osm.pbf): " pass
+  echo    "  PASSWORD"
+  read -p "  What do you want your data password to be?: (default: delaware-latest.osm.pbf): " pass
   if [[ $pass == "" ]]; then
     pass=osm
   fi
@@ -123,5 +125,7 @@ bash ./compileSql.bat
 sudo -u postgres psql -d $dbname -f ./compiled.sql
 rm ./compiled.sql
 
+# Since we used sudo to do a lot of stuff
+sudo chown -R `whoami` $includes_dir
 cd $this_dir
 exit
