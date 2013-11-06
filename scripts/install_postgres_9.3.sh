@@ -20,20 +20,3 @@ if [[ $postgres_pw == "" ]]; then
   postgres_pw=postgres
 fi
 sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '$postgres_pw';"
-
-
-# Change settings in the hba.conf and postgresql.conf files
-echo "╔════════════════════════════════════════════════════════════════════════════════════════════════╗"
-echo "  Do you want to set up postgres to accept all outside connections (this is ok for a walled VM)?"
-select yn in "Yes" "No"; do
-    case $yn in
-        Yes )
-                sudo sed -i 's/127\.0\.0\.1\/32/0.0.0.0\/0/g' `sudo -u postgres psql -c 'show hba_file' | grep hba.conf`
-                sudo sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/g" `sudo -u postgres psql -c 'show config_file' | grep postgresql.conf`
-                sudo /etc/init.d/postgresql stop
-                sudo /etc/init.d/postgresql start
-                break;;
-        No ) break;;
-    esac
-done
-

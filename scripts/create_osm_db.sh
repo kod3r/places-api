@@ -1,35 +1,41 @@
-
 home_dir=`echo ~`
 this_dir=`pwd`
 includes_dir=$this_dir/../includes
 
-# TODO: make these all questions to the user
-dbname=osm_de_api
+dbname=$3
 dbfile=delaware-latest.osm.pbf
 dbfileUrl=http://download.geofabrik.de/north-america/us/$dbfile
-user=osm
-pass=osm
-server_address=localhost
+user=$1
+pass=$2
 
-echo    "╔════════════════════════════════════════════════════════════════════════════╗"
-read -p "  What do you want to name your new database?: (default: osm): " dbname
-if [[ $dbname == "" ]]; then
-  dbname=osm
+if [[ $user == "" ]]; then
+  echo    "╔════════════════════════════════════════════════════════════════════════════╗"
+  read -p "  What do you want your OSM password to be?: " user
+  if [[ $user == "" ]]; then
+    user=osm
+  fi
 fi
+
+if [[ $pass == "" ]]; then
+  echo    "╔════════════════════════════════════════════════════════════════════════════╗"
+  read -p "  What file do you want to download from geofabrik?: (default: delaware-latest.osm.pbf): " pass
+  if [[ $pass == "" ]]; then
+    pass=osm
+  fi
+fi
+
+if [[ $dbanme == "" ]]; then
+  echo    "╔════════════════════════════════════════════════════════════════════════════╗"
+  read -p "  What do you want to name your new database?: (default: osm): " dbname
+  if [[ $dbname == "" ]]; then
+    dbname=osm
+  fi
+fi
+
 echo    "╔════════════════════════════════════════════════════════════════════════════╗"
 read -p "  What file do you want to download from geofabrik?: (default: delaware-latest.osm.pbf): " dbfile
 if [[ $dbfile == "" ]]; then
   dbfile=delaware-latest.osm.pbf
-fi
-echo    "╔════════════════════════════════════════════════════════════════════════════╗"
-read -p "  What do you want your OSM password to be?: " user
-if [[ $user == "" ]]; then
-  user=osm
-fi
-echo    "╔════════════════════════════════════════════════════════════════════════════╗"
-read -p "  What file do you want to download from geofabrik?: (default: delaware-latest.osm.pbf): " pass
-if [[ $pass == "" ]]; then
-  pass=osm
 fi
 
 echo -e "\033[34m"
