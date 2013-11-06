@@ -1,5 +1,6 @@
 home_dir=`echo ~`
 this_dir=`pwd`
+B
 includes_dir=$this_dir/../includes
 
 dbname=$3
@@ -26,7 +27,7 @@ if [[ $pass == "" ]]; then
   fi
 fi
 
-if [[ $dbanme == "" ]]; then
+if [[ $dbname == "" ]]; then
   echo    "╔════════════════════════════════════════════════════════════════════════════╗"
   read -p "  What do you want to name your new database?: (default: osm): " dbname
   if [[ $dbname == "" ]]; then
