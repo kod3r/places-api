@@ -109,31 +109,31 @@
   "where": {
     "all": {
       "node": {
-        "id": "nodes.node_id = '{{id}}'",
-        "version": "{{&type&}}s.version = '{{version}}'"
+        "id": "api_nodes.node_id = '{{id}}'",
+        "version": "apinodes.version = '{{version}}'"
       },
       "way": {
-        "id": "ways.way_id = '{{id}}'",
-        "way": "ways.version = '{{version}}'"
+        "id": "api_ways.way_id = '{{id}}'",
+        "way": "api_ways.version = '{{version}}'"
       },
       "relation": {
-        "id": "relations.relation_id = '{{id}}'",
-        "relation": "relations.version = '{{version}}'"
+        "id": "api_relations.relation_id = '{{id}}'",
+        "relation": "api_relations.version = '{{version}}'"
       }
     },
     "current": {
       "node" : {
-        "id": "current_nodes.id = '{{id}}'"
+        "id": "api_current_nodes.id = '{{id}}'"
       },
       "way": {
-        "id": "current_ways.id = '{{id}}'"
+        "id": "api_current_ways.id = '{{id}}'"
       },
       "relation": {
-        "id": "current_relations.id = '{{id}}'"
+        "id": "api_current_relations.id = '{{id}}'"
       }
     },
     "changeset": {
-      "id":  "changesets.id = '{{id}}'"
+      "id":  "api_changesets.id = '{{id}}'"
     }
   }
 }
