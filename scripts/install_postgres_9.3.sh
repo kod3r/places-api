@@ -9,7 +9,6 @@ echo "  Set a UNIX password for the postgres user"
 echo "╚══════════════════════════════════════════════╝"
 sudo passwd postgres
 
-read -p 'Press [Enter] key to continue...'
 echo    "╔════════════════════════════════════════════════════════════════════════════╗"
 read -p "  What do you want to postgres database password to be?: (default: postgres): " postgres_pw
 if [[ $postgres_pw == "" ]]; then
