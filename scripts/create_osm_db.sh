@@ -121,6 +121,8 @@ $includes_dir/osmosis/bin/osmosis --read-pbf file="$includes_dir/data/$dbfile" -
 cd $this_dir/sql_scripts/
 bash ./compileSql.bat
 sudo -u postgres psql -d $dbname -f ./compiled.sql
+sudo -u postgres psql -d $dbname -f ./compiled.sql
+sudo -u postgres psql -d $dbname -f ./compiled.sql
 rm ./compiled.sql
 
 # Since we used sudo to do a lot of stuff
