@@ -8,7 +8,7 @@ poi-api is an implementation of the [OpenStreetMap API](http://wiki.openstreetma
 
 There is an installation file in the scripts directory to install this as a website
 On ubunutu, you just need to run this install script and it will take care of the rest, it can be all done with this single command
-`wget https://raw.github.com/nationalparkservice/poi-api/master/scripts/install_website.sh -v -O install_website.sh && sudo bash ./install_website.sh && rm ./install_website.sh`
+`wget https://raw.github.com/nationalparkservice/poi-api/master/scripts/install-website.sh -v -O install-website.sh && sudo bash ./install-website.sh && rm ./install-website.sh`
 
 ##Usage
 
