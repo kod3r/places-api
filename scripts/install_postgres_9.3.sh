@@ -8,7 +8,7 @@ echo "╔═══════════════════════�
 echo "  Set a UNIX password for the postgres user"
 echo "╚══════════════════════════════════════════════╝"
 sudo passwd postgres
-
+pause
 echo    "╔════════════════════════════════════════════════════════════════════════════╗"
 read -p "  What do you want to postgres database password to be?: (default: postgres): " postgres_pw
 if [[ $postgres_pw == "" ]]; then
@@ -24,5 +24,5 @@ sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '$postgres_pw';"
 echo "╔══════════════════════════════════════════════╗"
 echo "          postgresql 9.3 installed!"
 echo "╚══════════════════════════════════════════════╝"
-
+pause
 
