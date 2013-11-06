@@ -109,15 +109,15 @@
   "where": {
     "all": {
       "node": {
-        "id": "api_nodes.node_id = '{{id}}'",
+        "id": "api_nodes.id = '{{id}}'",
         "version": "apinodes.version = '{{version}}'"
       },
       "way": {
-        "id": "api_ways.way_id = '{{id}}'",
+        "id": "api_ways.id = '{{id}}'",
         "way": "api_ways.version = '{{version}}'"
       },
       "relation": {
-        "id": "api_relations.relation_id = '{{id}}'",
+        "id": "api_relations.id = '{{id}}'",
         "relation": "api_relations.version = '{{version}}'"
       }
     },
