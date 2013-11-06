@@ -12,7 +12,7 @@ pass=$2
 if [[ $user == "" ]]; then
   echo    "╔════════════════════════════════════════════════════════════════════════════╗"
   echo    "  USERNAME"
-  read -p "  What do you want your database user name to be?: " user
+  read -p "  What do you want your database user name to be? (default: osm): " user
   if [[ $user == "" ]]; then
     user=osm
   fi
@@ -21,7 +21,7 @@ fi
 if [[ $pass == "" ]]; then
   echo    "╔════════════════════════════════════════════════════════════════════════════╗"
   echo    "  PASSWORD"
-  read -p "  What do you want your data password to be?: (default: delaware-latest.osm.pbf): " pass
+  read -p "  What do you want your database password to be? (default: osm): " pass
   if [[ $pass == "" ]]; then
     pass=osm
   fi
@@ -29,7 +29,8 @@ fi
 
 if [[ $dbname == "" ]]; then
   echo    "╔════════════════════════════════════════════════════════════════════════════╗"
-  read -p "  What do you want to name your new database?: (default: osm): " dbname
+  echo    " DATABASE NAME"
+  read -p "  What do you want to name your new database? (default: osm): " dbname
   if [[ $dbname == "" ]]; then
     dbname=osm
   fi
@@ -94,6 +95,8 @@ wget https://raw.github.com/openstreetmap/openstreetmap-website/master/lib/quad_
 
 # Clean up the makefile
 sed -i 's/\.\.\/\.\.\/lib\/quad_tile/quad_tile/g' $includes_dir/db/functions/Makefile
+cd $includes_dir/db/functions
+make
 
 # Postgres stuff
 # Set up the OSM user and the DB
@@ -104,6 +107,7 @@ sudo -u postgres createdb -E UTF8 $dbname
 sudo -u postgres createlang -d $dbname plpgsql
 
 # Run the structure file
+sudo sed -i "s:/srv/www/master.osm.compton.nu:$includes_dir:g" $includes_dir/db/sql/structure.sql
 sudo -u postgres psql -d $dbname -f $includes_dir/db/sql/structure.sql
 
 # Download the extract
