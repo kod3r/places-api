@@ -23,7 +23,7 @@ FROM
 
 -- Ways
 DROP VIEW IF EXISTS api_current_ways;
-CREATE VIEW n AS
+CREATE VIEW api_current_ways AS
 SELECT
   current_ways.id AS id,
   current_ways.visible AS visible,
