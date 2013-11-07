@@ -110,7 +110,7 @@
     "all": {
       "node": {
         "id": "api_nodes.id = '{{id}}'",
-        "version": "apinodes.version = '{{version}}'"
+        "version": "api_nodes.version = '{{version}}'"
       },
       "way": {
         "id": "api_ways.id = '{{id}}'",
