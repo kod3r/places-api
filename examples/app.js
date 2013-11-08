@@ -6,6 +6,21 @@ var express = require('express'),
 var app = express();
 app.set('port', process.env.PORT || 3000);
 
+// Error Logging
+process.on('uncaughtException', function (err) {
+  console.log('************************************************');
+  console.log('*             UNCAUGHT EXCEPTION               *');
+  console.log('************************************************');
+  console.log('************************************************');
+  console.log('************************************************');
+  console.log('Caught exception: ' + err);
+  console.log('Trace', err.stack);
+  console.log('************************************************');
+  console.log('************************************************');
+  console.log('************************************************');
+  console.log('************************************************');
+});
+
 // OSM API
 app.use('/api', poiApi.routes());
 
