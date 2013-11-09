@@ -1,6 +1,6 @@
 -- Type for map bbox return
 DROP TYPE IF EXISTS osmMap CASCADE;
-CREATE TYPE osmMap AS (bounds json, node json, way json, relation json);
+CREATE TYPE osmMap AS (bounds json, node json, way json, relation json, limits json);
 
 -- node update/insert function
 DROP TYPE IF EXISTS diffResult CASCADE;

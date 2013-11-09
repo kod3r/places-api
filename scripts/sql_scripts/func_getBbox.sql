@@ -8,7 +8,11 @@ CREATE OR REPLACE FUNCTION getBbox (numeric, numeric, numeric, numeric) RETURNS 
     v_nodes json;
     v_ways json;
     v_relations json;
+    v_max_number_of_nodes bigint;
+    v_limit_reached json;
   BEGIN
+    v_max_number_of_nodes := 2500;
+
     CREATE LOCAL TEMP TABLE nodes_in_bbox ON COMMIT DROP AS
     SELECT DISTINCT
       current_nodes.id as node_id
@@ -18,7 +22,11 @@ CREATE OR REPLACE FUNCTION getBbox (numeric, numeric, numeric, numeric) RETURNS 
       current_nodes.latitude > v_minLat * 10000000
       AND current_nodes.longitude > v_minLon * 10000000
       AND current_nodes.latitude < v_maxLat * 10000000
-      AND current_nodes.longitude < v_maxLon * 10000000;
+      AND current_nodes.longitude < v_maxLon * 10000000
+    LIMIT
+      v_max_number_of_nodes;
+
+    IF (SELECT COUNT(*)<v_max_number_of_nodes FROM nodes_in_bbox) THEN
 
     CREATE LOCAL TEMP TABLE ways_in_bbox ON COMMIT DROP AS
     SELECT DISTINCT
@@ -114,8 +122,20 @@ CREATE OR REPLACE FUNCTION getBbox (numeric, numeric, numeric, numeric) RETURNS 
         api_current_relations.visible = 't'
     ) bboxRelations
     INTO v_relations;
+  END IF;
 
-    RETURN (v_bounds, v_nodes, v_ways, v_relations);
+    SELECT json_agg(to_json(max_limit)) FROM (
+    SELECT
+      count(*) >= v_max_number_of_nodes AS reached,
+      v_max_number_of_nodes as max,
+      count(*) as nodes
+    FROM
+      nodes_in_bbox
+    ) max_limit
+    INTO
+      v_limit_reached;
+
+    RETURN (v_bounds, v_nodes, v_ways, v_relations, v_limit_reached);
 
   END;
 $getBbox$ LANGUAGE plpgsql;
