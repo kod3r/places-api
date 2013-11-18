@@ -17,11 +17,11 @@ exports.routes = function() {
 
   // API Calls
   api06.map(function(apiCall) {
-    poiApp.allow(apiCall.method, apiCall.path, '0.6', apiCall.process);
+    poiApp.allow(apiCall.method, apiCall.path, '0.6', apiCall.auth, apiCall.process);
   });
 
   // Overall capabilities
-  poiApp.allow('GET', 'capabilities', null, function(req, res) {
+  poiApp.allow('GET', 'capabilities', null, null, function(req, res) {
     res.send({'api':config.capabilities});
   });
 
