@@ -4,7 +4,7 @@ config = require('./config');
 app.use(express.bodyParser());
 var poiApp = require('./lib/apiWrapper')(app),
 api06 = require('./lib/apis/0.6'),
-oauth = require('./lib/oauthConnect'),
+oauth = require('./lib/oauth/paths'),
 allowXSS = require('./lib/allowXSS');
 exports.routes = function() {
 
