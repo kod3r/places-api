@@ -52,17 +52,18 @@ CREATE OR REPLACE FUNCTION new_user(
     FROM
       users
     WHERE
-      display_name = v_display_name
+      display_name = v_display_name AND
+      id != v_id
     INTO
       v_user_name_count;
 
+    IF v_user_name_count > 0 THEN
+      -- This user is already in the system, with a different account number
+      v_display_name = v_display_name || '_nps';
+    END IF;
+
     -- if the user doesn't exist, add it
     IF v_user_count < 1 THEN
-      IF v_user_name_count > 0 THEN
-        -- This user is already in the system, with a different account number
-        v_display_name = v_display_name || '_nps';
-      END IF;
-
 
       INSERT INTO
         users
