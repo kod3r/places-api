@@ -22,6 +22,7 @@ cd $this_dir
 
 # Move the examples to the root dir
 cp $website_dir/node_modules/poi-api/examples/app.js $website_dir
+cp -r $website_dir/node_modules/poi-api/examples/views $website_dir
 cp $website_dir/node_modules/poi-api/package.json $website_dir/package.json
 
 # Create the config file

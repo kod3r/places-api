@@ -1,0 +1,48 @@
+<div id="map" style="width: 600px; height: 400px"></div>
+
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7/leaflet.css" />
+<script src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+
+
+<script>
+  var map = L.map('map');
+
+  L.tileLayer('http://{s}.tile.cloudmade.com/{key}/22677/256/{z}/{x}/{y}.png', {
+  attribution: 'Map data &copy; 2011 OpenStreetMap contributors, Imagery &copy; 2012 CloudMade',
+  key: 'BC9A493B41014CAABB98F0471D759707'
+  }).addTo(map);
+
+    popup = new L.Popup();
+
+    geojsonLayer = new L.GeoJSON({{{geojson}}}, {
+       onEachFeature: function (feature, layer){
+         //click event that triggers the popup and centres it on the polygon
+         layer.on("click", function (e) {
+           var center = e.latlng;
+           if (layer.getBounds) {
+             center = layer.getBounds().getCenter();
+           }
+           var popupContent = tablify(feature.properties);
+           popup.setLatLng(center);
+           popup.setContent(popupContent);
+           map.openPopup(popup);
+           });
+         }
+    });
+
+    //add the polygon layer
+    map.addLayer(geojsonLayer);
+    map.fitBounds(geojsonLayer.getBounds());
+
+    var tablify = function(data) {
+      var table = "<table border =1 >";
+        for (var val in data) {
+          table += '<tr><td>'+val+'</td><td>'+JSON.stringify(data[val])+'</td></tr>';
+        }
+      return table + '</table>';
+    };
+
+
+</script>
+
