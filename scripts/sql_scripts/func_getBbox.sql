@@ -1,9 +1,10 @@
-CREATE OR REPLACE FUNCTION getBbox (numeric, numeric, numeric, numeric) RETURNS osmMap AS $getBbox$
+CREATE OR REPLACE FUNCTION getBbox (numeric, numeric, numeric, numeric, numeric) RETURNS osmMap AS $getBbox$
   DECLARE
     v_minLat ALIAS FOR $1;
     v_minLon ALIAS FOR $2;
     v_maxLat ALIAS FOR $3;
     v_maxLon ALIAS FOR $4;
+    v_node_limit ALIAS FOR $5;
     v_bounds json;
     v_nodes json;
     v_ways json;
@@ -11,7 +12,7 @@ CREATE OR REPLACE FUNCTION getBbox (numeric, numeric, numeric, numeric) RETURNS 
     v_max_number_of_nodes bigint;
     v_limit_reached json;
   BEGIN
-    v_max_number_of_nodes := 2500;
+    v_max_number_of_nodes := v_node_limit;
 
     CREATE LOCAL TEMP TABLE nodes_in_bbox ON COMMIT DROP AS
     SELECT DISTINCT
