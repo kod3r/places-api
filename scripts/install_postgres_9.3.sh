@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "╔══════════════════════════════════╗"
-echo "     Installing postgresql 9.3 and PostGIS 2.1"
+echo "   Installing postgresql 9.3 and PostGIS 2.1"
 echo "╚══════════════════════════════════╝"
 
 # Set up user information
@@ -22,6 +22,6 @@ apt-get -y install Postgresql-9.3-postgis postgresql-contrib-9.3 libpq-dev postg
 sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '$postgres_pw';"
 
 echo "╔══════════════════════════════════════════════╗"
-echo "          postgresql 9.3 and PostGIS 2.1 installed!"
+echo "  postgresql 9.3 and PostGIS 2.1 installed!"
 echo "╚══════════════════════════════════════════════╝"
 
