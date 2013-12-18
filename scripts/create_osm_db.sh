@@ -122,10 +122,10 @@ sudo -u postgres createlang -d $dbnamepgs plpgsql
 # Run the structure file
 sudo sed -i "s:/srv/www/master.osm.compton.nu:$includes_dir:g" $includes_dir/db/sql/structure.sql
 sudo -u postgres psql -d $dbnameapi -f $includes_dir/db/sql/structure.sql
-sudo -u postgres psql -d $dbnamepgs -f $includes_dir/db/sql/pgsnapshot_schema_0.6.sql
 sudo -u postgres psql -d $dbnamepgs -c "CREATE EXTENSION postgis;"
 sudo -u postgres psql -d $dbnamepgs -c "CREATE EXTENSION postgis_topology;"
 sudo -u postgres psql -d $dbnamepgs -c "CREATE EXTENSION hstore;"
+sudo -u postgres psql -d $dbnamepgs -f $includes_dir/db/sql/pgsnapshot_schema_0.6.sql
 
 # Download the extract
 mkdir -p $includes_dir/data
