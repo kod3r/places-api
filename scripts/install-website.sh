@@ -45,15 +45,15 @@ if [[ $ipaddress == "" ]]; then
 fi
 
 echo    "╔════════════════════════════════════════════════════════════════════════════╗"
-echo    "  DATABASE"
+echo    "  DATABASE API"
 read -p "  What do you want your API database to be named? (default: osm_api): " dbnameapi
 if [[ $dbnameapi == "" ]]; then
   dbnameapi=osm_api
 fi
 
 echo    "╔════════════════════════════════════════════════════════════════════════════╗"
-echo    "  DATABASE"
-read -p "  What do you want your API database to be named? (default: $dbnameapi\_pgs): " dbnamepgs
+echo    "  DATABASE Rendering (pgsnapshot)"
+read -p "  What do you want your rendering database to be named? (default: $dbnameapi\_pgs): " dbnamepgs
 if [[ $dbnamepgs == "" ]]; then
   dbname=$dbnameapi\_pgs
 fi
