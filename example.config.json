@@ -36,7 +36,8 @@
     "username": "USERNAME",
     "password": "PASSWORD",
     "address": "localhost",
-    "name": "DATABASE_NAME"
+    "api": "API_DATABASE_NAME",
+    "pgs": "RENDERING_DATABASE_NAME"
   },
   "oauth": {
     "server": "api06.dev.openstreetmap.org",
