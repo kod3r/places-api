@@ -91,6 +91,7 @@ mkdir -p $includes_dir/db/functions/quad_tile
 mkdir -p $includes_dir/db/sql
 cd $includes_dir/db/sql
 wget https://raw.github.com/openstreetmap/openstreetmap-website/master/db/structure.sql
+wget https://raw.github.com/openstreetmap/osmosis/master/package/script/pgsnapshot_schema_0.6.sql
 
 cd $includes_dir/db/functions
 wget https://github.com/openstreetmap/openstreetmap-website/raw/master/db/functions/maptile.c
@@ -115,10 +116,14 @@ sudo -u postgres psql -c "ALTER USER osm WITH SUPERUSER;"
 sudo -u postgres dropdb $dbnameapi
 sudo -u postgres createdb -E UTF8 $dbnameapi
 sudo -u postgres createlang -d $dbnameapi plpgsql
+sudo -u postgres dropdb $dbnamepgs
+sudo -u postgres createdb -E UTF8 $dbnamepgs
+sudo -u postgres createlang -d $dbnamepgs plpgsql
 
 # Run the structure file
 sudo sed -i "s:/srv/www/master.osm.compton.nu:$includes_dir:g" $includes_dir/db/sql/structure.sql
 sudo -u postgres psql -d $dbnameapi -f $includes_dir/db/sql/structure.sql
+sudo -u postgres psql -d $dbnamepgs -f $includes_dir/db/sql/pgsnapshot_schema_0.6.sql
 
 # Download the extract
 mkdir -p $includes_dir/data
@@ -130,16 +135,17 @@ wget $dbfileUrl
 
 # Load the file into the database
 $includes_dir/osmosis/bin/osmosis --read-pbf file="$includes_dir/data/$dbfile" --write-apidb  database="$dbnameapi" user="$user" password="$pass" validateSchemaVersion=no
+$includes_dir/osmosis/bin/osmosis --read-pbf file="$includes_dir/data/$dbfile" --write-pgsql  database="$dbnamepgs" user="$user" password="$pass"
 
 # Update the sequences and functions
 cd $this_dir/sql_scripts/
 bash ./compileSql.bat
-sudo -u postgres psql -d $dbname -f ./compiled.sql
-sudo -u postgres psql -d $dbname -f ./compiled.sql
-sudo -u postgres psql -d $dbname -f ./compiled.sql
+sudo -u postgres psql -d $dbnameapi -f ./compiled.sql
+sudo -u postgres psql -d $dbnameapi -f ./compiled.sql
+sudo -u postgres psql -d $dbnameapi -f ./compiled.sql
 rm ./compiled.sql
 
-# Since we used sudo to do a lot of stuff
+# Since we used sudo to do a lot of stuff, make it easy for the current user
 sudo chown -R `whoami` $includes_dir
 cd $this_dir
 exit
