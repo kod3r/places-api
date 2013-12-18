@@ -30,18 +30,18 @@ fi
 if [[ $dbnameapi == "" ]]; then
   echo    "╔════════════════════════════════════════════════════════════════════════════╗"
   echo    " DATABASE NAME API"
-  read -p "  What do you want to name your new API database? (default: osm): " dbnameapi
+  read -p "  What do you want to name your new API database? (default: osm_api): " dbnameapi
   if [[ $dbnameapi == "" ]]; then
-    dbnameapi=osm
+    dbnameapi=osm_api
   fi
 fi
 
 if [[ $dbnamepgs == "" ]]; then
   echo    "╔════════════════════════════════════════════════════════════════════════════╗"
   echo    " DATABASE NAME Rendering (pgsnapshot)"
-  read -p "  What do you want to name your new rendering database? (default: $dbnamepgs\_pgs): " dbnamepgs
+  read -p "  What do you want to name your new rendering database? (default: osm_pgs): " dbnamepgs
   if [[ $dbnamepgs == "" ]]; then
-    $dbnamepgs=$dbnameapi\_pgs
+    $dbnamepgs=osm_pgs
   fi
 fi
 
