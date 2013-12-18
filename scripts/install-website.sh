@@ -93,7 +93,7 @@ sed -i "s/\"pgs\": \"DATABASE_NAME\"/\"name\": \"$dbnamepgs\"/g" $website_dir/no
 
 # WOULD YOU LIKE TO INSTALL POSTGRES 9.3?
 echo    "╔════════════════════════════════════════════════════════════════════════════╗"
-read -p "  Would you like to Install PostGres 9.3? (y/n): " REPLY
+read -p "  Would you like to Install PostGres 9.3 and PostGis 2.1? (y/n): " REPLY
 echo    # (optional) move to a new line
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
