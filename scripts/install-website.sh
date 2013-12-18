@@ -46,9 +46,16 @@ fi
 
 echo    "╔════════════════════════════════════════════════════════════════════════════╗"
 echo    "  DATABASE"
-read -p "  What do you want your database to be named? (default: osm): " dbname
-if [[ $dbname == "" ]]; then
-  dbname=osm
+read -p "  What do you want your API database to be named? (default: osm_api): " dbnameapi
+if [[ $dbnameapi == "" ]]; then
+  dbnameapi=osm_api
+fi
+
+echo    "╔════════════════════════════════════════════════════════════════════════════╗"
+echo    "  DATABASE"
+read -p "  What do you want your API database to be named? (default: $dbnameapi\_pgs): " dbnamepgs
+if [[ $dbnamepgs == "" ]]; then
+  dbname=$dbnameapi\_pgs
 fi
 
 echo    "╔════════════════════════════════════════════════════════════════════════════╗"
@@ -81,7 +88,8 @@ sed -i "s/process.env.PORT || 3000);/process.env.PORT || $port);/g" $website_dir
 # ASK FOR USER/PASS/DB name
 sed -i "s/\"username\": \"USERNAME\"/\"username\": \"$user\"/g" $website_dir/node_modules/poi-api/config.json
 sed -i "s/\"password\": \"PASSWORD\"/\"password\": \"$pass\"/g" $website_dir/node_modules/poi-api/config.json
-sed -i "s/\"name\": \"DATABASE_NAME\"/\"name\": \"$dbname\"/g" $website_dir/node_modules/poi-api/config.json
+sed -i "s/\"api\": \"DATABASE_NAME\"/\"name\": \"$dbnameapi\"/g" $website_dir/node_modules/poi-api/config.json
+sed -i "s/\"pgs\": \"DATABASE_NAME\"/\"name\": \"$dbnamepgs\"/g" $website_dir/node_modules/poi-api/config.json
 
 # WOULD YOU LIKE TO INSTALL POSTGRES 9.3?
 echo    "╔════════════════════════════════════════════════════════════════════════════╗"
@@ -94,12 +102,12 @@ fi
 
 # WOULD YOU LIKE TO LOAD DATA INTO YOUR DB?
 echo    "╔════════════════════════════════════════════════════════════════════════════╗"
-read -p "  Would you like to create your osm database ($dbname)? (y/n): " REPLY
+read -p "  Would you like to create your osm databases ($dbnameapi and $dbnamepgs)? (y/n): " REPLY
 echo    # (optional) move to a new line
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
   cd $website_dir/node_modules/poi-api/scripts/
-  sudo bash create_osm_db.sh $user $pass $dbname
+  sudo bash create_osm_db.sh $user $pass $dbnameapi $dbnamepgs
   cd $this_dir
 fi
 
