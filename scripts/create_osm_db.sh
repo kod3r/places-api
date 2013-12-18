@@ -1,6 +1,5 @@
 home_dir=`echo ~`
 this_dir=`pwd`
-B
 includes_dir=$this_dir/../includes
 
 dbnameapi=$3
