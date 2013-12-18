@@ -3,7 +3,8 @@ this_dir=`pwd`
 B
 includes_dir=$this_dir/../includes
 
-dbname=$3
+dbnameapi=$3
+dbnamepgs=$4
 dbfile=delaware-latest.osm.pbf
 dbfileUrl=http://download.geofabrik.de/north-america/us/$dbfile
 user=$1
@@ -27,12 +28,21 @@ if [[ $pass == "" ]]; then
   fi
 fi
 
-if [[ $dbname == "" ]]; then
+if [[ $dbnameapi == "" ]]; then
   echo    "╔════════════════════════════════════════════════════════════════════════════╗"
   echo    " DATABASE NAME"
-  read -p "  What do you want to name your new database? (default: osm): " dbname
-  if [[ $dbname == "" ]]; then
-    dbname=osm
+  read -p "  What do you want to name your new database? (default: osm): " dbnameapi
+  if [[ $dbnameapi == "" ]]; then
+    dbnameapi=osm
+  fi
+fi
+
+if [[ $dbnamepgs == "" ]]; then
+  echo    "╔════════════════════════════════════════════════════════════════════════════╗"
+  echo    " DATABASE NAME"
+  read -p "  What do you want to name your new database? (default: $dbnamepgs\_pgs): " dbnamepgs
+  if [[ $dbnamepgs == "" ]]; then
+    $dbnamepgs=$dbnameapi\_pgs
   fi
 fi
 
@@ -102,13 +112,13 @@ make
 # Set up the OSM user and the DB
 sudo -u postgres psql -c "CREATE USER $user WITH PASSWORD '$pass'"
 sudo -u postgres psql -c "ALTER USER osm WITH SUPERUSER;"
-sudo -u postgres dropdb $dbname
-sudo -u postgres createdb -E UTF8 $dbname
-sudo -u postgres createlang -d $dbname plpgsql
+sudo -u postgres dropdb $dbnameapi
+sudo -u postgres createdb -E UTF8 $dbnameapi
+sudo -u postgres createlang -d $dbnameapi plpgsql
 
 # Run the structure file
 sudo sed -i "s:/srv/www/master.osm.compton.nu:$includes_dir:g" $includes_dir/db/sql/structure.sql
-sudo -u postgres psql -d $dbname -f $includes_dir/db/sql/structure.sql
+sudo -u postgres psql -d $dbnameapi -f $includes_dir/db/sql/structure.sql
 
 # Download the extract
 mkdir -p $includes_dir/data
@@ -119,7 +129,7 @@ fi
 wget $dbfileUrl
 
 # Load the file into the database
-$includes_dir/osmosis/bin/osmosis --read-pbf file="$includes_dir/data/$dbfile" --write-apidb  database="$dbname" user="$user" password="$pass" validateSchemaVersion=no
+$includes_dir/osmosis/bin/osmosis --read-pbf file="$includes_dir/data/$dbfile" --write-apidb  database="$dbnameapi" user="$user" password="$pass" validateSchemaVersion=no
 
 # Update the sequences and functions
 cd $this_dir/sql_scripts/
