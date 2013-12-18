@@ -53,9 +53,9 @@ fi
 
 echo    "╔════════════════════════════════════════════════════════════════════════════╗"
 echo    "  DATABASE Rendering (pgsnapshot)"
-read -p "  What do you want your rendering database to be named? (default: $dbnameapi_pgs): " dbnamepgs
+read -p "  What do you want your rendering database to be named? (default: osm_pgs): " dbnamepgs
 if [[ $dbnamepgs == "" ]]; then
-  dbname=$dbnameapi\_pgs
+  dbname=osm_pgs
 fi
 
 echo    "╔════════════════════════════════════════════════════════════════════════════╗"
