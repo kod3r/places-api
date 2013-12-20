@@ -3,7 +3,7 @@ app = express(),
 config = require('./config');
 app.use(express.bodyParser());
 var poiApp = require('./lib/apiWrapper')(app),
-api06 = require('./lib/apis/0.6'),
+apiXapi = require('./lib/apis/xapi'),
 oauth = require('./lib/oauth/paths'),
 allowXSS = require('./lib/allowXSS');
 exports.routes = function() {
@@ -16,7 +16,7 @@ exports.routes = function() {
   allowXSS(app);
 
   // API Calls
-  api06.map(function(apiCall) {
+  apiXapi.map(function(apiCall) {
     poiApp.allow(apiCall.method, apiCall.path, '0.6', apiCall.auth, apiCall.process);
   });
 
