@@ -1,47 +1,58 @@
-CREATE OR REPLACE FUNCTION upsert_relation(
+CREATE OR REPLACE FUNCTION upsert_way(
   bigint,
   integer,
   boolean,
   json,
   json
-) RETURNS diffResult AS $upsert_relation$
+) RETURNS diffResult AS $upsert_way$
   DECLARE
     v_id ALIAS FOR $1;
     v_changeset ALIAS FOR $2;
     v_visible ALIAS FOR $3;
-    v_members ALIAS FOR $4;
+    v_nodes ALIAS FOR $4;
     v_tags ALIAS FOR $5;
     v_timestamp timestamp without time zone;
+    v_tile bigint;
     v_redaction_id integer;
     v_new_id bigint;
     v_new_version bigint;
-  BEGIN
-    -- Set some values
+    v_user_id bigint;
+    v_res boolean;
+  BEGIN 
+    -- Set some value
       v_timestamp := now();
+      SELECT
+        changesets.user_id
+      FROM
+        changesets
+      WHERE
+        changesets.id = v_changeset
+      INTO
+        v_user_id;
 
-    -- Determine if there needs to be a new relation and new verison
+    -- Determine if there needs to be a new node and new verison
     SELECT
       COALESCE((
         SELECT
-          relation_id
+          way_id
         FROM
-          relations
+          ways
         WHERE
-          relation_id = v_id
+          way_id = v_id
         LIMIT 1
       ), (
         SELECT
-          nextval('relation_id_seq')
+          nextval('way_id_seq')
       )) AS new_id,
       COALESCE((
         SELECT
           MAX(version)
         FROM
-          relations
+          ways
         WHERE
-          relation_id = v_id
+          way_id = v_id
         GROUP BY
-          relation_id
+          way_id
         ), 0)
         +1 AS new_version
     INTO
@@ -49,13 +60,13 @@ CREATE OR REPLACE FUNCTION upsert_relation(
       v_new_version;
 
   -- Delete the current way nodes and tags
-    DELETE from current_relation_tags where relation_id = v_new_id;
-    DELETE from current_relation_members where relation_id = v_new_id;
-    DELETE from current_relations where id = v_new_id;
+    DELETE from current_way_nodes where way_id = v_new_id;
+    DELETE from current_way_tags where way_id = v_new_id;
+    DELETE from current_ways where id = v_new_id;
 
     INSERT INTO
-      relations (
-        relation_id,
+      ways (
+        way_id,
         changeset_id,
         timestamp,
         version,
@@ -70,79 +81,77 @@ CREATE OR REPLACE FUNCTION upsert_relation(
         v_redaction_id
       );    
     INSERT INTO
-      current_relations (
+      current_ways (
         id,
         changeset_id,
         timestamp,
-        visible,
-        version
+        version,
+        visible
       ) VALUES (
         v_new_id,
         v_changeset,
         v_timestamp,
-        v_visible,
-        v_new_version
+        v_new_version,
+        v_visible
       );  
 
     -- Tags
     INSERT INTO
-      relation_tags (
+      way_tags (
       SELECT
-        v_new_id AS relation_id,
+        v_new_id AS way_id,
         k,
         v,
         v_new_version AS version
       FROM
         json_populate_recordset(
-          null::relation_tags,
+          null::way_tags,
           v_tags
         )
       );
     INSERT INTO
-      current_relation_tags (
+      current_way_tags (
       SELECT
-        v_new_id AS relation_id,
+        v_new_id AS way_id,
         k,
         v
       FROM
         json_populate_recordset(
-          null::current_relation_tags,
+          null::current_way_tags,
           v_tags
         )
       );
 
-      -- Associated Members
+      -- Associated Nodes
       INSERT INTO
-       relation_members (
+       way_nodes (
        SELECT
-         v_new_id AS relation_id,
-         member_type as member_type,
-         member_id as member_id,
-         member_role as member_role,
+         v_new_id AS way_id,
+         node_id as node_id,
          v_new_version AS version,
          sequence_id as sequence_id
        FROM
          json_populate_recordset(
-           null::relation_members,
-           v_members
+           null::way_nodes,
+           v_nodes
          )
        );
-
       INSERT INTO
-       current_relation_members (
+       current_way_nodes (
        SELECT
-         v_new_id AS relation_id,
-         member_type as member_type,
-         member_id as member_id,
-         member_role as member_role,
+         v_new_id AS way_id,
+         node_id as node_id,
          sequence_id as sequence_id
        FROM
          json_populate_recordset(
-           null::current_relation_members,
-           v_members
+           null::way_nodes,
+           v_nodes
          )
        );
 
+    -- Update the pgsnapshot view
+    SELECT res FROM dblink('dbname=poi_pgs', 'select * from pgs_upsert_way(' || quote_literal(v_new_id) || ', ' || quote_literal(v_changeset) || ', ' || quote_literal(v_visible) || ', ' || quote_literal(v_timestamp) || ', ' || quote_literal(v_nodes) || ', ' || quote_literal(v_tags) || ', ' || quote_literal(v_new_version) || ', ' || quote_literal(v_user_id) || ')') as pgs(res boolean) into v_res;
+
     RETURN (v_id, v_new_id, v_new_version);
     END;
-$upsert_relation$ LANGUAGE plpgsql;
+$upsert_way$ LANGUAGE plpgsql;

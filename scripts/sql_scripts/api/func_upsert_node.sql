@@ -1,3 +1,4 @@
+DROP FUNCTION upsert_node(bigint, integer, integer, bigint, boolean, json);
 CREATE OR REPLACE FUNCTION upsert_node(
   bigint,
   integer,
@@ -18,10 +19,20 @@ CREATE OR REPLACE FUNCTION upsert_node(
     v_redaction integer;
     v_new_id bigint;
     v_new_version bigint;
+    v_user_id bigint;
+    v_res boolean;
     BEGIN
       -- Set some values
         v_timestamp := now();
         v_tile := tile_for_point(v_lat, v_lon);
+        SELECT
+          changesets.user_id
+        FROM
+          changesets
+        WHERE
+          changesets.id = v_changeset
+        INTO
+          v_user_id;
 
       -- Determine if there needs to be a new node and new verison
     SELECT
@@ -144,6 +155,9 @@ CREATE OR REPLACE FUNCTION upsert_node(
         ) AND
         node_id = v_new_id
       );
+
+    -- Update the pgsnapshot view
+    SELECT res FROM dblink('dbname=poi_pgs', 'select * from pgs_upsert_node(' || quote_literal(v_new_id) || ', ' || quote_literal(v_lat) || ', ' || quote_literal(v_lon) || ', ' || quote_literal(v_changeset) || ', ' || quote_literal(v_visible) || ', ' || quote_literal(v_timestamp) || ', ' || quote_literal(v_tags) || ', ' || quote_literal(v_new_version) || ', ' || quote_literal(v_user_id) || ')') as pgs(res boolean) into v_res;
 
     RETURN (v_id, v_new_id, v_new_version);
     END;
