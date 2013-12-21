@@ -80,9 +80,12 @@ node -e "console.log(JSON.stringify(`cat package.json`.dependencies, null, 2));"
 npm install
 cd $this_dir
 
+# TODO: Move this to the tools
 # Set up iD to work with the new IP
 sed -i "s/\"http:\/\/162.243.77.34:80\",/\"http:\/\/$ipaddress:$port\",/g" $website_dir/node_modules/iD/index.html
 sed -i "s/\"http:\/\/162.243.77.34:80\",/\"http:\/\/$ipaddress:$port\",/g" $website_dir/node_modules/iD/js/id/core/connection.js
+
+# Set up this app to use the specified port
 sed -i "s/process.env.PORT || 3000);/process.env.PORT || $port);/g" $website_dir/app.js
 
 # ASK FOR USER/PASS/DB name
