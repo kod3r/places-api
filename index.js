@@ -10,8 +10,6 @@ exports.routes = function() {
 
   // From http://wiki.openstreetmap.org/wiki/API_v0.6#General_information
 
-  //TODO: REQUIRE OAUTH http://wiki.openstreetmap.org/wiki/OAuth
-
   // Allow external webpages to read our JavaScript
   allowXSS(app);
 
