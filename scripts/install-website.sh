@@ -80,10 +80,11 @@ node -e "console.log(JSON.stringify(`cat package.json`.dependencies, null, 2));"
 npm install
 cd $this_dir
 
-# TODO: Move this to the tools
 # Set up iD to work with the new IP
-sed -i "s/\"http:\/\/162.243.77.34:80\",/\"http:\/\/$ipaddress:$port\",/g" $website_dir/node_modules/iD/index.html
-sed -i "s/\"http:\/\/162.243.77.34:80\",/\"http:\/\/$ipaddress:$port\",/g" $website_dir/node_modules/iD/js/id/core/connection.js
+bash $website_dir/node_modules/poi-api/scripts/tools/updateiDPaths.sh $ipaddress $port $website_dir/node_modules/iD/
+
+# Add the DOMParser to the osm-and-geojson project
+bash $website_dir/node_modules/poi-api/scripts/tools/addDomParser.sh $website_dir/node_modules/osm-and-geojson
 
 # Set up this app to use the specified port
 sed -i "s/process.env.PORT || 3000);/process.env.PORT || $port);/g" $website_dir/app.js
@@ -91,8 +92,8 @@ sed -i "s/process.env.PORT || 3000);/process.env.PORT || $port);/g" $website_dir
 # ASK FOR USER/PASS/DB name
 sed -i "s/\"username\": \"USERNAME\"/\"username\": \"$user\"/g" $website_dir/node_modules/poi-api/config.json
 sed -i "s/\"password\": \"PASSWORD\"/\"password\": \"$pass\"/g" $website_dir/node_modules/poi-api/config.json
-sed -i "s/\"api\": \"DATABASE_NAME\"/\"name\": \"$dbnameapi\"/g" $website_dir/node_modules/poi-api/config.json
-sed -i "s/\"pgs\": \"DATABASE_NAME\"/\"name\": \"$dbnamepgs\"/g" $website_dir/node_modules/poi-api/config.json
+sed -i "s/\"api\": \"API_DATABASE_NAME\"/\"name\": \"$dbnameapi\"/g" $website_dir/node_modules/poi-api/config.json
+sed -i "s/\"pgs\": \"RENDERING_DATABASE_NAME\"/\"name\": \"$dbnamepgs\"/g" $website_dir/node_modules/poi-api/config.json
 
 # WOULD YOU LIKE TO INSTALL POSTGRES 9.3?
 echo    "╔════════════════════════════════════════════════════════════════════════════╗"
