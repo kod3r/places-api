@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "a node.js implementation of the OpenStreetMap API",
   "keywords": ["express", "nps", "OpenStreetMap", "API"],
-  "author": "Jim McAndrew <jim_mcandrew@partner.nps.gov>",
+  "author": "Jim McAndrew <james_mcandrew@partner.nps.gov>",
   "license": "Public Domain",
   "contributors": [
     {
