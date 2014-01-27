@@ -79,20 +79,6 @@ CREATE OR REPLACE FUNCTION upsert_relation(
         v_visible,
         v_redaction_id
       );    
-    INSERT INTO
-      current_relations (
-        id,
-        changeset_id,
-        timestamp,
-        visible,
-        version
-      ) VALUES (
-        v_new_id,
-        v_changeset,
-        v_timestamp,
-        v_visible,
-        v_new_version
-      );  
 
     -- Tags
     INSERT INTO
@@ -108,18 +94,7 @@ CREATE OR REPLACE FUNCTION upsert_relation(
           v_tags
         )
       );
-    INSERT INTO
-      current_relation_tags (
-      SELECT
-        v_new_id AS relation_id,
-        k,
-        v
-      FROM
-        json_populate_recordset(
-          null::current_relation_tags,
-          v_tags
-        )
-      );
+
 
       -- Associated Members
       INSERT INTO
@@ -134,21 +109,6 @@ CREATE OR REPLACE FUNCTION upsert_relation(
        FROM
          json_populate_recordset(
            null::relation_members,
-           v_members
-         )
-       );
-
-      INSERT INTO
-       current_relation_members (
-       SELECT
-         v_new_id AS relation_id,
-         member_type as member_type,
-         member_id as member_id,
-         member_role as member_role,
-         sequence_id as sequence_id
-       FROM
-         json_populate_recordset(
-           null::current_relation_members,
            v_members
          )
        );
