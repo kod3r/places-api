@@ -7,6 +7,9 @@ var express = require('express'),
 var app = express();
 app.set('port', process.env.PORT || 3000);
 
+//var allowXSS = require('./node_modules/poi-api/lib/allowXSS.js');
+//allowXSS(app);
+
 app.engine('handlebars', exphbs({defaultLayout: 'main'}));
 app.set('view engine', 'handlebars');
 
@@ -26,13 +29,12 @@ process.on('uncaughtException', function (err) {
 });
 
 // Forward the browse requests
-app.get('/browse/*', function(req, res) {
+app.get('/:type(browse|node|relation|way)/*', function(req, res) {
   var suffix = '.html';
-  console.log(req.url, req.url.indexOf('/node/'));
   if (req.url.indexOf('/node/') < 0) {
     suffix = '/full' + suffix;
   }
-  res.redirect(req.url.replace('browse', 'api/0.6') + suffix);
+  res.redirect(req.url.replace(req.params.type, 'api/0.6/' + (req.params.type === 'browse' ? '' : req.params.type)) + suffix);
 });
 
 // OSM API
