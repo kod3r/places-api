@@ -388,3 +388,70 @@ end loop;
   ROWS 1000;
 ALTER FUNCTION public.o2p_osm_grid(geometry, integer, integer)
   OWNER TO postgres;
+  
+  
+--------------
+
+DROP FUNCTION pgs_update_o2p(bigint, character(1));
+CREATE OR REPLACE FUNCTION pgs_update_o2p(
+  bigint,
+  character(1)
+) RETURNS boolean AS $pgs_update_o2p$
+  DECLARE
+    v_id ALIAS FOR $1;
+    v_member_type ALIAS FOR $2;
+    v_rel_id BIGINT;
+  BEGIN
+    -- Update this object in the o2p tables
+    -- A loop functions quicker than a join query from the view
+
+    IF v_member_type = 'R' THEN
+      DELETE FROM planet_osm_line WHERE osm_id = v_id * -1;
+      DELETE FROM planet_osm_roads WHERE osm_id = v_id * -1;
+      DELETE FROM planet_osm_polygon WHERE osm_id = v_id * -1;
+      INSERT INTO planet_osm_line (
+        SELECT * FROM planet_osm_line_view where osm_id = v_id * -1
+      );
+      INSERT INTO planet_osm_roads (
+        SELECT * FROM planet_osm_roads_view where osm_id = v_id * -1
+      );
+      INSERT INTO planet_osm_polygon (
+        SELECT * FROM planet_osm_polygon_view where osm_id = v_id * -1
+      );
+    ELSE
+      FOR v_rel_id IN
+        SELECT
+          DISTINCT(relation_id) * -1 AS rel_id
+        FROM
+          relation_members
+        WHERE
+          member_type = v_member_type AND
+          member_id = v_id
+        UNION
+          SELECT v_id
+      LOOP
+        IF v_member_type = 'N' THEN
+          DELETE FROM planet_osm_point WHERE osm_id = v_rel_id;
+          INSERT INTO planet_osm_point (
+            SELECT * FROM planet_osm_point_view where osm_id = v_rel_id
+          );
+        ELSIF v_member_type = 'W' THEN
+          DELETE FROM planet_osm_line WHERE osm_id = v_rel_id;
+          DELETE FROM planet_osm_roads WHERE osm_id = v_rel_id;
+          DELETE FROM planet_osm_polygon WHERE osm_id = v_rel_id;
+          INSERT INTO planet_osm_line (
+            SELECT * FROM planet_osm_line_view where osm_id = v_rel_id
+          );
+          INSERT INTO planet_osm_roads (
+            SELECT * FROM planet_osm_roads_view where osm_id = v_rel_id
+          );
+          INSERT INTO planet_osm_polygon (
+            SELECT * FROM planet_osm_polygon_view where osm_id = v_rel_id
+          );
+        END IF;
+      END LOOP;
+    END IF;
+
+  RETURN true;
+  END;
+$pgs_update_o2p$ LANGUAGE plpgsql;
