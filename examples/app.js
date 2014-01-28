@@ -34,7 +34,7 @@ app.get('/:type(browse|node|relation|way)/*', function(req, res) {
   if (req.url.indexOf('/node/') < 0) {
     suffix = '/full' + suffix;
   }
-  res.redirect(req.url.replace(req.params.type, 'api/0.6/' + (req.params.type === 'browse' ? '' : req.params.type)) + suffix);
+  res.redirect(req.url.replace(req.params.type, 'api/0.6' + (req.params.type === 'browse' ? '' : ('/' + req.params.type))) + suffix);
 });
 
 // OSM API
