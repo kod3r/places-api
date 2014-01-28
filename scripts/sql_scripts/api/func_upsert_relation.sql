@@ -58,11 +58,6 @@ CREATE OR REPLACE FUNCTION upsert_relation(
       v_new_id,
       v_new_version;
 
-  -- Delete the current way nodes and tags
-    DELETE from current_relation_tags where relation_id = v_new_id;
-    DELETE from current_relation_members where relation_id = v_new_id;
-    DELETE from current_relations where id = v_new_id;
-
     INSERT INTO
       relations (
         relation_id,
