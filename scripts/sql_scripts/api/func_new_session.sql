@@ -1,4 +1,4 @@
-DROP FUNCTION new_session(text, text);
+--DROP FUNCTION new_session(text, text);
 CREATE OR REPLACE FUNCTION new_session(
   text,
   text
