@@ -1,4 +1,4 @@
-DROP FUNCTION new_user(text, text, text, text, bigint, text, text, text, double precision, double precision, smallint, text, boolean, integer, integer);
+--DROP FUNCTION new_user(text, text, text, text, bigint, text, text, text, double precision, double precision, smallint, text, boolean, integer, integer);
 CREATE OR REPLACE FUNCTION new_user(
   text,
   text,
@@ -35,6 +35,7 @@ CREATE OR REPLACE FUNCTION new_user(
     v_return_json json;
     v_user_count smallint;
     v_user_name_count smallint;
+    v_res boolean;
     BEGIN
 
     -- First we need to update the users table
@@ -145,6 +146,9 @@ CREATE OR REPLACE FUNCTION new_user(
         request_token = v_token AND
         request_token_secret = v_secret
     ) session into v_return_json;
+
+    -- Update the pgsnapshot view
+    SELECT res FROM dblink('dbname=poi_pgs', 'select * from pgs_new_user(' || quote_literal(v_id) || ', ' || quote_literal(v_display_name) || ')') as pgs(res boolean) into v_res;
 
     RETURN v_return_json;
   END;

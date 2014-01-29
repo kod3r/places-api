@@ -1,9 +1,9 @@
 home_dir=`echo ~`
 this_dir=`pwd`
-B
 includes_dir=$this_dir/../includes
 
-dbname=$3
+dbnameapi=$3
+dbnamepgs=$4
 dbfile=delaware-latest.osm.pbf
 dbfileUrl=http://download.geofabrik.de/north-america/us/$dbfile
 user=$1
@@ -27,12 +27,21 @@ if [[ $pass == "" ]]; then
   fi
 fi
 
-if [[ $dbname == "" ]]; then
+if [[ $dbnameapi == "" ]]; then
   echo    "╔════════════════════════════════════════════════════════════════════════════╗"
-  echo    " DATABASE NAME"
-  read -p "  What do you want to name your new database? (default: osm): " dbname
-  if [[ $dbname == "" ]]; then
-    dbname=osm
+  echo    " DATABASE NAME API"
+  read -p "  What do you want to name your new API database? (default: osm_api): " dbnameapi
+  if [[ $dbnameapi == "" ]]; then
+    dbnameapi=osm_api
+  fi
+fi
+
+if [[ $dbnamepgs == "" ]]; then
+  echo    "╔════════════════════════════════════════════════════════════════════════════╗"
+  echo    " DATABASE NAME Rendering (pgsnapshot)"
+  read -p "  What do you want to name your new rendering database? (default: osm_pgs): " dbnamepgs
+  if [[ $dbnamepgs == "" ]]; then
+    $dbnamepgs=osm_pgs
   fi
 fi
 
@@ -81,6 +90,7 @@ mkdir -p $includes_dir/db/functions/quad_tile
 mkdir -p $includes_dir/db/sql
 cd $includes_dir/db/sql
 wget https://raw.github.com/openstreetmap/openstreetmap-website/master/db/structure.sql
+wget https://raw.github.com/openstreetmap/osmosis/master/package/script/pgsnapshot_schema_0.6.sql
 
 cd $includes_dir/db/functions
 wget https://github.com/openstreetmap/openstreetmap-website/raw/master/db/functions/maptile.c
@@ -102,13 +112,22 @@ make
 # Set up the OSM user and the DB
 sudo -u postgres psql -c "CREATE USER $user WITH PASSWORD '$pass'"
 sudo -u postgres psql -c "ALTER USER osm WITH SUPERUSER;"
-sudo -u postgres dropdb $dbname
-sudo -u postgres createdb -E UTF8 $dbname
-sudo -u postgres createlang -d $dbname plpgsql
+sudo -u postgres dropdb $dbnameapi
+sudo -u postgres createdb -E UTF8 $dbnameapi
+sudo -u postgres createlang -d $dbnameapi plpgsql
+sudo -u postgres dropdb $dbnamepgs
+sudo -u postgres createdb -E UTF8 $dbnamepgs
+sudo -u postgres createlang -d $dbnamepgs plpgsql
 
 # Run the structure file
 sudo sed -i "s:/srv/www/master.osm.compton.nu:$includes_dir:g" $includes_dir/db/sql/structure.sql
-sudo -u postgres psql -d $dbname -f $includes_dir/db/sql/structure.sql
+sudo -u postgres psql -d $dbnameapi -f $includes_dir/db/sql/structure.sql
+sudo -u postgres psql -d $dbnameapi -c "CREATE EXTENSION dblink;"
+
+sudo -u postgres psql -d $dbnamepgs -c "CREATE EXTENSION postgis;"
+sudo -u postgres psql -d $dbnamepgs -c "CREATE EXTENSION postgis_topology;"
+sudo -u postgres psql -d $dbnamepgs -c "CREATE EXTENSION hstore;"
+sudo -u postgres psql -d $dbnamepgs -f $includes_dir/db/sql/pgsnapshot_schema_0.6.sql
 
 # Download the extract
 mkdir -p $includes_dir/data
@@ -119,17 +138,18 @@ fi
 wget $dbfileUrl
 
 # Load the file into the database
-$includes_dir/osmosis/bin/osmosis --read-pbf file="$includes_dir/data/$dbfile" --write-apidb  database="$dbname" user="$user" password="$pass" validateSchemaVersion=no
+$includes_dir/osmosis/bin/osmosis --read-pbf file="$includes_dir/data/$dbfile" --write-apidb  database="$dbnameapi" user="$user" password="$pass" validateSchemaVersion=no
+$includes_dir/osmosis/bin/osmosis --read-pbf file="$includes_dir/data/$dbfile" --write-pgsql  database="$dbnamepgs" user="$user" password="$pass"
 
 # Update the sequences and functions
 cd $this_dir/sql_scripts/
 bash ./compileSql.bat
-sudo -u postgres psql -d $dbname -f ./compiled.sql
-sudo -u postgres psql -d $dbname -f ./compiled.sql
-sudo -u postgres psql -d $dbname -f ./compiled.sql
+sudo -u postgres psql -d $dbnameapi -f ./compiled.sql
+sudo -u postgres psql -d $dbnameapi -f ./compiled.sql
+sudo -u postgres psql -d $dbnameapi -f ./compiled.sql
 rm ./compiled.sql
 
-# Since we used sudo to do a lot of stuff
+# Since we used sudo to do a lot of stuff, make it easy for the current user
 sudo chown -R `whoami` $includes_dir
 cd $this_dir
 exit

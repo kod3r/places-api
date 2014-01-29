@@ -15,9 +15,19 @@ CREATE OR REPLACE FUNCTION upsert_relation(
     v_redaction_id integer;
     v_new_id bigint;
     v_new_version bigint;
+    v_user_id bigint;
+    v_res boolean;
   BEGIN
     -- Set some values
       v_timestamp := now();
+      SELECT
+        changesets.user_id
+      FROM
+        changesets
+      WHERE
+        changesets.id = v_changeset
+      INTO
+        v_user_id;
 
     -- Determine if there needs to be a new relation and new verison
     SELECT
@@ -48,11 +58,6 @@ CREATE OR REPLACE FUNCTION upsert_relation(
       v_new_id,
       v_new_version;
 
-  -- Delete the current way nodes and tags
-    DELETE from current_relation_tags where relation_id = v_new_id;
-    DELETE from current_relation_members where relation_id = v_new_id;
-    DELETE from current_relations where id = v_new_id;
-
     INSERT INTO
       relations (
         relation_id,
@@ -69,20 +74,6 @@ CREATE OR REPLACE FUNCTION upsert_relation(
         v_visible,
         v_redaction_id
       );    
-    INSERT INTO
-      current_relations (
-        id,
-        changeset_id,
-        timestamp,
-        visible,
-        version
-      ) VALUES (
-        v_new_id,
-        v_changeset,
-        v_timestamp,
-        v_visible,
-        v_new_version
-      );  
 
     -- Tags
     INSERT INTO
@@ -98,18 +89,7 @@ CREATE OR REPLACE FUNCTION upsert_relation(
           v_tags
         )
       );
-    INSERT INTO
-      current_relation_tags (
-      SELECT
-        v_new_id AS relation_id,
-        k,
-        v
-      FROM
-        json_populate_recordset(
-          null::current_relation_tags,
-          v_tags
-        )
-      );
+
 
       -- Associated Members
       INSERT INTO
@@ -128,20 +108,8 @@ CREATE OR REPLACE FUNCTION upsert_relation(
          )
        );
 
-      INSERT INTO
-       current_relation_members (
-       SELECT
-         v_new_id AS relation_id,
-         member_type as member_type,
-         member_id as member_id,
-         member_role as member_role,
-         sequence_id as sequence_id
-       FROM
-         json_populate_recordset(
-           null::current_relation_members,
-           v_members
-         )
-       );
+    -- Update the pgsnapshot view
+    SELECT res FROM dblink('dbname=poi_pgs', 'select * from pgs_upsert_relation(' || quote_literal(v_new_id) || ', ' || quote_literal(v_changeset) || ', ' || quote_literal(v_visible) || ', ' || quote_literal(v_members) || ', ' || quote_literal(v_tags) || ', ' || quote_literal(v_timestamp) || ', '  || quote_literal(v_new_version) || ', ' || quote_literal(v_user_id) || ')') as pgs(res boolean) into v_res;
 
     RETURN (v_id, v_new_id, v_new_version);
     END;

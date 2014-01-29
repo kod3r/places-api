@@ -1,8 +1,8 @@
 echo -e "\033[34m"
 echo "╔═════════════════════════════════════════════════════════════════╗"
-echo "║  Install the poi-api website                                    ║"
+echo "║  Installing the poi-api website                                 ║"
 echo "╟─────────────────────────────────────────────────────────────────╢"
-echo "║  Some of this information can be found here:                    ║"
+echo "║  More information can be found here:                            ║"
 echo "║     https://github.com/nationalparkservice/poi-api              ║"
 echo "╚═════════════════════════════════════════════════════════════════╝"
 echo -e "\033[0m"
@@ -45,10 +45,17 @@ if [[ $ipaddress == "" ]]; then
 fi
 
 echo    "╔════════════════════════════════════════════════════════════════════════════╗"
-echo    "  DATABASE"
-read -p "  What do you want your database to be named? (default: osm): " dbname
-if [[ $dbname == "" ]]; then
-  dbname=osm
+echo    "  DATABASE API"
+read -p "  What do you want your API database to be named? (default: osm_api): " dbnameapi
+if [[ $dbnameapi == "" ]]; then
+  dbnameapi=osm_api
+fi
+
+echo    "╔════════════════════════════════════════════════════════════════════════════╗"
+echo    "  DATABASE Rendering (pgsnapshot)"
+read -p "  What do you want your rendering database to be named? (default: osm_pgs): " dbnamepgs
+if [[ $dbnamepgs == "" ]]; then
+  dbname=osm_pgs
 fi
 
 echo    "╔════════════════════════════════════════════════════════════════════════════╗"
@@ -74,18 +81,23 @@ npm install
 cd $this_dir
 
 # Set up iD to work with the new IP
-sed -i "s/\"http:\/\/162.243.77.34:80\",/\"http:\/\/$ipaddress:$port\",/g" $website_dir/node_modules/iD/index.html
-sed -i "s/\"http:\/\/162.243.77.34:80\",/\"http:\/\/$ipaddress:$port\",/g" $website_dir/node_modules/iD/js/id/core/connection.js
+bash $website_dir/node_modules/poi-api/scripts/tools/updateiDPaths.sh $ipaddress $port $website_dir/node_modules/iD/
+
+# Add the DOMParser to the osm-and-geojson project
+bash $website_dir/node_modules/poi-api/scripts/tools/addDomParser.sh $website_dir/node_modules/osm-and-geojson
+
+# Set up this app to use the specified port
 sed -i "s/process.env.PORT || 3000);/process.env.PORT || $port);/g" $website_dir/app.js
 
 # ASK FOR USER/PASS/DB name
 sed -i "s/\"username\": \"USERNAME\"/\"username\": \"$user\"/g" $website_dir/node_modules/poi-api/config.json
 sed -i "s/\"password\": \"PASSWORD\"/\"password\": \"$pass\"/g" $website_dir/node_modules/poi-api/config.json
-sed -i "s/\"name\": \"DATABASE_NAME\"/\"name\": \"$dbname\"/g" $website_dir/node_modules/poi-api/config.json
+sed -i "s/\"api\": \"API_DATABASE_NAME\"/\"name\": \"$dbnameapi\"/g" $website_dir/node_modules/poi-api/config.json
+sed -i "s/\"pgs\": \"RENDERING_DATABASE_NAME\"/\"name\": \"$dbnamepgs\"/g" $website_dir/node_modules/poi-api/config.json
 
 # WOULD YOU LIKE TO INSTALL POSTGRES 9.3?
 echo    "╔════════════════════════════════════════════════════════════════════════════╗"
-read -p "  Would you like to Install PostGres 9.3? (y/n): " REPLY
+read -p "  Would you like to Install PostGres 9.3 and PostGis 2.1? (y/n): " REPLY
 echo    # (optional) move to a new line
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
@@ -94,12 +106,12 @@ fi
 
 # WOULD YOU LIKE TO LOAD DATA INTO YOUR DB?
 echo    "╔════════════════════════════════════════════════════════════════════════════╗"
-read -p "  Would you like to create your osm database ($dbname)? (y/n): " REPLY
+read -p "  Would you like to create your osm databases ($dbnameapi and $dbnamepgs)? (y/n): " REPLY
 echo    # (optional) move to a new line
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
   cd $website_dir/node_modules/poi-api/scripts/
-  sudo bash create_osm_db.sh $user $pass $dbname
+  sudo bash create_osm_db.sh $user $pass $dbnameapi $dbnamepgs
   cd $this_dir
 fi
 

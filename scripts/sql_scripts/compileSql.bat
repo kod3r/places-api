@@ -1,24 +1,26 @@
-echo "-- Compiled on "`date`  > compiled.sql
-echo "" >> compiled.sql
+inputFiles=('sequence' 'type' 'view' 'func')
 
-echo "-- sequences" >> compiled.sql
-for file in `ls sequence*.sql`; do
-  echo "-- $file" >> compiled.sql
-  cat $file >> compiled.sql
-done
-echo "-- types" >> compiled.sql
-for file in `ls type*.sql`; do
-  echo "-- $file" >> compiled.sql
-  cat $file >> compiled.sql
-done
-echo "-- views" >> compiled.sql
-for file in `ls view*.sql`; do
-  echo "-- $file" >> compiled.sql
-  cat $file >> compiled.sql
-done
-echo "-- functions" >> compiled.sql
-for file in `ls func*.sql`; do
-  echo "-- $file" >> compiled.sql
-  cat $file >> compiled.sql
-done
+find . -type d -print0 | while IFS= read -r -d '' dir
+do
+  if [ "$dir" != "." ];
+  then
+    outputFile=$dir"_compiled.sql"
 
+    echo "-- Compiled on "`date`  > $outputFile
+    echo "" >> $outputFile
+
+    for i in "${inputFiles[@]}"
+    do
+      query=$dir/$i*.sql
+      echo "query: "$query
+      echo "outputFile: "$outputFile
+      if [ -f $query ];
+      then
+        echo "-- "$i" --" >> $outputFile
+        for file in `ls $query`; do
+          cat $file >> $outputFile
+        done
+      fi
+    done
+  fi
+done

@@ -1,0 +1,96 @@
+{
+  "select": {
+    "current": {
+      "nodes": [
+        "SELECT",
+        "  pgs_current_nodes.*",
+        "FROM",
+        "  pgs_current_nodes"
+      ],
+      "ways": [
+        "SELECT",
+        "  pgs_current_ways.*",
+        "FROM",
+        "  pgs_current_ways"
+      ],
+      "relations": [
+        "SELECT",
+        "  pgs_current_relations.*",
+        "FROM",
+        "  pgs_current_relations"
+      ],
+      "nodesInWay": [
+        "SELECT DISTINCT",
+        "  way_nodes.node_id AS node_id",
+        "FROM",
+        "  way_nodes"
+      ],
+      "waysWithNode": [
+        "SELECT DISTINCT",
+        "   way_nodes.way_id as way_id",
+        "FROM",
+        "  way_nodes",
+        "WHERE",
+        "  way_nodes.node_id = '{{id}}'"
+      ],
+      "relationsWithNode": [
+        "SELECT DISTINCT",
+        "  relation_members.relation_id AS relation_id",
+        "FROM",
+        "  relation_members",
+        "WHERE",
+        "  relation_members.member_type = 'N'",
+        "  AND relation_members.member_id = '{{id}}'"
+      ],
+      "relationsWithWay": [
+        "SELECT DISTINCT",
+        "  relation_members.relation_id AS relation_id",
+        "FROM",
+        "  relation_members",
+        "WHERE",
+        "  relation_members.member_type = 'W'",
+        "  AND relation_members.member_id = '{{id}}'"
+      ],
+      "relationsWithRelation": [
+        "SELECT DISTINCT",
+        "  relation_members.relation_id AS relation_id",
+        "FROM",
+        "  relation_members",
+        "WHERE",
+        "  relation_members.member_type = 'R'",
+        "  AND relation_members.member_id = '{{id}}'"
+      ],
+      "waysInRelation": [
+        "SELECT DISTINCT",
+        "  relation_members.member_id AS way_id",
+        "FROM",
+        "  relation_members",
+        "WHERE",
+        "  member_type = 'W'",
+        "  AND relation_id = '{{id}}'"
+      ],
+      "nodesInRelation": [
+        "SELECT DISTINCT",
+        "  relation_members.member_id AS node_id",
+        "FROM",
+        "  relation_members",
+        "WHERE",
+        "  member_type = 'N'",
+        "  AND relation_id = '{{id}}'"
+      ]
+    }
+  },
+  "where": {
+    "current": {
+      "node" : {
+        "id": "pgs_current_nodes.id = '{{id}}'"
+      },
+      "way": {
+        "id": "pgs_current_ways.id = '{{id}}'"
+      },
+      "relation": {
+        "id": "pgs_current_relations.id = '{{id}}'"
+      }
+    }
+  }
+}

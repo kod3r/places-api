@@ -1,4 +1,4 @@
-DROP TABLE sessions;
+--DROP TABLE sessions;
 CREATE TABLE sessions
 (
   created_time timestamp,
