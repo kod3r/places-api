@@ -60,22 +60,63 @@ CREATE OR REPLACE FUNCTION upsert_way(
       v_new_version;
       
       
--    INSERT INTO
- -      ways (
- -        way_id,
- -        changeset_id,
- -        timestamp,
- -        version,
- -        visible,
- -        redaction_id
- -      ) VALUES (
- -        v_new_id,
- -        v_changeset,
- -        v_timestamp,
- -        v_new_version,
- -        v_visible,
- -        v_redaction_id
- -      );  
+INSERT INTO
+   ways (
+     way_id,
+     changeset_id,
+     timestamp,
+     version,
+     visible,
+     redaction_id
+   ) VALUES (
+     v_new_id,
+     v_changeset,
+     v_timestamp,
+     v_new_version,
+     v_visible,
+     v_redaction_id
+   );
+ -- Tags
+ INSERT INTO
+   way_tags (
+   SELECT
+     v_new_id AS way_id,
+     k,
+     v,
+     v_new_version AS version
+   FROM
+     json_populate_recordset(
+       null::way_tags,
+       v_tags
+     )
+   );
+ INSERT INTO
+   current_way_tags (
+   SELECT
+     v_new_id AS way_id,
+     k,
+     v
+   FROM
+     json_populate_recordset(
+       null::current_way_tags,
+       v_tags
+     )
+   );
+
+   -- Associated Nodes
+   INSERT INTO
+    way_nodes (
+    SELECT
+      v_new_id AS way_id,
+      node_id as node_id,
+      v_new_version AS version,
+      sequence_id as sequence_id
+    FROM
+      json_populate_recordset(
+        null::way_nodes,
+        v_nodes
+      )
+    );
 
  
     -- Update the pgsnapshot view
