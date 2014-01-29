@@ -392,7 +392,7 @@ ALTER FUNCTION public.o2p_osm_grid(geometry, integer, integer)
   
 --------------
 
-DROP FUNCTION pgs_update_o2p(bigint, character(1));
+-- DROP FUNCTION pgs_update_o2p(bigint, character(1));
 CREATE OR REPLACE FUNCTION pgs_update_o2p(
   bigint,
   character(1)
