@@ -1,12 +1,10 @@
---DROP FUNCTION upsert_node(bigint, integer, integer, bigint, boolean, json);
-CREATE OR REPLACE FUNCTION upsert_node(
-  bigint,
-  integer,
-  integer,
-  bigint,
-  boolean,
-  json
-) RETURNS diffResult AS $upsert_node$
+-- Function: upsert_node(bigint, integer, integer, bigint, boolean, json)
+
+-- DROP FUNCTION upsert_node(bigint, integer, integer, bigint, boolean, json);
+
+CREATE OR REPLACE FUNCTION upsert_node(bigint, integer, integer, bigint, boolean, json)
+  RETURNS diffresult AS
+$BODY$
   DECLARE
     v_id ALIAS FOR $1;
     v_lat ALIAS FOR $2;
@@ -63,9 +61,34 @@ CREATE OR REPLACE FUNCTION upsert_node(
       v_new_id,
       v_new_version;
 
+    INSERT INTO
+     nodes (
+       node_id,
+       latitude,
+       longitude,
+       changeset_id,
+       visible,
+       timestamp,
+       tile,
+       version
+     ) VALUES (
+       v_new_id,
+       v_lat,
+       v_lon,
+       v_changeset,
+       v_visible,
+       v_timestamp,
+       v_tile,
+       v_new_version
+     );  
+
     -- Update the pgsnapshot view
-    SELECT res FROM dblink('dbname=poi_pgs', 'select * from pgs_upsert_node(' || quote_literal(v_new_id) || ', ' || quote_literal(v_lat) || ', ' || quote_literal(v_lon) || ', ' || quote_literal(v_changeset) || ', ' || quote_literal(v_visible) || ', ' || quote_literal(v_timestamp) || ', ' || quote_literal(v_tags) || ', ' || quote_literal(v_new_version) || ', ' || quote_literal(v_user_id) || ')') as pgs(res boolean) into v_res;
+    SELECT res FROM dblink('dbname=poi_pgs user=osm password=osm', 'select * from pgs_upsert_node(' || quote_literal(v_new_id) || ', ' || quote_literal(v_lat) || ', ' || quote_literal(v_lon) || ', ' || quote_literal(v_changeset) || ', ' || quote_literal(v_visible) || ', ' || quote_literal(v_timestamp) || ', ' || quote_literal(v_tags) || ', ' || quote_literal(v_new_version) || ', ' || quote_literal(v_user_id) || ')') as pgs(res boolean) into v_res;
 
     RETURN (v_id, v_new_id, v_new_version);
     END;
-$upsert_node$ LANGUAGE plpgsql;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION upsert_node(bigint, integer, integer, bigint, boolean, json)
+  OWNER TO postgres;
