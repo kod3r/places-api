@@ -1,4 +1,4 @@
-DROP FUNCTION upsert_node(bigint, integer, integer, bigint, boolean, json);
+--DROP FUNCTION upsert_node(bigint, integer, integer, bigint, boolean, json);
 CREATE OR REPLACE FUNCTION upsert_node(
   bigint,
   integer,
