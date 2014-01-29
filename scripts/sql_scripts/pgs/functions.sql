@@ -1,4 +1,4 @@
-DROP FUNCTION pgs_upsert_node(bigint, integer, integer, bigint, boolean, timestamp without time zone, json, bigint, bigint);
+--DROP FUNCTION pgs_upsert_node(bigint, integer, integer, bigint, boolean, timestamp without time zone, json, bigint, bigint);
 CREATE OR REPLACE FUNCTION pgs_upsert_node(
   bigint,
   integer,
@@ -56,7 +56,7 @@ $pgs_upsert_node$ LANGUAGE plpgsql;
 
 
 -- ----------------------------------------
-DROP FUNCTION pgs_upsert_way(bigint, bigint, boolean, timestamp without time zone, json, json, bigint, bigint);
+--DROP FUNCTION pgs_upsert_way(bigint, bigint, boolean, timestamp without time zone, json, json, bigint, bigint);
 CREATE OR REPLACE FUNCTION pgs_upsert_way(
   bigint,
   bigint,
@@ -122,7 +122,7 @@ CREATE OR REPLACE FUNCTION pgs_upsert_way(
 $pgs_upsert_way$ LANGUAGE plpgsql;
 
 -- ------------------------------------------
-DROP FUNCTION pgs_upsert_relation(bigint, bigint, boolean, json, json, timestamp without time zone, bigint, bigint);
+--DROP FUNCTION pgs_upsert_relation(bigint, bigint, boolean, json, json, timestamp without time zone, bigint, bigint);
 CREATE OR REPLACE FUNCTION pgs_upsert_relation(
   bigint,
   bigint,
@@ -188,7 +188,7 @@ CREATE OR REPLACE FUNCTION pgs_upsert_relation(
 $pgs_upsert_relation$ LANGUAGE plpgsql;
 
 -- ----------------------------
-DROP FUNCTION pgs_new_user(bigint, text);
+--DROP FUNCTION pgs_new_user(bigint, text);
 CREATE OR REPLACE FUNCTION pgs_new_user(
   bigint,
   text
