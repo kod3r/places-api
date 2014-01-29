@@ -80,7 +80,34 @@ $BODY$
        v_timestamp,
        v_tile,
        v_new_version
-     );  
+     );
+     
+-- Tags
+     INSERT INTO
+       node_tags (
+       SELECT
+         v_new_id AS node_id,
+         v_new_version AS version,
+         k,
+         v
+       FROM
+         json_populate_recordset(
+           null::node_tags,
+           v_tags
+         )
+       );
+     INSERT INTO
+       current_node_tags (
+       SELECT
+         v_new_id AS node_id,
+         k,
+         v
+       FROM
+         json_populate_recordset(
+           null::current_node_tags,
+           v_tags
+         )
+       );
 
     -- Update the pgsnapshot view
     SELECT res FROM dblink('dbname=poi_pgs', 'select * from pgs_upsert_node(' || quote_literal(v_new_id) || ', ' || quote_literal(v_lat) || ', ' || quote_literal(v_lon) || ', ' || quote_literal(v_changeset) || ', ' || quote_literal(v_visible) || ', ' || quote_literal(v_timestamp) || ', ' || quote_literal(v_tags) || ', ' || quote_literal(v_new_version) || ', ' || quote_literal(v_user_id) || ')') as pgs(res boolean) into v_res;
