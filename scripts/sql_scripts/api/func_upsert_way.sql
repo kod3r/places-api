@@ -58,6 +58,24 @@ CREATE OR REPLACE FUNCTION upsert_way(
     INTO
       v_new_id,
       v_new_version;
+      
+      
+-    INSERT INTO
+ -      ways (
+ -        way_id,
+ -        changeset_id,
+ -        timestamp,
+ -        version,
+ -        visible,
+ -        redaction_id
+ -      ) VALUES (
+ -        v_new_id,
+ -        v_changeset,
+ -        v_timestamp,
+ -        v_new_version,
+ -        v_visible,
+ -        v_redaction_id
+ -      );  
 
  
     -- Update the pgsnapshot view
