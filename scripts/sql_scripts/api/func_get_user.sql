@@ -1,4 +1,4 @@
-DROP FUNCTION get_user(text, text);
+--DROP FUNCTION get_user(text, text);
 CREATE OR REPLACE FUNCTION get_user(
   text,
   text
