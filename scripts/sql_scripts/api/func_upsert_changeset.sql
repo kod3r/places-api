@@ -1,4 +1,4 @@
-DROP FUNCTION upsert_changeset(bigint,bigint,json);
+--DROP FUNCTION upsert_changeset(bigint,bigint,json);
 CREATE OR REPLACE FUNCTION upsert_changeset(
   bigint,
   bigint,
