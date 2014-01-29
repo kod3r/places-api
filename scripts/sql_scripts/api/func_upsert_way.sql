@@ -90,18 +90,7 @@ INSERT INTO
        v_tags
      )
    );
- INSERT INTO
-   current_way_tags (
-   SELECT
-     v_new_id AS way_id,
-     k,
-     v
-   FROM
-     json_populate_recordset(
-       null::current_way_tags,
-       v_tags
-     )
-   );
+
 
    -- Associated Nodes
    INSERT INTO
