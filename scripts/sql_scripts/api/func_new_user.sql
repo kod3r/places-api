@@ -1,4 +1,4 @@
-DROP FUNCTION new_user(text, text, text, text, bigint, text, text, text, double precision, double precision, smallint, text, boolean, integer, integer);
+--DROP FUNCTION new_user(text, text, text, text, bigint, text, text, text, double precision, double precision, smallint, text, boolean, integer, integer);
 CREATE OR REPLACE FUNCTION new_user(
   text,
   text,
