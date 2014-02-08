@@ -29,6 +29,6 @@
     "osm-and-geojson": "0.1.1",
     "pg": "2.8.2",
     "q": "0.9.7",
-    "xmljs_translator": "git+https://github.com/jimmyrocks/xmljs_translator.git#master"
+    "xmljs_trans_js": "git+https://github.com/jimmyrocks/xmljs_trans_js.git#master"
   }
 }
