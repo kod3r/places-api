@@ -2,6 +2,10 @@ newPath=$1
 newPort=$2
 id_dir=$3
 
+# This can also be done with the following command:
+# grep -rl '$ORIG' $DIR | xargs sed -i 's/$ORIG/$NEW/g'
+# Although not as cleanly
+
 # Prompt the user for the input if they didn't offer any
 if [[ $newPath == "" ]]; then
   echo
