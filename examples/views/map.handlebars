@@ -8,9 +8,8 @@
 <script>
   var map = L.map('map');
 
-  L.tileLayer('http://{s}.tile.cloudmade.com/{key}/22677/256/{z}/{x}/{y}.png', {
-  attribution: 'Map data &copy; 2011 OpenStreetMap contributors, Imagery &copy; 2012 CloudMade',
-  key: 'BC9A493B41014CAABB98F0471D759707'
+  L.tileLayer('http://{s}.tiles.mapbox.com/v3/nps.map-06dnxzq5/{z}/{x}/{y}.png', {
+  attribution: '<a href=\'http://mapbox.com/about/maps\' target=\'_blank\'>MapBox</a>, &copy; <a href=\'http://openstreetmap.org/copyright\'>OpenStreetMap</a> contributors'
   }).addTo(map);
 
     popup = new L.Popup();
