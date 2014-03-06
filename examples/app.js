@@ -29,7 +29,7 @@ process.on('uncaughtException', function (err) {
 });
 
 // Forward the browse requests
-app.get('/:type(browse|node|relation|way)/*', function(req, res) {
+app.get('/:type(browse|node|relation|way|changeset)/*', function(req, res) {
   var suffix = '.html';
   if (req.url.indexOf('/node/') < 0) {
     suffix = '/full' + suffix;
@@ -44,7 +44,7 @@ app.use('/api', poiApi.routes());
 app.use('/oauth', poiApi.oauth());
 
 // iD Editor
-app.use(express.static(path.join(__dirname, '/node_modules/iD')));
+app.use(express.static(path.join(__dirname, '/node_modules/iD/dist')));
 
 app.listen(app.get('port'));
 console.log('Node.js server listening on port ' + app.get('port'));
