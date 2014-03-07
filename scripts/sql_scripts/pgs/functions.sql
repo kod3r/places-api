@@ -22,6 +22,7 @@ CREATE OR REPLACE FUNCTION pgs_upsert_node(
     v_userid ALIAS FOR $9;
     v_newlat float;
     v_newlon float;
+    v_X boolean;
     BEGIN
   -- Delete the current nodes and tags
     v_newlat := v_lat::float / 10000000;
@@ -48,9 +49,10 @@ CREATE OR REPLACE FUNCTION pgs_upsert_node(
           ST_SetSRID(ST_MakePoint(v_newlon, v_newlat),4326)
         );
     END IF;
+    
+    SELECT pgs_update_o2p(v_id, 'N') into v_X;
 
-
-    RETURN true;
+    RETURN v_X;
     END;
 $pgs_upsert_node$ LANGUAGE plpgsql;
 
@@ -76,6 +78,7 @@ CREATE OR REPLACE FUNCTION pgs_upsert_way(
     v_tags ALIAS FOR $6;
     v_version ALIAS FOR $7;
     v_user_id ALIAS FOR $8;
+    v_X boolean;
   BEGIN 
 
   -- Delete the current way nodes and tags
@@ -116,8 +119,10 @@ CREATE OR REPLACE FUNCTION pgs_upsert_way(
            )
          );
       END IF;
+      
+      SELECT pgs_update_o2p(v_id, 'W') into v_X;
 
-    RETURN true;
+    RETURN v_X;
     END;
 $pgs_upsert_way$ LANGUAGE plpgsql;
 
@@ -142,6 +147,7 @@ CREATE OR REPLACE FUNCTION pgs_upsert_relation(
     v_timestamp ALIAS FOR $6;
     v_version ALIAS FOR $7;
     v_user_id ALIAS FOR $8;
+    v_X boolean;
   BEGIN
 
   -- Delete the current way nodes and tags
@@ -182,8 +188,10 @@ CREATE OR REPLACE FUNCTION pgs_upsert_relation(
          )
         );
     END IF;
+    
+    SELECT pgs_update_o2p(v_id, 'R') into v_X;
 
-    RETURN true;
+    RETURN v_X;
     END;
 $pgs_upsert_relation$ LANGUAGE plpgsql;
 
