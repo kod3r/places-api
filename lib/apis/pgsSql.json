@@ -82,7 +82,7 @@
   },
   "where": {
     "current": {
-      "node" : {
+      "node": {
         "id": "pgs_current_nodes.id = '{{id}}'"
       },
       "way": {

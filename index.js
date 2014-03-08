@@ -1,11 +1,11 @@
 var express = require('express'),
-app = express(),
-config = require('./config');
+  app = express(),
+  config = require('./config');
 app.use(express.bodyParser());
 var poiApp = require('./lib/apiWrapper')(app),
-apiXapi = require('./lib/apis/xapi'),
-oauth = require('./lib/oauth/paths'),
-allowXSS = require('./lib/allowXSS');
+  apiXapi = require('./lib/apis/xapi'),
+  oauth = require('./lib/oauth/paths'),
+  allowXSS = require('./lib/allowXSS');
 exports.routes = function() {
 
   // From http://wiki.openstreetmap.org/wiki/API_v0.6#General_information
@@ -20,7 +20,9 @@ exports.routes = function() {
 
   // Overall capabilities
   poiApp.allow('GET', 'capabilities', null, null, function(req, res) {
-    res.send({'api':config.capabilities});
+    res.send({
+      'api': config.capabilities
+    });
   });
 
   return app;

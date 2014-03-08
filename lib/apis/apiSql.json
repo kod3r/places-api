@@ -1,6 +1,6 @@
 {
   "select": {
-    "all" : {
+    "all": {
       "nodes": [
         "SELECT",
         " api_nodes.*",
@@ -20,11 +20,11 @@
         " api_relations"
       ],
       "changesets": [
-         "SELECT",
+        "SELECT",
         "  api_changesets.*",
         "FROM",
         " api_changesets"
-     ]
+      ]
     },
     "current": {
       "nodes": [
@@ -122,7 +122,7 @@
       }
     },
     "current": {
-      "node" : {
+      "node": {
         "id": "api_current_nodes.id = '{{id}}'"
       },
       "way": {
@@ -133,7 +133,7 @@
       }
     },
     "changeset": {
-      "id":  "api_changesets.id = '{{id}}'"
+      "id": "api_changesets.id = '{{id}}'"
     }
   }
 }
