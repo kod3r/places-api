@@ -18,9 +18,11 @@ CREATE OR REPLACE FUNCTION upsert_way(
     v_new_version bigint;
     v_user_id bigint;
     v_res boolean;
+    v_uuid text;
   BEGIN 
     -- Set some value
       v_timestamp := now();
+      v_uuid = 'nps:places_uuid';
       SELECT
         changesets.user_id
       FROM
@@ -90,6 +92,18 @@ INSERT INTO
        v_tags
      )
    );
+   
+    IF length(v_uuid) > 0 AND v_new_version = 1 THEN
+     INSERT INTO
+       way_tags (
+       SELECT
+         v_new_id AS way_id,
+         v_uuid as k,
+         uuid_generate_v4() as v,
+         v_new_version AS version
+       );
+       SELECT tag FROM api_current_ways WHERE id = v_new_id INTO v_tags;
+    END IF;
 
 
    -- Associated Nodes
@@ -106,8 +120,7 @@ INSERT INTO
         v_nodes
       )
     );
-
- 
+    
     -- Update the pgsnapshot view
     SELECT res FROM dblink('dbname=poi_pgs', 'select * from pgs_upsert_way(' || quote_literal(v_new_id) || ', ' || quote_literal(v_changeset) || ', ' || quote_literal(v_visible) || ', ' || quote_literal(v_timestamp) || ', ' || quote_literal(v_nodes) || ', ' || quote_literal(v_tags) || ', ' || quote_literal(v_new_version) || ', ' || quote_literal(v_user_id) || ')') as pgs(res boolean) into v_res;
 
