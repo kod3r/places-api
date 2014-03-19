@@ -19,10 +19,12 @@ $BODY$
     v_new_version bigint;
     v_user_id bigint;
     v_res boolean;
+    v_uuid text; -- if text is in this field, it will add a uuid field to new entries
     BEGIN
       -- Set some values
         v_timestamp := now();
         v_tile := tile_for_point(v_lat, v_lon);
+        v_uuid := 'nps:places_uuid';
         SELECT
           changesets.user_id
         FROM
@@ -97,6 +99,17 @@ $BODY$
          )
        );
 
+    IF length(v_uuid) > 0 AND v_new_version = 1 THEN
+     INSERT INTO
+       node_tags (
+       SELECT
+         v_new_id AS node_id,
+         v_new_version AS version,
+         v_uuid,
+         uuid_generate_v4()
+       );
+       SELECT tag FROM api_current_nodes WHERE id = v_new_id INTO v_tags;
+    END IF;
 
     -- Update the pgsnapshot view
     SELECT res FROM dblink('dbname=poi_pgs', 'select * from pgs_upsert_node(' || quote_literal(v_new_id) || ', ' || quote_literal(v_lat) || ', ' || quote_literal(v_lon) || ', ' || quote_literal(v_changeset) || ', ' || quote_literal(v_visible) || ', ' || quote_literal(v_timestamp) || ', ' || quote_literal(v_tags) || ', ' || quote_literal(v_new_version) || ', ' || quote_literal(v_user_id) || ')') as pgs(res boolean) into v_res;
