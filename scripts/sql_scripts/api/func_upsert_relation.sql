@@ -17,9 +17,11 @@ CREATE OR REPLACE FUNCTION upsert_relation(
     v_new_version bigint;
     v_user_id bigint;
     v_res boolean;
+    v_uuid text;
   BEGIN
     -- Set some values
       v_timestamp := now();
+      v_uuid := 'nps:places_uuid';
       SELECT
         changesets.user_id
       FROM
@@ -89,6 +91,18 @@ CREATE OR REPLACE FUNCTION upsert_relation(
           v_tags
         )
       );
+      
+    IF length(v_uuid) > 0 AND v_new_version = 1 THEN
+     INSERT INTO
+       relation_tags (
+       SELECT
+         v_new_id AS way_id,
+         v_uuid as k,
+         uuid_generate_v4() as v,
+         v_new_version AS version
+       );
+       SELECT tag FROM api_current_relations WHERE id = v_new_id INTO v_tags;
+    END IF;
 
 
       -- Associated Members
