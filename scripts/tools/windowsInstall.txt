@@ -1,0 +1,135 @@
+Install PostgreSQL:
+http://www.postgresql.org/download/windows/
+get the 64 bit version
+
+Install PostGIS
+http://postgis.net/windows_downloads
+make sure it works with postgresql 9.3, and is 64 bit
+
+Open pgadmin:
+Create Two Databases:
+(These can be named whatever you want, but they will need to be updated in the poi app config)
+"poi_api"
+"poi_pgs"
+
+Set the owner to your main postgres account, leave all other defaults
+
+Create the schema(s)
+This is scripted for unix, but for windows we have to do it manually
+
+Download this script:
+https://raw.github.com/openstreetmap/openstreetmap-website/master/db/structure.sql
+Open poi_api in pgadmin
+paste the structure.sql into a sql window
+
+Find the 3 functions:
+maptile_for_point
+tile_for_point
+xid_to_int4
+
+Remove these, since they aren't supported in windows
+
+Run the script (Press the Green > button that is called 'execute query')
+
+Run the following command in the SQL window:
+CREATE EXTENSION dblink;
+
+Now it's time for all the custom functions....
+Navigate to:
+https://github.com/nationalparkservice/poi-api/tree/master/scripts/sql_scripts/api
+
+Go through all the files in the order of: 'windows' 'sequence' 'type' 'view' 'func'
+Copy each file into the PGADMIN window and run the scripts (tedious, I know)
+
+Now you should have the API database all set up!
+Next up is the querying / rendering database..
+In PGADMIN close the poi_api db window (don't save changes)
+then open the poi_pgs database, and a SQL window for it
+
+Run the following commands in the SQL window:
+CREATE EXTENSION postgis;
+CREATE EXTENSION postgis_topology;
+CREATE EXTENSION hstore;
+
+Download this script:
+https://raw.github.com/openstreetmap/osmosis/master/package/script/pgsnapshot_schema_0.6.sql
+Open poi_api in pgadmin
+paste the pgsnapshot_schema_0.6.sql content into the sql window
+
+Now it's time for all the custom functions....
+Navigate to:
+https://github.com/nationalparkservice/poi-api/tree/master/scripts/sql_scripts/pgs
+Go through all the files in the order of: 'type' 'func' 'view' 
+Note that this order is different from the API order
+Copy each file into the PGADMIN window and run the scripts (tedious, I know)
+
+Now the PGS db should be set up
+
+DB Setup complete!
+
+-----------------------
+Node installation
+-----------------------
+
+Download the 64bit node.js installer from:
+http://nodejs.org/download/
+Note that the default windows installer is 32bit.
+
+You can either save it or run it directly. If you save it, run it once the download completes.
+I prefer to save it so you have a copy of the version you installed in case something doesn't work later on, but either way works.
+
+Accept all defaults, unless you have reason not to
+
+-------------------------
+Git installation
+-------------------------
+You'll need git, since all of our packages are in git
+
+Download the latest version of the offical git for windows from: http://windows.github.com/
+Install the application
+Once done, it should open up the welcome screen. If not, double click the new GitHub icon on the desktop.
+Enter your git username and password and continue through the screens. Skip adding a local repository.
+
+--------------------------------
+Open up port for the application
+--------------------------------
+http://forums.techguy.org/general-security/942307-unblock-port-3000-a.html
+
+------------
+iD installation
+------------
+navigate to c:\poi-website\node_modules
+and enter 'git clone https://github.com/nationalparkservice/iD.git'
+
+change the ip address to match the server name
+
+--------------------------
+poi application installation
+---------------------------
+
+Under the nationalparkservice repo, find poi-api and hit "clone"
+Once the clone is done, right click the repository and select "Open in explorer"
+copy the entire directory
+
+Move to directory where you want to host the website from. (I created c:\poi-website)
+create a directory under that called "node_modules" (I created c:\poi-website\node_modules)
+Open that directory, and paste the cloned git project in there
+Open the examples directory, select all and copy it all
+move back to your project root directory (c:\poi-website) and paste those files
+go back into the project directory and copy package.json and paste it in the project root directory
+
+Open "Git Shell" from your desktop or start menu
+Navigate to the director of the poi application (poi-website)
+run the command "npn install"
+
+There will be some errors about python not being found, but python is not required, so they can be ignored
+
+For some reason, handlebars does not come with the windows package, so you need to manually add it
+This may change in the future, but for now, enter:
+nps install express3-handlebars
+
+Copy the c:\poi-website\node_modules\poi-api\example.config.json file to 
+c:\poi-website\node_modules\poi-api\config.json
+Change the database username and password to the username and password you used to set up the database
+the address is the address of the computer with postgis installed on it
+the api and pgs entries are the names of the databases for the API and the pgsnapshot api
