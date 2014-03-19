@@ -6,4 +6,5 @@ CREATE TYPE osmMap AS (bounds json, node json, way json, relation json, limits j
 DROP TYPE IF EXISTS diffResult CASCADE;
 CREATE TYPE diffResult AS (old_id bigint, new_id bigint, new_version bigint);
 
-
+-- Allow the creation of UUIDs
+CREATE EXTENSION "uuid-ossp"
