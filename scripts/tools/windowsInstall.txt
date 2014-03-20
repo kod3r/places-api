@@ -19,8 +19,8 @@ This is scripted for unix, but for windows we have to do it manually
 
 Download this script:
 https://raw.github.com/openstreetmap/openstreetmap-website/master/db/structure.sql
-Open poi_api in pgadmin
-paste the structure.sql into a sql window
+Open the poi_api database in pgadmin
+paste the structure.sql into a new sql query window
 
 Find the 3 functions:
 maptile_for_point
@@ -53,8 +53,9 @@ CREATE EXTENSION hstore;
 
 Download this script:
 https://raw.github.com/openstreetmap/osmosis/master/package/script/pgsnapshot_schema_0.6.sql
-Open poi_api in pgadmin
+Open poi_pgs in pgadmin
 paste the pgsnapshot_schema_0.6.sql content into the sql window
+Run the script (Press the Green > button that is called 'execute query')
 
 Now it's time for all the custom functions....
 Navigate to:
