@@ -1,7 +1,7 @@
 -- View: current_node_tags
 
 -- DROP VIEW current_node_tags;
-
+DROP TABLE current_node_tags;
 CREATE OR REPLACE VIEW current_node_tags AS 
  SELECT node_tags.node_id,
     node_tags.version,
@@ -20,7 +20,7 @@ ALTER TABLE current_node_tags
 -- View: current_nodes
 
 -- DROP VIEW current_nodes;
-
+DROP TABLE current_nodes;
 CREATE OR REPLACE VIEW current_nodes AS 
  SELECT nodes.node_id AS id,
     nodes.latitude,
@@ -43,7 +43,7 @@ ALTER TABLE current_nodes
 -- View: current_relation_members
 
 -- DROP VIEW current_relation_members;
-
+DROP TABLE current_relation_members;
 CREATE OR REPLACE VIEW current_relation_members AS 
  SELECT relation_members.relation_id,
     relation_members.member_type,
@@ -63,7 +63,7 @@ ALTER TABLE current_relation_members
 -- View: current_relation_tags
 
 -- DROP VIEW current_relation_tags;
-
+DROP TABLE current_relation_tags;
 CREATE OR REPLACE VIEW current_relation_tags AS 
  SELECT relation_tags.relation_id,
     relation_tags.k,
@@ -81,7 +81,7 @@ ALTER TABLE current_relation_tags
 -- View: current_relations
 
 -- DROP VIEW current_relations;
-
+DROP TABLE current_relations;
 CREATE OR REPLACE VIEW current_relations AS 
  SELECT relations.relation_id AS id,
     relations.changeset_id,
@@ -101,7 +101,7 @@ ALTER TABLE current_relations
 -- View: current_way_nodes
 
 -- DROP VIEW current_way_nodes;
-
+DROP TABLE current_way_nodes;
 CREATE OR REPLACE VIEW current_way_nodes AS 
  SELECT way_nodes.way_id,
     way_nodes.node_id,
@@ -118,7 +118,7 @@ ALTER TABLE current_way_nodes
 -- View: current_way_tags
 
 -- DROP VIEW current_way_tags;
-
+DROP TABLE current_way_tags;
 CREATE OR REPLACE VIEW current_way_tags AS 
  SELECT way_tags.way_id,
     way_tags.k,
@@ -135,7 +135,7 @@ ALTER TABLE current_way_tags
 -- View: current_ways
 
 -- DROP VIEW current_ways;
-
+DROP TABLE current_ways;
 CREATE OR REPLACE VIEW current_ways AS 
  SELECT ways.way_id AS id,
     ways.changeset_id,
