@@ -210,3 +210,367 @@ CREATE OR REPLACE FUNCTION getBbox (numeric, numeric, numeric, numeric, numeric)
 
   END;
 $getBbox$ LANGUAGE plpgsql;
+
+-- This should be a new file, maybe call it tables?
+-- Table: public.planet_osm_line
+
+-- DROP TABLE public.planet_osm_line;
+
+CREATE TABLE public.planet_osm_line
+(
+  osm_id bigint,
+  access text,
+  "addr:housename" text,
+  "addr:housenumber" text,
+  "addr:interpolation" text,
+  admin_level text,
+  aerialway text,
+  aeroway text,
+  amenity text,
+  area text,
+  barrier text,
+  bicycle text,
+  brand text,
+  bridge text,
+  boundary text,
+  building text,
+  construction text,
+  covered text,
+  culvert text,
+  cutting text,
+  denomination text,
+  disused text,
+  embankment text,
+  foot text,
+  "generator:source" text,
+  harbour text,
+  highway text,
+  historic text,
+  horse text,
+  intermittent text,
+  junction text,
+  landuse text,
+  layer text,
+  leisure text,
+  lock text,
+  man_made text,
+  military text,
+  motorcar text,
+  name text,
+  "natural" text,
+  office text,
+  oneway text,
+  operator text,
+  place text,
+  population text,
+  power text,
+  power_source text,
+  public_transport text,
+  railway text,
+  ref text,
+  religion text,
+  route text,
+  service text,
+  shop text,
+  sport text,
+  surface text,
+  toll text,
+  tourism text,
+  "tower:type" text,
+  tracktype text,
+  tunnel text,
+  water text,
+  waterway text,
+  wetland text,
+  width text,
+  wood text,
+  z_order integer,
+  way_area double precision,
+  way geometry
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE public.planet_osm_line
+  OWNER TO osm;
+
+-- Index: public.planet_osm_line_idx
+
+-- DROP INDEX public.planet_osm_line_idx;
+
+CREATE INDEX planet_osm_line_idx
+  ON public.planet_osm_line
+  USING gist
+  (way);
+
+-- Table: public.planet_osm_point
+
+-- DROP TABLE public.planet_osm_point;
+
+CREATE TABLE public.planet_osm_point
+(
+  osm_id bigint,
+  access text,
+  "addr:housename" text,
+  "addr:housenumber" text,
+  "addr:interpolation" text,
+  admin_level text,
+  aerialway text,
+  aeroway text,
+  amenity text,
+  area text,
+  barrier text,
+  bicycle text,
+  brand text,
+  bridge text,
+  boundary text,
+  building text,
+  construction text,
+  covered text,
+  culvert text,
+  cutting text,
+  denomination text,
+  disused text,
+  embankment text,
+  foot text,
+  "generator:source" text,
+  harbour text,
+  highway text,
+  historic text,
+  horse text,
+  intermittent text,
+  junction text,
+  landuse text,
+  layer text,
+  leisure text,
+  lock text,
+  man_made text,
+  military text,
+  motorcar text,
+  name text,
+  "natural" text,
+  office text,
+  oneway text,
+  operator text,
+  place text,
+  population text,
+  power text,
+  power_source text,
+  public_transport text,
+  railway text,
+  ref text,
+  religion text,
+  route text,
+  service text,
+  shop text,
+  sport text,
+  surface text,
+  toll text,
+  tourism text,
+  "tower:type" text,
+  tracktype text,
+  tunnel text,
+  water text,
+  waterway text,
+  wetland text,
+  width text,
+  wood text,
+  z_order integer,
+  way geometry
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE public.planet_osm_point
+  OWNER TO osm;
+
+-- Index: public.planet_osm_point_idx
+
+-- DROP INDEX public.planet_osm_point_idx;
+
+CREATE INDEX planet_osm_point_idx
+  ON public.planet_osm_point
+  USING gist
+  (way);
+
+-- Table: public.planet_osm_polygon
+
+-- DROP TABLE public.planet_osm_polygon;
+
+CREATE TABLE public.planet_osm_polygon
+(
+  osm_id bigint,
+  access text,
+  "addr:housename" text,
+  "addr:housenumber" text,
+  "addr:interpolation" text,
+  admin_level text,
+  aerialway text,
+  aeroway text,
+  amenity text,
+  area text,
+  barrier text,
+  bicycle text,
+  brand text,
+  bridge text,
+  boundary text,
+  building text,
+  construction text,
+  covered text,
+  culvert text,
+  cutting text,
+  denomination text,
+  disused text,
+  embankment text,
+  foot text,
+  "generator:source" text,
+  harbour text,
+  highway text,
+  historic text,
+  horse text,
+  intermittent text,
+  junction text,
+  landuse text,
+  layer text,
+  leisure text,
+  lock text,
+  man_made text,
+  military text,
+  motorcar text,
+  name text,
+  "natural" text,
+  office text,
+  oneway text,
+  operator text,
+  place text,
+  population text,
+  power text,
+  power_source text,
+  public_transport text,
+  railway text,
+  ref text,
+  religion text,
+  route text,
+  service text,
+  shop text,
+  sport text,
+  surface text,
+  toll text,
+  tourism text,
+  "tower:type" text,
+  tracktype text,
+  tunnel text,
+  water text,
+  waterway text,
+  wetland text,
+  width text,
+  wood text,
+  z_order integer,
+  way_area double precision,
+  way geometry
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE public.planet_osm_polygon
+  OWNER TO osm;
+
+-- Index: public.planet_osm_polygon_idx
+
+-- DROP INDEX public.planet_osm_polygon_idx;
+
+CREATE INDEX planet_osm_polygon_idx
+  ON public.planet_osm_polygon
+  USING gist
+  (way);
+
+-- Table: public.planet_osm_roads
+
+-- DROP TABLE public.planet_osm_roads;
+
+CREATE TABLE public.planet_osm_roads
+(
+  osm_id bigint,
+  access text,
+  "addr:housename" text,
+  "addr:housenumber" text,
+  "addr:interpolation" text,
+  admin_level text,
+  aerialway text,
+  aeroway text,
+  amenity text,
+  area text,
+  barrier text,
+  bicycle text,
+  brand text,
+  bridge text,
+  boundary text,
+  building text,
+  construction text,
+  covered text,
+  culvert text,
+  cutting text,
+  denomination text,
+  disused text,
+  embankment text,
+  foot text,
+  "generator:source" text,
+  harbour text,
+  highway text,
+  historic text,
+  horse text,
+  intermittent text,
+  junction text,
+  landuse text,
+  layer text,
+  leisure text,
+  lock text,
+  man_made text,
+  military text,
+  motorcar text,
+  name text,
+  "natural" text,
+  office text,
+  oneway text,
+  operator text,
+  place text,
+  population text,
+  power text,
+  power_source text,
+  public_transport text,
+  railway text,
+  ref text,
+  religion text,
+  route text,
+  service text,
+  shop text,
+  sport text,
+  surface text,
+  toll text,
+  tourism text,
+  "tower:type" text,
+  tracktype text,
+  tunnel text,
+  water text,
+  waterway text,
+  wetland text,
+  width text,
+  wood text,
+  z_order integer,
+  way_area double precision,
+  way geometry
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE public.planet_osm_roads
+  OWNER TO osm;
+
+-- Index: public.planet_osm_roads_idx
+
+-- DROP INDEX public.planet_osm_roads_idx;
+
+CREATE INDEX planet_osm_roads_idx
+  ON public.planet_osm_roads
+  USING gist
+  (way);
