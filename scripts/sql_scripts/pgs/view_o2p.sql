@@ -527,8 +527,8 @@ CREATE OR REPLACE VIEW public.planet_osm_polygon_view AS
                 )
               )
         ) AND ways.tags <> ''::hstore AND
-          ways.tags IS NOT NULL AND 
-          ways.nodes[1] = ways.nodes[array_length(ways.nodes, 1)] AND 
+          ways.tags IS NOT NULL AND
+          ST_IsClosed(o2p_calculate_nodes_to_line(ways.nodes)) AND
           array_length(ways.nodes, 1) > 1 AND 
           (
             exist(ways.tags, 'aeroway'::text) OR
@@ -632,7 +632,7 @@ UNION
         WHERE
           relations.tags <> ''::hstore AND 
           relations.tags IS NOT NULL AND 
-          ways.nodes[1] = ways.nodes[array_length(ways.nodes, 1)] AND 
+          ST_IsClosed(o2p_calculate_nodes_to_line(ways.nodes)) AND
           array_length(ways.nodes, 1) > 1 AND 
           exist(relations.tags, 'type'::text) AND 
           (
