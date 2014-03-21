@@ -21,7 +21,7 @@ CREATE OR REPLACE FUNCTION api_update_object(
       END LOOP;  
 
     ELSIF v_object = 'way' THEN
-      FOR v_row IN SELECT id, changeset, visible, timestamp, nd as nodes, version, uid as user_id FROM api_current_ways LOOP
+      FOR v_row IN SELECT id, changeset, visible, timestamp, nd as nodes, tag as tags, version, uid as user_id FROM api_current_ways LOOP
         SELECT res FROM dblink('dbname=poi_pgs', 'select * from pgs_upsert_way(' || quote_literal(v_row.id) || ', ' || quote_literal(v_row.changeset) || ', ' || quote_literal(v_row.visible) || ', ' || quote_literal(v_row.timestamp) || ', ' || quote_literal(v_row.nodes) || ', ' || quote_literal(v_row.tags) || ', ' || quote_literal(v_row.version) || ', ' || quote_literal(v_row.user_id) || ')') as pgs(res boolean) into v_res;
       END LOOP; 
     
