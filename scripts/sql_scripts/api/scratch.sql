@@ -35,3 +35,19 @@ CREATE OR REPLACE FUNCTION api_update_object(
     RETURN v_res;
   END;
 $api_update_object$ LANGUAGE plpgsql;
+
+
+--- Delete a changeset
+--delete from changeset_tags where changeset_id = 27;
+--DELETE FROM node_tags as A USING nodes B WHERE B.node_id = A.node_id and B.version = A.version and B.changeset_id = 27;
+--DELETE FROM nodes where changeset_id = 27;
+--DELETE FROM way_tags as A USING ways B WHERE B.way_id = A.way_id and B.version = A.version and B.changeset_id = 27;
+--DELETE FROM ways where changeset_id = 27;
+--DELETE FROM relation_tags as A USING relations B WHERE B.relation_id = A.relation_id and B.version = A.version and B.changeset_id = 27;
+--DELETE FROM relations where changeset_id = 27;
+--DELETE FROM changesets where id = 27;
+
+-- PGS
+-- delete from nodes where changeset_id = 27;
+-- delete from ways_tags where changeset_id = 27; <-- won't work, but couldn't test on my dataset 
+-- delete from ways where changeset_id = 27;
