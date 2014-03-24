@@ -37,6 +37,12 @@ app.get('/:type(browse|node|relation|way|changeset)/*', function(req, res) {
   res.redirect(req.url.replace(req.params.type, 'api/0.6' + (req.params.type === 'browse' ? '' : ('/' + req.params.type))) + suffix);
 });
 
+// Forward user info to OSM
+//http://www.openstreetmap.org/user/USERNAME
+app.get('/user/:username', function(req, res) {
+  res.redirect('http://www.openstreetmap.org/user/' + req.params.username);
+});
+
 // OSM API
 app.use('/api', poiApi.routes());
 
