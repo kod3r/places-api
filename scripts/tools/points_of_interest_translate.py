@@ -80,6 +80,14 @@ Visitor Center            building=yes; information=office; tourism=information
 Water                     amenity=drinking_water
 Water Shuttle Dock        amenity=ferry_terminal
 Wheelchair Accessability  wheelchair=yes
+---
+Trailhead                 highway=trailhead
+Cemetery                  landuse=cemetery
+Park                      leisure=park
+Waterfall                 waterway=waterfall
+Wayside                   tourism=atttraction
+Historic Building         building=yes; historic=building
+Gravesite                 cemetery=grave
 '''
 
 def filterTags(attrs):
@@ -371,5 +379,36 @@ def filterTags(attrs):
       '''Wheelchair Accessability  wheelchair=yes'''
       if attrs['FACILITY'].strip() == 'Wheelchair Accessability':
         tags['wheelchair'] = 'yes'
+        
+      '''---'''
+      
+      '''Trailhead                 highway=trailhead'''
+      if attrs['FACILITY'].strip() == 'Trailhead':
+        tags['highway'] = 'trailhead'
+        
+      '''Cemetery                  landuse=cemetery'''
+      if attrs['FACILITY'].strip() == 'Cemetery':
+        tags['landuse'] = 'cemetery'
+        
+      '''Park                      leisure=park'''
+      if attrs['FACILITY'].strip() == 'Park':
+        tags['leisure'] = 'park'
+        
+      '''Waterfall                 waterway=waterfall'''
+      if attrs['FACILITY'].strip() == 'Waterfall':
+        tags['waterway'] = 'waterfall'
+        
+      '''Wayside                   tourism=atttraction'''
+      if attrs['FACILITY'].strip() == 'Wayside':
+        tags['tourism'] = 'atttraction'
+        
+      '''Historic Building         building=yes; historic=building'''
+      if attrs['FACILITY'].strip() == 'Historic Building':
+        tags['building'] = 'yes'
+        tags['historic'] = 'building'
+        
+      '''Gravesite                 cemetery=grave'''
+      if attrs['FACILITY'].strip() == 'building':
+        tags['cemetery'] = 'grave'
 
     return tags
