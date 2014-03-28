@@ -74,7 +74,7 @@ CREATE OR REPLACE FUNCTION nps_pgs_update_o2p(
         IF v_member_type = 'N' THEN
           DELETE FROM planet_osm_point WHERE osm_id = v_id;
           INSERT INTO planet_osm_point (
-            SELECT * FROM planet_osm_point_view where osm_id = v_id
+            SELECT * FROM nps_planet_osm_point_view where osm_id = v_id
           );
     END IF;
 
