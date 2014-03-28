@@ -1,4 +1,3 @@
-
 CREATE OR REPLACE FUNCTION public.nps_node_o2p_calculate_zorder(hstore)
   RETURNS integer AS
 $BODY$
@@ -57,3 +56,28 @@ CREATE OR REPLACE VIEW public.nps_planet_osm_point_view AS
 
 ALTER TABLE public.nps_planet_osm_point_view
   OWNER TO postgres;
+  
+  
+  -----
+  
+-- DROP FUNCTION nps_pgs_update_o2p(bigint, character(1));
+CREATE OR REPLACE FUNCTION nps_pgs_update_o2p(
+  bigint,
+  character(1)
+) RETURNS boolean AS $nps_pgs_update_o2p$
+  DECLARE
+    v_id ALIAS FOR $1;
+    v_member_type ALIAS FOR $2;
+    v_rel_id BIGINT;
+  BEGIN
+    -- Update this object in the nps o2p tables
+        IF v_member_type = 'N' THEN
+          DELETE FROM planet_osm_point WHERE osm_id = v_id;
+          INSERT INTO planet_osm_point (
+            SELECT * FROM planet_osm_point_view where osm_id = v_id
+          );
+    END IF;
+
+  RETURN true;
+  END;
+$nps_pgs_update_o2p$ LANGUAGE plpgsql;
