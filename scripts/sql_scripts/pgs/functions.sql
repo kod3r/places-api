@@ -50,7 +50,9 @@ CREATE OR REPLACE FUNCTION pgs_upsert_node(
         );
     END IF;
     
-    SELECT pgs_update_o2p(v_id, 'N') into v_X;
+    -- This is the default OSM style, we will use the NPS style(s) instead
+    --SELECT pgs_update_o2p(v_id, 'N') into v_X;
+    SELECT nps_pgs_update_o2p(v_id, 'N') into v_X;
 
     RETURN v_X;
     END;
