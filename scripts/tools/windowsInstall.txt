@@ -100,7 +100,7 @@ http://forums.techguy.org/general-security/942307-unblock-port-3000-a.html
 iD installation
 ------------
 navigate to c:\poi-website\node_modules
-and enter 'git clone https://github.com/nationalparkservice/iD.git'
+and enter 'git clone https://github.com/nationalparkservice/places.git'
 
 change the ip address to match the server name
 
