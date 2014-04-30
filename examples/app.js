@@ -50,7 +50,7 @@ app.use('/api', poiApi.routes());
 app.use('/oauth', poiApi.oauth());
 
 // iD Editor
-app.use(express.static(path.join(__dirname, '/node_modules/iD/dist')));
+app.use(express.static(path.join(__dirname, '/node_modules/places/dist')));
 
 app.listen(app.get('port'));
 console.log('Node.js server listening on port ' + app.get('port'));
