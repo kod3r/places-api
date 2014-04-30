@@ -17,7 +17,7 @@ mkdir -p $website_dir/node_modules
 # Clone our repo into that dir
 cd $website_dir/node_modules
 git clone https://github.com/nationalparkservice/poi-api.git
-git clone https://github.com/nationalparkservice/iD.git
+git clone https://github.com/nationalparkservice/places.git
 cd $this_dir
 
 # Move the examples to the root dir
