@@ -111,7 +111,7 @@ make
 # Postgres stuff
 # Set up the OSM user and the DB
 sudo -u postgres psql -c "CREATE USER $user WITH PASSWORD '$pass'"
-sudo -u postgres psql -c "ALTER USER osm WITH SUPERUSER;"
+sudo -u postgres psql -c "ALTER USER $user WITH SUPERUSER;"
 sudo -u postgres dropdb $dbnameapi
 sudo -u postgres createdb -E UTF8 $dbnameapi
 sudo -u postgres createlang -d $dbnameapi plpgsql
