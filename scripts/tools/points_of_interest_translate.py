@@ -88,6 +88,9 @@ Waterfall                 waterway=waterfall
 Wayside                   tourism=atttraction
 Historic Building         building=yes; historic=building
 Gravesite                 cemetery=grave
+
+Peak                      natural=peak
+Fortification             historic=archaeological_site; site_type=fortification; fortification_type=hill_fort
 '''
 
 def filterTags(attrs):
@@ -411,4 +414,14 @@ def filterTags(attrs):
       if attrs['FACILITY'].strip() == 'building':
         tags['cemetery'] = 'grave'
 
+      '''Peak                      natural=peak'''
+      if attrs['FACILITY'].strip() == 'Peak':
+        tags['natural'] = 'peak'   
+        
+      '''Fortification             historic=archaeological_site; site_type=fortification; fortification_type=hill_fort'''
+      if attrs['FACILITY'].strip() == 'Fortification':
+        tags['historic'] = 'archaeological_site'
+        tags['site_type'] = 'fortification'
+        tags['fortification_type'] = 'hill_fort'
+        
     return tags
