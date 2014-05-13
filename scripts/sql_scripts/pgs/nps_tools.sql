@@ -49,6 +49,7 @@ CREATE OR REPLACE VIEW public.nps_planet_osm_point_view AS
     nodes.tags -> 'name'::text AS "name",
     tags AS "tags",
     nps_node_o2p_calculate_zorder(nodes.tags) AS z_order,
+    NOW()::timestamp without time zone AS time,
     st_transform(nodes.geom, 900913) AS way
    FROM nodes
   WHERE nodes.tags <> ''::hstore AND 
