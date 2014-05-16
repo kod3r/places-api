@@ -20,12 +20,6 @@ CREATE OR REPLACE FUNCTION new_session(
       v_secret
     );
 
-    -- Remove Old Sessions
-    DELETE FROM
-      sessions
-    WHERE
-      created_time < NOW() AT TIME ZONE 'UTC' - '1 week'::INTERVAL;
-
     RETURN v_secret;
   END;
 $new_session$ LANGUAGE plpgsql;
