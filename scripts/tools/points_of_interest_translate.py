@@ -85,7 +85,7 @@ Trailhead                 highway=trailhead
 Cemetery                  landuse=cemetery
 Park                      leisure=park
 Waterfall                 waterway=waterfall
-Wayside                   tourism=atttraction
+Wayside                   tourism=attraction
 Historic Building         building=yes; historic=building
 Gravesite                 cemetery=grave
 
@@ -401,9 +401,9 @@ def filterTags(attrs):
       if attrs['FACILITY'].strip() == 'Waterfall':
         tags['waterway'] = 'waterfall'
         
-      '''Wayside                   tourism=atttraction'''
+      '''Wayside                   tourism=attraction'''
       if attrs['FACILITY'].strip() == 'Wayside':
-        tags['tourism'] = 'atttraction'
+        tags['tourism'] = 'attraction'
         
       '''Historic Building         building=yes; historic=building'''
       if attrs['FACILITY'].strip() == 'Historic Building':
