@@ -102,3 +102,68 @@ CREATE OR REPLACE VIEW public.nps_planet_osm_point_view AS
 ALTER TABLE public.nps_planet_osm_point_view
   OWNER TO postgres;
 
+-- Get the name using the tag database
+ CREATE OR REPLACE FUNCTION public.o2p_get_name(
+  bigint,
+  character(1)
+)
+  RETURNS text AS $o2p_get_name$
+DECLARE
+  v_id ALIAS for $1;
+  v_member_type ALIAS FOR $2; -- Current not used, update this!
+  v_name TEXT;
+BEGIN
+
+SELECT
+  name 
+FROM (
+  SELECT
+    name, 
+    Count(*), 
+    (
+      SELECT
+        Count(*) 
+       FROM (
+         SELECT
+           Json_each(tags) 
+         FROM
+           tag_list 
+         WHERE
+           tag_list.name = joined_tags.name
+       ) internal_count_tags
+    ) internal_count 
+  FROM (
+    SELECT
+      tag_list_tags.*, 
+      node_tags.* 
+    FROM (
+      SELECT
+        name,
+        Json_each(tags) each_tag,
+        geometry,
+        searchable
+      FROM
+        tag_list
+    ) tag_list_tags JOIN (
+      SELECT
+        id,
+        Json_each(tags :: json) each_tag 
+      FROM
+        nodes
+    ) node_tags ON tag_list_tags.each_tag :: text = node_tags.each_tag :: text 
+    WHERE
+      tag_list_tags.geometry @> ARRAY['point'] AND
+      (tag_list_tags.searchable is null or tag_list_tags.searchable is true) AND
+      node_tags.id = v_id
+   ) joined_tags 
+GROUP BY
+  joined_tags.name) counted_tags
+WHERE
+  counted_tags.count = counted_tags.internal_count
+INTO
+ v_name;
+
+ RETURN v_name;
+END;
+$o2p_get_name$
+LANGUAGE plpgsql;
