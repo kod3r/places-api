@@ -82,3 +82,23 @@ CREATE OR REPLACE FUNCTION nps_pgs_update_o2p(
   RETURN true;
   END;
 $nps_pgs_update_o2p$ LANGUAGE plpgsql;
+
+
+-- View: public.nps_planet_osm_point_view
+
+-- DROP VIEW public.nps_planet_osm_point_view;
+
+CREATE OR REPLACE VIEW public.nps_planet_osm_point_view AS 
+ SELECT nodes.id AS osm_id,
+    nodes.tags -> 'nps:fcat'::text AS "FCategory",
+    nodes.tags -> 'name'::text AS name,
+    nodes.tags,
+    nps_node_o2p_calculate_zorder(nodes.tags) AS z_order,
+    st_transform(nodes.geom, 900913) AS way,
+    now()::timestamp without time zone AS created
+   FROM nodes
+  WHERE nodes.tags <> ''::hstore AND nodes.tags IS NOT NULL;
+
+ALTER TABLE public.nps_planet_osm_point_view
+  OWNER TO postgres;
+
