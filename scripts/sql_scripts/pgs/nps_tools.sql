@@ -1,34 +1,26 @@
-/*CREATE OR REPLACE FUNCTION public.nps_node_o2p_calculate_zorder(hstore)
+CREATE OR REPLACE FUNCTION public.nps_node_o2p_calculate_zorder(text)
   RETURNS integer AS
 $BODY$
 DECLARE
-  v_tags ALIAS for $1;
+  v_tag ALIAS for $1;
   v_zorder integer;
 BEGIN
 
 SELECT
-  SUM(calc.order) as z_order
-FROM
- (SELECT
-  key,
-  value,
   CASE
-    WHEN key = 'nps:fcat' AND value = 'Visitor Center' THEN 40
-    WHEN key = 'nps:fcat' AND value = 'Ranger Station' THEN 38
-    WHEN key = 'nps:fcat' AND value = 'Information' THEN 36
-    WHEN key = 'nps:fcat' AND value = 'Lodge' THEN 34
-    WHEN key = 'nps:fcat' AND value = 'Campground' THEN 32
-    WHEN key = 'nps:fcat' AND value = 'Food Service' THEN 30
-    WHEN key = 'nps:fcat' AND value = 'Store' THEN 28
-    WHEN key = 'nps:fcat' AND value = 'Picnic Area' THEN 26
-    WHEN key = 'nps:fcat' AND value = 'Trailhead' THEN 24
-    WHEN key = 'nps:fcat' AND value = 'Parking' THEN 22
-    WHEN key = 'nps:fcat' AND value = 'Restroom' THEN 20
-    WHEN key = 'layer' THEN 10 * value::integer
+    WHEN v_tag = 'Visitor Center' THEN 40
+    WHEN v_tag = 'Ranger Station' THEN 38
+    WHEN v_tag = 'Information' THEN 36
+    WHEN v_tag = 'Lodge' THEN 34
+    WHEN v_tag = 'Campground' THEN 32
+    WHEN v_tag = 'Food Service' THEN 30
+    WHEN v_tag = 'Store' THEN 28
+    WHEN v_tag = 'Picnic Area' THEN 26
+    WHEN v_tag = 'Trailhead' THEN 24
+    WHEN v_tag = 'Parking' THEN 22
+    WHEN v_tag = 'Restroom' THEN 20
     ELSE 0
-  END as order
-FROM
-  each(v_tags)) calc
+  END AS order
 INTO
   v_zorder;
 
@@ -37,9 +29,8 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
-ALTER FUNCTION public.nps_node_o2p_calculate_zorder(hstore)
+ALTER FUNCTION public.nps_node_o2p_calculate_zorder(text)
   OWNER TO postgres;
-*/
   ------------
 
 
