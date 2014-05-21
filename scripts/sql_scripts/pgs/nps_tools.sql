@@ -37,14 +37,14 @@ ALTER FUNCTION public.nps_node_o2p_calculate_zorder(text)
 
 CREATE OR REPLACE VIEW public.nps_planet_osm_point_view AS 
 SELECT
-  osm_id, "name", "fcat", "tags", "time", "way", nps_node_o2p_calculate_zorder(fcat) as z_order
+  osm_id, "name", "fcat", "tags", "created", "way", nps_node_o2p_calculate_zorder(fcat) as z_order
 FROM (
   SELECT
     nodes.id AS osm_id,
     nodes.tags -> 'name'::text AS "name",
     o2p_get_name(tags, 'N') AS "fcat",
     tags AS "tags",
-    NOW()::timestamp without time zone AS time,
+    NOW()::timestamp without time zone AS created,
     st_transform(nodes.geom, 900913) AS way
   FROM
     nodes
