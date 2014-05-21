@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION public.nps_node_o2p_calculate_zorder(hstore)
+/*CREATE OR REPLACE FUNCTION public.nps_node_o2p_calculate_zorder(hstore)
   RETURNS integer AS
 $BODY$
 DECLARE
@@ -39,7 +39,7 @@ $BODY$
   COST 100;
 ALTER FUNCTION public.nps_node_o2p_calculate_zorder(hstore)
   OWNER TO postgres;
-  
+*/
   ------------
 
 
@@ -60,108 +60,85 @@ ALTER TABLE public.nps_planet_osm_point_view
   
   
   -----
+-- Convert JSON to hstore
+CREATE OR REPLACE FUNCTION public.json_to_hstore(
+  json
+)
+  RETURNS hstore AS $json_to_hstore$
+DECLARE
+  v_json ALIAS for $1;
+  v_hstore HSTORE;
+BEGIN
+SELECT
+  hstore(array_agg(keys), array_agg(vals))
+FROM
+(
+SELECT 
+  json_object_keys(v_json) keys,
+  tags->>json_object_keys(v_json) vals
+) get_vals
+  v_hstore;
+
+ RETURN v_hstore;
+END;
+$json_to_hstore$
+LANGUAGE plpgsql;
   
--- DROP FUNCTION nps_pgs_update_o2p(bigint, character(1));
-CREATE OR REPLACE FUNCTION nps_pgs_update_o2p(
-  bigint,
-  character(1)
-) RETURNS boolean AS $nps_pgs_update_o2p$
-  DECLARE
-    v_id ALIAS FOR $1;
-    v_member_type ALIAS FOR $2;
-    v_rel_id BIGINT;
-  BEGIN
-    -- Update this object in the nps o2p tables
-        IF v_member_type = 'N' THEN
-          DELETE FROM planet_osm_point WHERE osm_id = v_id;
-          INSERT INTO planet_osm_point (
-            SELECT * FROM nps_planet_osm_point_view where osm_id = v_id
-          );
-    END IF;
-
-  RETURN true;
-  END;
-$nps_pgs_update_o2p$ LANGUAGE plpgsql;
-
-
--- View: public.nps_planet_osm_point_view
-
--- DROP VIEW public.nps_planet_osm_point_view;
-
-CREATE OR REPLACE VIEW public.nps_planet_osm_point_view AS 
- SELECT nodes.id AS osm_id,
-    nodes.tags -> 'nps:fcat'::text AS "FCategory",
-    nodes.tags -> 'name'::text AS name,
-    nodes.tags,
-    nps_node_o2p_calculate_zorder(nodes.tags) AS z_order,
-    st_transform(nodes.geom, 900913) AS way,
-    now()::timestamp without time zone AS created
-   FROM nodes
-  WHERE nodes.tags <> ''::hstore AND nodes.tags IS NOT NULL;
-
-ALTER TABLE public.nps_planet_osm_point_view
-  OWNER TO postgres;
-
--- Get the name using the tag database
- CREATE OR REPLACE FUNCTION public.o2p_get_name(
-  bigint,
+-- DROP FUNCTION o2p_get_name(hstore, character(1));
+CREATE OR REPLACE FUNCTION public.o2p_get_name(
+  hstore,
   character(1)
 )
   RETURNS text AS $o2p_get_name$
 DECLARE
-  v_id ALIAS for $1;
+  v_hstore ALIAS for $1;
   v_member_type ALIAS FOR $2; -- Current not used, update this!
   v_name TEXT;
 BEGIN
 
 SELECT
-  name 
+  name
 FROM (
   SELECT
-    name, 
-    Count(*), 
-    (
-      SELECT
-        Count(*) 
-       FROM (
-         SELECT
-           Json_each(tags) 
-         FROM
-           tag_list 
-         WHERE
-           tag_list.name = joined_tags.name
-       ) internal_count_tags
-    ) internal_count 
+    name,
+    max(hstore_len) hstore_len,
+    count(*) match_count
   FROM (
     SELECT
-      tag_list_tags.*, 
-      node_tags.* 
+      name,
+      available_tags,
+      each(v_hstore) input_tags,
+      hstore_len
     FROM (
       SELECT
         name,
-        Json_each(tags) each_tag,
-        geometry,
-        searchable
-      FROM
-        tag_list
-    ) tag_list_tags JOIN (
-      SELECT
-        id,
-        Json_each(tags :: json) each_tag 
-      FROM
-        nodes
-    ) node_tags ON tag_list_tags.each_tag :: text = node_tags.each_tag :: text 
-    WHERE
-      tag_list_tags.geometry @> ARRAY['point'] AND
-      (tag_list_tags.searchable is null or tag_list_tags.searchable is true) AND
-      node_tags.id = v_id
-   ) joined_tags 
-GROUP BY
-  joined_tags.name) counted_tags
+        each(tags) available_tags,
+        hstore_len
+      FROM (
+        SELECT
+          name, 
+          delete(json_to_hstore(tags), 'nps:fcat') tags,
+          array_length(%% (delete(json_to_hstore(tags), 'nps:fcat')),1)/2 hstore_len
+        FROM
+          tag_list
+        WHERE
+          tag_list.geometry @> ARRAY['point'] AND
+          tag_list.searchable is null or tag_list.searchable is true
+      ) available_tags
+    ) explode_tags
+  ) paired_tags
+  WHERE
+    available_tags = input_tags
+  GROUP BY name
+  ) counted_tags
 WHERE
-  counted_tags.count = counted_tags.internal_count
+  hstore_len = match_count
+ORDER BY
+  match_count DESC
+LIMIT
+  1
 INTO
- v_name;
+  v_name;
 
  RETURN v_name;
 END;
