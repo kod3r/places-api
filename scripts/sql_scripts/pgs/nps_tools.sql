@@ -15,10 +15,11 @@ SELECT
     WHEN v_tag = 'Campground' THEN 32
     WHEN v_tag = 'Food Service' THEN 30
     WHEN v_tag = 'Store' THEN 28
-    WHEN v_tag = 'Picnic Area' THEN 26
+    WHEN v_tag = 'Picnic Site' THEN 26
+    WHEN v_tag = 'Picnic Table' THEN 26
     WHEN v_tag = 'Trailhead' THEN 24
-    WHEN v_tag = 'Parking' THEN 22
-    WHEN v_tag = 'Restroom' THEN 20
+    WHEN v_tag = 'Car Parking' THEN 22
+    WHEN v_tag = 'Restrooms' THEN 20
     ELSE 0
   END AS order
 INTO
