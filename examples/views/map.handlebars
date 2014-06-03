@@ -1,47 +1,15 @@
-<div id="map" style="width: 600px; height: 400px"></div>
-
-<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7/leaflet.css" />
-<script src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js"></script>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-
-
+<div id="map" style="height:400px;width:600px;"></div>
 <script>
-  var map = L.map('map');
+  var NPMap = {
+    div: 'map',
+    hooks: {
+      init: function() {
+        var overlay = L.npmap.layer.geojson({
+          data: {{{geojson}}}
+        }).addTo(NPMap.config.L);
 
-  L.tileLayer('http://{s}.tiles.mapbox.com/v3/nps.map-06dnxzq5/{z}/{x}/{y}.png', {
-  attribution: '<a href=\'http://mapbox.com/about/maps\' target=\'_blank\'>MapBox</a>, &copy; <a href=\'http://openstreetmap.org/copyright\'>OpenStreetMap</a> contributors'
-  }).addTo(map);
-
-    popup = new L.Popup();
-
-    geojsonLayer = new L.GeoJSON({{{geojson}}}, {
-       onEachFeature: function (feature, layer){
-         //click event that triggers the popup and centres it on the polygon
-         layer.on("click", function (e) {
-           var center = e.latlng;
-           if (layer.getBounds) {
-             center = layer.getBounds().getCenter();
-           }
-           var popupContent = tablify(feature.properties);
-           popup.setLatLng(center);
-           popup.setContent(popupContent);
-           map.openPopup(popup);
-           });
-         }
-    });
-
-    //add the polygon layer
-    map.addLayer(geojsonLayer);
-    map.fitBounds(geojsonLayer.getBounds());
-
-    var tablify = function(data) {
-      var table = "<table border =1 >";
-        for (var val in data) {
-          table += '<tr><td>'+val+'</td><td>'+JSON.stringify(data[val])+'</td></tr>';
-        }
-      return table + '</table>';
-    };
-
-
+        NPMap.config.L.fitBounds(overlay.getBounds());
+      }
+    }
+  };
 </script>
-
