@@ -1,15 +1,23 @@
-<div id="map" style="height:400px;width:600px;"></div>
+<div id="map" style="position:absolute; top:0; bottom:0; width:100%; "></div>
 <script>
   var NPMap = {
     div: 'map',
     hooks: {
-      init: function() {
+      init: function(callback) {
         var overlay = L.npmap.layer.geojson({
           data: {{{geojson}}}
         }).addTo(NPMap.config.L);
-
         NPMap.config.L.fitBounds(overlay.getBounds());
+        for (var layer in overlay._layers) {
+          overlay._layers[layer]._fireMouseEvent({'type': 'click'});
+        }
+        callback();
       }
     }
   };
+(function(){
+ var s = document.createElement('script');
+ s.src = 'http://www.nps.gov/npmap/npmap.js/2.0.0/npmap-bootstrap.min.js';
+ document.body.appendChild(s);
+})();
 </script>
