@@ -52,6 +52,7 @@ SELECT
   json_object_keys(v_json) keys,
   tags->>json_object_keys(v_json) vals
 ) get_vals
+INTO
   v_hstore;
 
  RETURN v_hstore;
