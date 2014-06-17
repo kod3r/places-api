@@ -33,28 +33,6 @@ $BODY$
 ALTER FUNCTION public.nps_node_o2p_calculate_zorder(text)
   OWNER TO postgres;
   ------------
-
-
-CREATE OR REPLACE VIEW public.nps_planet_osm_point_view AS 
-SELECT
-  osm_id, "name", "fcat", "tags", "created", "way", nps_node_o2p_calculate_zorder(fcat) as z_order
-FROM (
-  SELECT
-    nodes.id AS osm_id,
-    nodes.tags -> 'name'::text AS "name",
-    o2p_get_name(tags, 'N') AS "fcat",
-    tags AS "tags",
-    NOW()::timestamp without time zone AS created,
-    st_transform(nodes.geom, 900913) AS way
-  FROM
-    nodes
-  WHERE
-    nodes.tags <> ''::hstore AND 
-    nodes.tags IS NOT NULL
-) base
-WHERE
-  fcat IS NOT NULL;
-  
   
   -----
 -- Convert JSON to hstore
@@ -141,3 +119,27 @@ INTO
 END;
 $o2p_get_name$
 LANGUAGE plpgsql;
+
+-------------
+
+
+CREATE OR REPLACE VIEW public.nps_planet_osm_point_view AS 
+SELECT
+  osm_id, "name", "fcat", "tags", "created", "way", nps_node_o2p_calculate_zorder(fcat) as z_order
+FROM (
+  SELECT
+    nodes.id AS osm_id,
+    nodes.tags -> 'name'::text AS "name",
+    o2p_get_name(tags, 'N') AS "fcat",
+    tags AS "tags",
+    NOW()::timestamp without time zone AS created,
+    st_transform(nodes.geom, 900913) AS way
+  FROM
+    nodes
+  WHERE
+    nodes.tags <> ''::hstore AND 
+    nodes.tags IS NOT NULL
+) base
+WHERE
+  fcat IS NOT NULL;
+  
