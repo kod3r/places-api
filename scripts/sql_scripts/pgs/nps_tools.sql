@@ -45,13 +45,9 @@ DECLARE
   v_hstore HSTORE;
 BEGIN
 SELECT
-  hstore(array_agg(keys), array_agg(vals))
+  hstore(array_agg(key), array_agg(value))
 FROM
-(
-SELECT 
-  json_object_keys(v_json) keys,
-  tags->>json_object_keys(v_json) vals
-) get_vals
+ json_each_text(v_json)
 INTO
   v_hstore;
 
