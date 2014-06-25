@@ -56,6 +56,74 @@ END;
 $json_to_hstore$
 LANGUAGE plpgsql;
   
+--
+-- probably can replace the one below it, this one just as an all option, where the other one doesn't
+CREATE OR REPLACE FUNCTION public.o2p_get_name(
+  hstore,
+  character(1),
+  boolean
+)
+  RETURNS text AS $o2p_get_name$
+DECLARE
+  v_hstore ALIAS for $1;
+  v_member_type ALIAS FOR $2; -- Current not used, update this!
+  v_all ALIAS for $3;
+  v_name TEXT;
+BEGIN
+
+SELECT
+  name
+FROM (
+  SELECT
+    name,
+    max(hstore_len) hstore_len,
+    count(*) match_count
+  FROM (
+    SELECT
+      name,
+      available_tags,
+      each(v_hstore) input_tags,
+      hstore_len
+    FROM (
+      SELECT
+        name,
+        each(tags) available_tags,
+        hstore_len
+      FROM (
+        SELECT
+          name, 
+          delete(json_to_hstore(tags), 'nps:fcat') tags,
+          array_length(%% (delete(json_to_hstore(tags), 'nps:fcat')),1)/2 hstore_len
+        FROM
+          tag_list
+        WHERE
+          tag_list.geometry @> ARRAY['point'] AND
+          (v_all OR (
+            tag_list.searchable is null OR
+            tag_list.searchable is true
+          ))
+      ) available_tags
+    ) explode_tags
+  ) paired_tags
+  WHERE
+    available_tags = input_tags
+  GROUP BY name
+  ) counted_tags
+WHERE
+  hstore_len = match_count
+ORDER BY
+  match_count DESC
+LIMIT
+  1
+INTO
+  v_name;
+
+ RETURN v_name;
+END;
+$o2p_get_name$
+LANGUAGE plpgsql;
+----
+  
 -- DROP FUNCTION o2p_get_name(hstore, character(1));
 CREATE OR REPLACE FUNCTION public.o2p_get_name(
   hstore,
