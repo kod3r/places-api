@@ -152,7 +152,7 @@ def filterTags(attrs):
 
         '''Multi-Purpose   building=yes            '''
         if attrs['Main_usage_type'].strip() == 'Multi-Purpose':
-          tags['building'] = 'yes'
+            tags['building'] = 'yes'
 
         '''Museum Repository       building=yes    tourism=museum '''
         if attrs['Main_usage_type'].strip() == 'Museum Repository':
@@ -161,8 +161,8 @@ def filterTags(attrs):
 
         '''Office  building=yes    building=commercial    '''
         if attrs['Main_usage_type'].strip() == 'Office':
-          tags['building'] = 'yes'
-          tags['building'] = 'commercial'
+            tags['building'] = 'yes'
+            tags['building'] = 'commercial'
 
         '''Other Institutional Uses        building=yes           '''
         if attrs['Main_usage_type'].strip() == 'Other Institutional Uses':
@@ -170,8 +170,8 @@ def filterTags(attrs):
 
         '''Post Office     building=yes    amenity=post_office    '''
         if attrs['Main_usage_type'].strip() == 'Post Office':
-          tags['building'] = 'yes'
-          tags['amenity'] = 'post_office'
+            tags['building'] = 'yes'
+            tags['amenity'] = 'post_office'
 
         '''Power Generation        building=yes    power=station  '''
         if attrs['Main_usage_type'].strip() == 'Power Generation':
@@ -180,8 +180,8 @@ def filterTags(attrs):
 
         '''Pump House Well House   building=yes    man_made=water_well    '''
         if attrs['Main_usage_type'].strip() == 'Pump House Well House':
-          tags['building'] = 'yes'
-          tags['man_made'] = 'water_well'
+            tags['building'] = 'yes'
+            tags['man_made'] = 'water_well'
 
         '''Restaurant      building=yes    amenity=restaurant     '''
         if attrs['Main_usage_type'].strip() == 'Restaurant':
@@ -190,15 +190,15 @@ def filterTags(attrs):
 
         '''Retail Store    building=yes           '''
         if attrs['Main_usage_type'].strip() == 'Retail Store':
-          tags['building'] = 'yes'
+            tags['building'] = 'yes'
 
         '''School  building=school        '''
         if attrs['Main_usage_type'].strip() == 'School':
             tags['building'] = 'school'
 
         '''School Day Care building=school        '''
-        if attrs['Main_usage_type'].strip() == 'School Day Care']:
-          tags['building'] = 'school'
+        if attrs['Main_usage_type'].strip() == 'School Day Care':
+            tags['building'] = 'school'
 
         '''Service Shop Maintenance        building=yes           '''
         if attrs['Main_usage_type'].strip() == 'Service Shop Maintenance':
@@ -216,7 +216,7 @@ def filterTags(attrs):
         '''Vault Toilets/Pit Toilets '''
         if attrs['Main_usage_type'].strip() == 'Vault Toilets/Pit Toilets':
             tags['building'] = 'yes'
-            tags['amenity'] =' toilets'
+            tags['amenity'] = ' toilets'
             tags['toilets:disposal'] = 'pitlatrine'
 
         '''Visitor Center  '''
@@ -239,26 +239,26 @@ def filterTags(attrs):
 
         '''Warehouse Explosive     building=warehouse             '''
         if attrs['Main_usage_type'].strip() == 'Warehouse Explosive':
-          tags['building'] = 'warehouse'
+            tags['building'] = 'warehouse'
 
         '''Warehouse Fire Cache    building=warehouse             '''
         if attrs['Main_usage_type'].strip() == 'Warehouse Fire Cache':
-          tags['building'] = 'warehouse'
+            tags['building'] = 'warehouse'
 
         '''Warehouse Shed Outbuilding      building=warehouse             '''
         if attrs['Main_usage_type'].strip() == 'Warehouse Shed Outbuilding':
-          tags['building'] = 'warehouse'
+            tags['building'] = 'warehouse'
 
         '''Warehouse Warehouse     building=warehouse             '''
         if attrs['Main_usage_type'].strip() == 'Warehouse Warehouse':
-          tags['building'] = 'warehouse'
+            tags['building'] = 'warehouse'
 
         '''Warehouses      building=warehouse             '''
         if attrs['Main_usage_type'].strip() == 'Warehouses':
-          tags['building'] = 'warehouse'
+            tags['building'] = 'warehouse'
 
         '''Water Treatment building=yes    man_made=water_works   '''
         if attrs['Main_usage_type'].strip() == 'Water Treatment building=yes':
-          tags['man_made'] = 'water_works'
+            tags['man_made'] = 'water_works'
 
     return tags
