@@ -208,3 +208,32 @@ FROM (
 WHERE
   fcat IS NOT NULL;
   
+------------------
+
+-- Function: public.nps_pgs_update_o2p(bigint, character)
+
+-- DROP FUNCTION public.nps_pgs_update_o2p(bigint, character);
+
+CREATE OR REPLACE FUNCTION public.nps_pgs_update_o2p(bigint, character)
+  RETURNS boolean AS
+$BODY$
+  DECLARE
+    v_id ALIAS FOR $1;
+    v_member_type ALIAS FOR $2;
+    v_rel_id BIGINT;
+  BEGIN
+    -- Update this object in the nps o2p tables
+        IF v_member_type = 'N' THEN
+          DELETE FROM planet_osm_point WHERE osm_id = v_id;
+          INSERT INTO planet_osm_point (
+            SELECT * FROM nps_planet_osm_point_view where osm_id = v_id
+          );
+    END IF;
+
+  RETURN true;
+  END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION public.nps_pgs_update_o2p(bigint, character)
+  OWNER TO osm;
