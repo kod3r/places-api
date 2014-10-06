@@ -1,0 +1,817 @@
+CREATE OR REPLACE FUNCTION getBbox (numeric, numeric, numeric, numeric, numeric) RETURNS osmMap AS $getBbox$
+  DECLARE
+    v_minLat ALIAS FOR $1;
+    v_minLon ALIAS FOR $2;
+    v_maxLat ALIAS FOR $3;
+    v_maxLon ALIAS FOR $4;
+    v_node_limit ALIAS FOR $5;
+    v_bounds json;
+    v_nodes json;
+    v_ways json;
+    v_relations json;
+    v_max_number_of_nodes bigint;
+    v_limit_reached json;
+  BEGIN
+    v_max_number_of_nodes := v_node_limit;
+
+    CREATE LOCAL TEMP TABLE nodes_in_bbox ON COMMIT DROP AS
+    SELECT DISTINCT
+      current_nodes.id as node_id
+    FROM
+      current_nodes
+    WHERE
+      current_nodes.latitude > v_minLat * 10000000
+      AND current_nodes.longitude > v_minLon * 10000000
+      AND current_nodes.latitude < v_maxLat * 10000000
+      AND current_nodes.longitude < v_maxLon * 10000000
+    LIMIT
+      v_max_number_of_nodes;
+
+    IF (SELECT COUNT(*)<v_max_number_of_nodes FROM nodes_in_bbox) THEN
+
+    CREATE LOCAL TEMP TABLE ways_in_bbox ON COMMIT DROP AS
+    SELECT DISTINCT
+      current_way_nodes.way_id AS way_id
+    FROM
+      nodes_in_bbox
+    JOIN
+      current_way_nodes ON nodes_in_bbox.node_id = current_way_nodes.node_id;
+
+    CREATE LOCAL TEMP TABLE nodes_in_ways_in_bbox ON COMMIT DROP AS
+    SELECT DISTINCT
+      node_id
+    FROM
+      current_way_nodes
+      JOIN ways_in_bbox
+        ON current_way_nodes.way_id = ways_in_bbox.way_id;
+    
+    CREATE LOCAL TEMP TABLE nodes_in_query ON COMMIT DROP AS
+    SELECT DISTINCT
+      node_id
+    FROM (
+     SELECT node_id from nodes_in_ways_in_bbox
+     UNION
+     SELECT node_id from nodes_in_bbox
+    ) nodes_in_query_union;
+
+    SELECT
+      to_json(bboxBounds)
+    FROM
+      (
+      SELECT
+        min(current_nodes.latitude) as minLat,
+        min(current_nodes.longitude) as minLon,
+        max(current_nodes.latitude) as maxLat,
+        min(current_nodes.longitude) as maxLon
+      FROM
+       nodes_in_query
+       JOIN current_nodes
+       ON nodes_in_query.node_id = current_nodes.id
+      ) bboxBounds INTO v_bounds;
+
+    CREATE LOCAL TEMP TABLE relations_in_bbox ON COMMIT DROP AS
+    SELECT DISTINCT
+      current_relation_members.relation_id
+    FROM
+      current_relation_members
+      JOIN ways_in_bbox
+        ON current_relation_members.member_id = ways_in_bbox.way_id
+      WHERE
+        lower(current_relation_members.member_type::text) = 'way'
+    UNION
+      SELECT DISTINCT
+        current_relation_members.relation_id
+      FROM
+        current_relation_members
+        JOIN nodes_in_query
+          ON current_relation_members.member_id = nodes_in_query.node_id
+      WHERE
+          lower(current_relation_members.member_type::text) = 'node';
+
+    SELECT json_agg(to_json(bboxNodes)) FROM (
+    SELECT
+      api_current_nodes.*
+    FROM
+      api_current_nodes
+      JOIN nodes_in_query
+        ON api_current_nodes.id = nodes_in_query.node_id
+    WHERE
+      api_current_nodes.visible = 't'
+    ) bboxNodes
+    INTO v_nodes;
+
+    SELECT json_agg(to_json(bboxWays)) FROM (
+    SELECT
+      api_current_ways.*
+    FROM
+      api_current_ways
+      JOIN ways_in_bbox
+        ON api_current_ways.id = ways_in_bbox.way_id
+      WHERE
+        api_current_ways.visible = 't'
+    ) bboxWays
+    INTO v_ways;
+
+    SELECT json_agg(to_json(bboxRelations)) FROM (
+    SELECT
+      api_current_relations.*
+    FROM
+      api_current_relations
+      JOIN relations_in_bbox
+        ON api_current_relations.id = relations_in_bbox.relation_id
+      WHERE
+        api_current_relations.visible = 't'
+    ) bboxRelations
+    INTO v_relations;
+  END IF;
+
+    SELECT json_agg(to_json(max_limit)) FROM (
+    SELECT
+      count(*) >= v_max_number_of_nodes AS reached,
+      v_max_number_of_nodes as max,
+      count(*) as nodes
+    FROM
+      nodes_in_bbox
+    ) max_limit
+    INTO
+      v_limit_reached;
+
+    RETURN (v_bounds, v_nodes, v_ways, v_relations, v_limit_reached);
+
+  END;
+$getBbox$ LANGUAGE plpgsql;
+--DROP FUNCTION get_user(text, text);
+CREATE OR REPLACE FUNCTION get_user(
+  text,
+  text
+) RETURNS json AS $get_user$
+  DECLARE
+    v_token ALIAS FOR $1;
+    v_secret ALIAS FOR $2;
+    v_userInfo json;
+    BEGIN
+
+    SELECT to_json(user_info) FROM (
+      SELECT
+        users.display_name,
+        users.id
+      FROM
+        users
+          JOIN
+       sessions ON users.id = sessions.user_id
+      WHERE
+        sessions.request_token = v_token AND
+        sessions.request_token_secret = v_secret
+    ) user_info INTO v_userInfo;
+
+    RETURN v_userInfo;
+  END;
+$get_user$ LANGUAGE plpgsql;
+--DROP FUNCTION new_session(text, text);
+CREATE OR REPLACE FUNCTION new_session(
+  text,
+  text
+) RETURNS text AS $new_session$
+  DECLARE
+    v_token ALIAS FOR $1;
+    v_secret ALIAS FOR $2;
+    BEGIN
+
+    INSERT INTO
+      sessions
+    (
+      created_time,
+      request_token,
+      request_token_secret
+    ) VALUES (
+      now() AT TIME ZONE 'UTC',
+      v_token,
+      v_secret
+    );
+
+    RETURN v_secret;
+  END;
+$new_session$ LANGUAGE plpgsql;
+--DROP FUNCTION new_user(text, text, text, text, bigint, text, text, text, double precision, double precision, smallint, text, boolean, integer, integer);
+CREATE OR REPLACE FUNCTION new_user(
+  text,
+  text,
+  text,
+  text,
+  bigint,
+  text,
+  text,
+  text,
+  double precision,
+  double precision,
+  smallint,
+  text,
+  boolean,
+  integer,
+  integer
+) RETURNS json AS $new_user$
+  DECLARE
+    v_token ALIAS FOR $1;
+    v_secret ALIAS FOR $2;
+    v_access_token ALIAS FOR $3;
+    v_access_secret ALIAS FOR $4;
+    v_id ALIAS FOR $5;
+    v_account_created ALIAS FOR $6;
+    v_display_name ALIAS FOR $7;
+    v_description ALIAS FOR $8;
+    v_home_lat ALIAS FOR $9;
+    v_home_lon ALIAS FOR $10;
+    v_home_zoom ALIAS FOR $11;
+    v_avatar_url ALIAS FOR $12;
+    v_pd ALIAS FOR $13;
+    v_changesets ALIAS FOR $14;
+    v_traces ALIAS FOR $15;
+    v_return_json json;
+    v_user_count smallint;
+    v_user_name_count smallint;
+    v_res boolean;
+    BEGIN
+
+    -- First we need to update the users table
+    SELECT
+      count(*)
+    FROM
+      users
+    WHERE
+      id = v_id
+    INTO
+      v_user_count;
+
+    SELECT
+      count(*)
+    FROM
+      users
+    WHERE
+      display_name = v_display_name AND
+      id != v_id
+    INTO
+      v_user_name_count;
+
+    IF v_user_name_count > 0 THEN
+      -- This user is already in the system, with a different account number
+      v_display_name = v_display_name || '_nps';
+    END IF;
+
+    -- if the user doesn't exist, add it
+    IF v_user_count < 1 THEN
+
+      INSERT INTO
+        users
+      (
+        email,
+        id,
+        pass_crypt,
+        creation_time,
+        display_name,
+        data_public,
+        description,
+        home_lat,
+        home_lon,
+        home_zoom,
+        pass_salt,
+        image_file_name,
+        consider_pd,
+        changesets_count,
+        traces_count
+      ) VALUES (
+        v_id || '@example.com',
+        v_id,
+        '0',
+        to_timestamp(v_account_created, 'YYYY-MM-DD HH24:MI:SS'),
+        v_display_name,
+        true,
+        v_description,
+        v_home_lat,
+        v_home_lon,
+        v_home_zoom,
+        '0',
+        v_avatar_url,
+        v_pd,
+        v_changesets,
+        v_traces
+      );
+    ELSE
+
+    -- OTHERWISE UPDATE IT!
+    UPDATE
+      users
+    SET
+      email = v_id || '@example.com',
+      pass_crypt = 0,
+      creation_time = to_timestamp(v_account_created, 'YYYY-MM-DD HH24:MI:SS'),
+      display_name = v_display_name,
+      data_public = true,
+      description  = v_description,
+      home_lat = v_home_lat,
+      home_lon = v_home_lon,
+      home_zoom = v_home_zoom,
+      pass_salt = 0,
+      image_file_name = v_avatar_url,
+      consider_pd = v_pd,
+      changesets_count = v_changesets,
+      traces_count= v_traces
+    WHERE
+      id = v_id;
+    END IF;
+
+    -- UPDATE THE SESSION TABLE
+    UPDATE
+      sessions
+    SET
+      access_token = v_access_token,
+      access_token_secret = v_access_secret,
+      user_id = v_id
+    WHERE
+      request_token = v_token AND
+      request_token_secret = v_secret;
+
+
+    SELECT json_agg(session) as session FROM (
+      SELECT
+        *
+      FROM
+        sessions
+      WHERE
+        request_token = v_token AND
+        request_token_secret = v_secret
+    ) session into v_return_json;
+
+    -- Update the pgsnapshot view
+    SELECT res FROM dblink('dbname=dev_pgs', 'select * from pgs_new_user(' || quote_literal(v_id) || ', ' || quote_literal(v_display_name) || ')') as pgs(res boolean) into v_res;
+
+    RETURN v_return_json;
+  END;
+$new_user$ LANGUAGE plpgsql;
+--DROP FUNCTION upsert_changeset(bigint,bigint,json);
+CREATE OR REPLACE FUNCTION upsert_changeset(
+  bigint,
+  bigint,
+  json
+) RETURNS json AS $upsert_changeset$
+  DECLARE
+    v_id ALIAS FOR $1;
+    v_user ALIAS FOR $2;
+    v_tags ALIAS FOR $3;
+    v_timestamp timestamp without time zone;
+    v_new_id bigint;
+    v_return_json json;
+    BEGIN
+      -- Set some values
+        v_timestamp := now();
+
+      -- Determine if there needs to be a new changeset
+    SELECT
+      COALESCE((
+        SELECT
+          id
+        FROM
+          changesets
+        WHERE
+          id = v_id AND
+          user_id = v_user AND
+          created_at = closed_at
+        LIMIT 1
+      ), (
+        SELECT
+          nextval('changesets_id_seq')
+      )) AS new_id
+    INTO
+      v_new_id;
+
+    IF v_id != v_new_id THEN
+      INSERT INTO
+        changesets
+      (
+        id,
+        user_id,
+        created_at,
+        closed_at
+      ) VALUES (
+        v_new_id,
+        v_user,
+        now(),
+        now()
+      );
+    END IF;
+
+    -- Remove the old tags for this changeset
+    DELETE from changeset_tags where changeset_id = v_new_id;
+
+    -- Tags
+    INSERT INTO
+      changeset_tags (
+      SELECT
+        v_new_id AS changeset_id,
+        k,
+        v
+      FROM
+        json_populate_recordset(
+          null::changeset_tags,
+          v_tags
+        )
+      );
+
+      SELECT
+        json_agg(changeset)
+      FROM
+      (
+        SELECT
+          *
+        FROM
+          api_changesets
+        WHERE
+          api_changesets.id = v_new_id
+      ) changeset
+      INTO
+        v_return_json;
+
+    RETURN v_return_json;
+  END;
+$upsert_changeset$ LANGUAGE plpgsql;
+-- Function: upsert_node(bigint, integer, integer, bigint, boolean, json)
+
+-- DROP FUNCTION upsert_node(bigint, integer, integer, bigint, boolean, json);
+
+CREATE OR REPLACE FUNCTION upsert_node(bigint, integer, integer, bigint, boolean, json)
+  RETURNS diffresult AS
+$BODY$
+  DECLARE
+    v_id ALIAS FOR $1;
+    v_lat ALIAS FOR $2;
+    v_lon ALIAS FOR $3;
+    v_changeset ALIAS FOR $4;
+    v_visible ALIAS FOR $5;
+    v_tags ALIAS FOR $6;
+    v_timestamp timestamp without time zone;
+    v_tile bigint;
+    v_redaction integer;
+    v_new_id bigint;
+    v_new_version bigint;
+    v_user_id bigint;
+    v_res boolean;
+    v_uuid text; -- if text is in this field, it will add a uuid field to new entries
+    BEGIN
+      -- Set some values
+        v_timestamp := now();
+        v_tile := tile_for_point(v_lat, v_lon);
+        v_uuid := 'nps:places_uuid';
+        SELECT
+          changesets.user_id
+        FROM
+          changesets
+        WHERE
+          changesets.id = v_changeset
+        INTO
+          v_user_id;
+
+      -- Determine if there needs to be a new node and new verison
+    SELECT
+      COALESCE((
+        SELECT
+          node_id
+        FROM
+          nodes
+        WHERE
+          node_id = v_id
+        LIMIT 1
+      ), (
+        SELECT
+          nextval('node_id_seq')
+      )) AS new_id,
+      COALESCE((
+        SELECT
+          MAX(version)
+        FROM
+          nodes
+        WHERE
+          node_id = v_id
+        GROUP BY
+          node_id
+        ), 0)
+        +1 AS new_version
+    INTO
+      v_new_id,
+      v_new_version;
+
+    INSERT INTO
+     nodes (
+       node_id,
+       latitude,
+       longitude,
+       changeset_id,
+       visible,
+       timestamp,
+       tile,
+       version
+     ) VALUES (
+       v_new_id,
+       v_lat,
+       v_lon,
+       v_changeset,
+       v_visible,
+       v_timestamp,
+       v_tile,
+       v_new_version
+     );
+     
+-- Tags
+     INSERT INTO
+       node_tags (
+       SELECT
+         v_new_id AS node_id,
+         v_new_version AS version,
+         k,
+         v
+       FROM
+         json_populate_recordset(
+           null::node_tags,
+           v_tags
+         )
+       );
+
+    IF length(v_uuid) > 0 AND v_new_version = 1 THEN
+     INSERT INTO
+       node_tags (
+       SELECT
+         v_new_id AS node_id,
+         v_new_version AS version,
+         v_uuid,
+         uuid_generate_v4()
+       );
+       SELECT tag FROM api_current_nodes WHERE id = v_new_id INTO v_tags;
+    END IF;
+
+    -- Update the pgsnapshot view
+    SELECT res FROM dblink('dbname=dev_pgs', 'select * from pgs_upsert_node(' || quote_literal(v_new_id) || ', ' || quote_literal(v_lat) || ', ' || quote_literal(v_lon) || ', ' || quote_literal(v_changeset) || ', ' || quote_literal(v_visible) || ', ' || quote_literal(v_timestamp) || ', ' || quote_literal(v_tags) || ', ' || quote_literal(v_new_version) || ', ' || quote_literal(v_user_id) || ')') as pgs(res boolean) into v_res;
+
+    RETURN (v_id, v_new_id, v_new_version);
+    END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION upsert_node(bigint, integer, integer, bigint, boolean, json)
+  OWNER TO postgres;
+CREATE OR REPLACE FUNCTION upsert_relation(
+  bigint,
+  integer,
+  boolean,
+  json,
+  json
+) RETURNS diffResult AS $upsert_relation$
+  DECLARE
+    v_id ALIAS FOR $1;
+    v_changeset ALIAS FOR $2;
+    v_visible ALIAS FOR $3;
+    v_members ALIAS FOR $4;
+    v_tags ALIAS FOR $5;
+    v_timestamp timestamp without time zone;
+    v_redaction_id integer;
+    v_new_id bigint;
+    v_new_version bigint;
+    v_user_id bigint;
+    v_res boolean;
+    v_uuid text;
+  BEGIN
+    -- Set some values
+      v_timestamp := now();
+      v_uuid := 'nps:places_uuid';
+      SELECT
+        changesets.user_id
+      FROM
+        changesets
+      WHERE
+        changesets.id = v_changeset
+      INTO
+        v_user_id;
+
+    -- Determine if there needs to be a new relation and new verison
+    SELECT
+      COALESCE((
+        SELECT
+          relation_id
+        FROM
+          relations
+        WHERE
+          relation_id = v_id
+        LIMIT 1
+      ), (
+        SELECT
+          nextval('relation_id_seq')
+      )) AS new_id,
+      COALESCE((
+        SELECT
+          MAX(version)
+        FROM
+          relations
+        WHERE
+          relation_id = v_id
+        GROUP BY
+          relation_id
+        ), 0)
+        +1 AS new_version
+    INTO
+      v_new_id,
+      v_new_version;
+
+    INSERT INTO
+      relations (
+        relation_id,
+        changeset_id,
+        timestamp,
+        version,
+        visible,
+        redaction_id
+      ) VALUES (
+        v_new_id,
+        v_changeset,
+        v_timestamp,
+        v_new_version,
+        v_visible,
+        v_redaction_id
+      );    
+
+    -- Tags
+    INSERT INTO
+      relation_tags (
+      SELECT
+        v_new_id AS relation_id,
+        k,
+        v,
+        v_new_version AS version
+      FROM
+        json_populate_recordset(
+          null::relation_tags,
+          v_tags
+        )
+      );
+      
+    IF length(v_uuid) > 0 AND v_new_version = 1 THEN
+     INSERT INTO
+       relation_tags (
+       SELECT
+         v_new_id AS way_id,
+         v_uuid as k,
+         uuid_generate_v4() as v,
+         v_new_version AS version
+       );
+       SELECT tag FROM api_current_relations WHERE id = v_new_id INTO v_tags;
+    END IF;
+
+
+      -- Associated Members
+      INSERT INTO
+       relation_members (
+       SELECT
+         v_new_id AS relation_id,
+         member_type as member_type,
+         member_id as member_id,
+         member_role as member_role,
+         v_new_version AS version,
+         sequence_id as sequence_id
+       FROM
+         json_populate_recordset(
+           null::relation_members,
+           v_members
+         )
+       );
+
+    -- Update the pgsnapshot view
+    SELECT res FROM dblink('dbname=dev_pgs', 'select * from pgs_upsert_relation(' || quote_literal(v_new_id) || ', ' || quote_literal(v_changeset) || ', ' || quote_literal(v_visible) || ', ' || quote_literal(v_members) || ', ' || quote_literal(v_tags) || ', ' || quote_literal(v_timestamp) || ', '  || quote_literal(v_new_version) || ', ' || quote_literal(v_user_id) || ')') as pgs(res boolean) into v_res;
+
+    RETURN (v_id, v_new_id, v_new_version);
+    END;
+$upsert_relation$ LANGUAGE plpgsql;
+CREATE OR REPLACE FUNCTION upsert_way(
+  bigint,
+  integer,
+  boolean,
+  json,
+  json
+) RETURNS diffResult AS $upsert_way$
+  DECLARE
+    v_id ALIAS FOR $1;
+    v_changeset ALIAS FOR $2;
+    v_visible ALIAS FOR $3;
+    v_nodes ALIAS FOR $4;
+    v_tags ALIAS FOR $5;
+    v_timestamp timestamp without time zone;
+    v_tile bigint;
+    v_redaction_id integer;
+    v_new_id bigint;
+    v_new_version bigint;
+    v_user_id bigint;
+    v_res boolean;
+    v_uuid text;
+  BEGIN 
+    -- Set some value
+      v_timestamp := now();
+      v_uuid = 'nps:places_uuid';
+      SELECT
+        changesets.user_id
+      FROM
+        changesets
+      WHERE
+        changesets.id = v_changeset
+      INTO
+        v_user_id;
+
+    -- Determine if there needs to be a new node and new verison
+    SELECT
+      COALESCE((
+        SELECT
+          way_id
+        FROM
+          ways
+        WHERE
+          way_id = v_id
+        LIMIT 1
+      ), (
+        SELECT
+          nextval('way_id_seq')
+      )) AS new_id,
+      COALESCE((
+        SELECT
+          MAX(version)
+        FROM
+          ways
+        WHERE
+          way_id = v_id
+        GROUP BY
+          way_id
+        ), 0)
+        +1 AS new_version
+    INTO
+      v_new_id,
+      v_new_version;
+      
+      
+INSERT INTO
+   ways (
+     way_id,
+     changeset_id,
+     timestamp,
+     version,
+     visible,
+     redaction_id
+   ) VALUES (
+     v_new_id,
+     v_changeset,
+     v_timestamp,
+     v_new_version,
+     v_visible,
+     v_redaction_id
+   );
+ -- Tags
+ INSERT INTO
+   way_tags (
+   SELECT
+     v_new_id AS way_id,
+     k,
+     v,
+     v_new_version AS version
+   FROM
+     json_populate_recordset(
+       null::way_tags,
+       v_tags
+     )
+   );
+   
+    IF length(v_uuid) > 0 AND v_new_version = 1 THEN
+     INSERT INTO
+       way_tags (
+       SELECT
+         v_new_id AS way_id,
+         v_uuid as k,
+         uuid_generate_v4() as v,
+         v_new_version AS version
+       );
+       SELECT tag FROM api_current_ways WHERE id = v_new_id INTO v_tags;
+    END IF;
+
+
+   -- Associated Nodes
+   INSERT INTO
+    way_nodes (
+    SELECT
+      v_new_id AS way_id,
+      node_id as node_id,
+      v_new_version AS version,
+      sequence_id as sequence_id
+    FROM
+      json_populate_recordset(
+        null::way_nodes,
+        v_nodes
+      )
+    );
+    
+    -- Update the pgsnapshot view
+    SELECT res FROM dblink('dbname=dev_pgs', 'select * from pgs_upsert_way(' || quote_literal(v_new_id) || ', ' || quote_literal(v_changeset) || ', ' || quote_literal(v_visible) || ', ' || quote_literal(v_timestamp) || ', ' || quote_literal(v_nodes) || ', ' || quote_literal(v_tags) || ', ' || quote_literal(v_new_version) || ', ' || quote_literal(v_user_id) || ')') as pgs(res boolean) into v_res;
+
+    RETURN (v_id, v_new_id, v_new_version);
+    END;
+$upsert_way$ LANGUAGE plpgsql;
