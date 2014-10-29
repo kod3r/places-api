@@ -260,5 +260,8 @@ def filterTags(attrs):
         '''Water Treatment building=yes    man_made=water_works   '''
         if attrs['Main_usage_type'].strip() == 'Water Treatment building=yes':
             tags['man_made'] = 'water_works'
+    else:
+        tags['nps:fcat'] = 'other'
+        tags['building'] = 'yes'
 
     return tags
