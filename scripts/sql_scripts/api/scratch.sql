@@ -49,9 +49,9 @@ CREATE OR REPLACE FUNCTION api_update_object(
           FROM (
             SELECT
               v_row.id as relation_id,
-              ((json_array_elements(v_row.member))->>'ref')::text::bigint as member_id,
-              ((json_array_elements(v_row.member))->>'type') as member_type,
-              ((json_array_elements(v_row.member))->>'role') as member_role
+              ((json_array_elements(v_row.members))->>'ref')::text::bigint as member_id,
+              ((json_array_elements(v_row.members))->>'type') as member_type,
+              ((json_array_elements(v_row.members))->>'role') as member_role
           ) current_relations INTO v_refs;
         SELECT res FROM dblink('dbname=poi_pgs', 'select * from pgs_upsert_relation(' || quote_literal(v_row.id) || ', ' || quote_literal(v_row.changeset) || ', ' || quote_literal(v_row.visible) || ', ' || quote_literal(v_row.members) || ', ' || quote_literal(v_row.tags) || ', ' || quote_literal(v_row.timestamp) || ', '  || quote_literal(v_row.version) || ', ' || quote_literal(v_row.user_id) || ')') as pgs(res boolean) into v_res;
       END LOOP; 
