@@ -12,17 +12,30 @@ CREATE OR REPLACE FUNCTION api_update_object(
     v_object ALIAS FOR $1;
     v_res boolean;
     v_row record;
+    v_refs json;
     BEGIN
 
     IF v_object = 'node' THEN
-    
       FOR v_row IN SELECT id, lat*10000000 as lat, lon*10000000 as lon, changeset, visible, timestamp, tag, version, "uid" FROM api_current_nodes LOOP
         SELECT res FROM dblink('dbname=poi_pgs', 'select * from pgs_upsert_node(' || quote_literal(v_row.id) || ', ' || quote_literal(v_row.lat) || ', ' || quote_literal(v_row.lon) || ', ' || quote_literal(v_row.changeset) || ', ' || quote_literal(v_row.visible) || ', ' || quote_literal(v_row.timestamp) || ', ' || quote_literal(v_row.tag) || ', ' || quote_literal(v_row.version) || ', ' || quote_literal(v_row.uid) || ')') as pgs(res boolean) into v_res; 
       END LOOP;  
 
     ELSIF v_object = 'way' THEN
       FOR v_row IN SELECT id, changeset, visible, timestamp, nd as nodes, tag as tags, version, uid as user_id FROM api_current_ways LOOP
-        SELECT res FROM dblink('dbname=poi_pgs', 'select * from pgs_upsert_way(' || quote_literal(v_row.id) || ', ' || quote_literal(v_row.changeset) || ', ' || quote_literal(v_row.visible) || ', ' || quote_literal(v_row.timestamp) || ', ' || quote_literal(v_row.nodes) || ', ' || quote_literal(v_row.tags) || ', ' || quote_literal(v_row.version) || ', ' || quote_literal(v_row.user_id) || ')') as pgs(res boolean) into v_res;
+        SELECT
+          to_json(array_agg(way_nodes))
+        FROM (
+          SELECT
+            node_id,
+            way_id,
+            sequence_id
+          FROM
+            current_way_nodes
+          WHERE
+            node_id IN (
+              SELECT ((json_array_elements(v_row.nodes))->'ref')::text::int)
+            ) way_nodes INTO v_refs;
+        SELECT res FROM dblink('dbname=poi_pgs', 'select * from pgs_upsert_way(' || quote_literal(v_row.id) || ', ' || quote_literal(v_row.changeset) || ', ' || quote_literal(v_row.visible) || ', ' || quote_literal(v_row.timestamp) || ', ' || quote_literal(v_refs) || ', ' || quote_literal(v_row.tags) || ', ' || quote_literal(v_row.version) || ', ' || quote_literal(v_row.user_id) || ')') as pgs(res boolean) into v_res;
       END LOOP; 
     
     ELSIF v_object = 'relation' THEN
