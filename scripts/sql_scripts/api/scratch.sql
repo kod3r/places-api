@@ -32,6 +32,7 @@ CREATE OR REPLACE FUNCTION api_update_object(
           FROM
             current_way_nodes
           WHERE
+            way_id = v_row.id AND
             node_id IN (
               SELECT ((json_array_elements(v_row.nodes))->'ref')::text::int)
             ) way_nodes INTO v_refs;
