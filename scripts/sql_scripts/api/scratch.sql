@@ -48,6 +48,11 @@ CREATE OR REPLACE FUNCTION api_update_object(
             to_json(array_agg(current_relations))
           FROM (
             SELECT
+              relation_id,
+              member_id,
+              member_type,
+              row_number() OVER ()-1 as member_sequence FROM (
+            SELECT
               v_row.id as relation_id,
               ((json_array_elements(v_row.members))->>'ref')::text::bigint as member_id,
               ((json_array_elements(v_row.members))->>'type') as member_type,
