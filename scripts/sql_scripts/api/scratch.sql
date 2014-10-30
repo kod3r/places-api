@@ -51,7 +51,8 @@ CREATE OR REPLACE FUNCTION api_update_object(
               relation_id,
               member_id,
               member_type,
-              row_number() OVER ()-1 as member_sequence FROM (
+              member_role,
+              row_number() OVER ()-1 as sequence_id FROM (
             SELECT
               v_row.id as relation_id,
               ((json_array_elements(v_row.members))->>'ref')::text::bigint as member_id,
