@@ -53,7 +53,7 @@ CREATE OR REPLACE FUNCTION api_update_object(
               ((json_array_elements(v_row.members))->>'type') as member_type,
               ((json_array_elements(v_row.members))->>'role') as member_role
           ) current_relations INTO v_refs;
-        SELECT res FROM dblink('dbname=poi_pgs', 'select * from pgs_upsert_relation(' || quote_literal(v_row.id) || ', ' || quote_literal(v_row.changeset) || ', ' || quote_literal(v_row.visible) || ', ' || quote_literal(v_ref) || ', ' || quote_literal(v_row.tags) || ', ' || quote_literal(v_row.timestamp) || ', '  || quote_literal(v_row.version) || ', ' || quote_literal(v_row.user_id) || ')') as pgs(res boolean) into v_res;
+        SELECT res FROM dblink('dbname=poi_pgs', 'select * from pgs_upsert_relation(' || quote_literal(v_row.id) || ', ' || quote_literal(v_row.changeset) || ', ' || quote_literal(v_row.visible) || ', ' || quote_literal(v_refs) || ', ' || quote_literal(v_row.tags) || ', ' || quote_literal(v_row.timestamp) || ', '  || quote_literal(v_row.version) || ', ' || quote_literal(v_row.user_id) || ')') as pgs(res boolean) into v_res;
       END LOOP; 
   
     END IF;
