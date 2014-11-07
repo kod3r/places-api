@@ -143,10 +143,9 @@ $includes_dir/osmosis/bin/osmosis --read-pbf file="$includes_dir/data/$dbfile" -
 
 # Update the sequences and functions
 cd $this_dir/sql_scripts/
-bash ./compileSql.bat
-sudo -u postgres psql -d $dbnameapi -f ./compiled.sql
-sudo -u postgres psql -d $dbnameapi -f ./compiled.sql
-sudo -u postgres psql -d $dbnameapi -f ./compiled.sql
+bash ./compileSql.sh
+sudo -u postgres psql -d $dbnameapi -f ./api_compiled.sql
+sudo -u postgres psql -d $dbnameapi -f ./pgs_compiled.sql
 rm ./compiled.sql
 
 # Since we used sudo to do a lot of stuff, make it easy for the current user

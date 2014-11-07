@@ -14,7 +14,7 @@ do
       query=$dir/$i*.sql
       echo "query: "$query
       echo "outputFile: "$outputFile
-      if [ -f $query ];
+      if [ -f "$query" ];
       then
         echo "-- "$i" --" >> $outputFile
         for file in `ls $query`; do
