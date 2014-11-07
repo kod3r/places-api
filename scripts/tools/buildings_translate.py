@@ -12,13 +12,12 @@ def filterTags(attrs):
 
     if 'Unit_Code' in attrs:
         tags['nps:alphacode'] = attrs['Unit_Code'].title()
-        
+
     '''
     just add these as defaults
     '''
     tags['nps:fcat'] = 'other'
     tags['building'] = 'yes'
-    '''
 
     '''
     Now for the big list!
