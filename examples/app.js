@@ -1,7 +1,7 @@
 var express = require('express'),
     poiApi = require('poi-api'),
     path = require('path'),
-    exphbs  = require('express3-handlebars');
+    exphbs  = require('express4-handlebars');
 
 // Set the environment variables
 var app = express();
@@ -50,7 +50,8 @@ app.use('/api', poiApi.routes());
 app.use('/oauth', poiApi.oauth());
 
 // iD Editor
-app.use(express.static(path.join(__dirname, '/node_modules/places/dist')));
+app.use(express.static(path.join(__dirname, '/node_modules/places/places')));
+app.use('/dist', express.static(path.join(__dirname, '/node_modules/places/dist')));
 
 app.listen(app.get('port'));
 console.log('Node.js server listening on port ' + app.get('port'));
