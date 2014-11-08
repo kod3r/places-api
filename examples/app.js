@@ -1,20 +1,27 @@
 var express = require('express'),
-    poiApi = require('poi-api'),
-    path = require('path'),
-    exphbs  = require('express4-handlebars');
-
-// Set the environment variables
+  poiApi = require('poi-api'),
+  path = require('path'),
+  exphbs = require('express-handlebars');
+//   bodyParser = require('body-parser');
+// // Set the environment variables
 var app = express();
-app.set('port', process.env.PORT || 3000);
+// app.use(bodyParser.json);
+// app.use(bodyParser.urlencoded({
+//   extended: false
+// }));
+
+app.set('port', process.env.PORT || 8000);
 
 //var allowXSS = require('./node_modules/poi-api/lib/allowXSS.js');
 //allowXSS(app);
 
-app.engine('handlebars', exphbs({defaultLayout: 'main'}));
+app.engine('handlebars', exphbs({
+  defaultLayout: 'main'
+}));
 app.set('view engine', 'handlebars');
 
 // Error Logging
-process.on('uncaughtException', function (err) {
+process.on('uncaughtException', function(err) {
   console.log('************************************************');
   console.log('*             UNCAUGHT EXCEPTION               *');
   console.log('************************************************');
@@ -27,6 +34,16 @@ process.on('uncaughtException', function (err) {
   console.log('************************************************');
   console.log('************************************************');
 });
+
+// OSM API
+app.use('/api', poiApi.routes());
+
+// oauth (prob move this into poi-api soon!
+app.use('/oauth', poiApi.oauth());
+
+// iD Editor
+app.use(express.static(path.join(__dirname, '/node_modules/places/places')));
+app.use('/dist', express.static(path.join(__dirname, '/node_modules/places/dist')));
 
 // Forward the browse requests
 app.get('/:type(browse|node|relation|way|changeset)/*', function(req, res) {
@@ -42,16 +59,6 @@ app.get('/:type(browse|node|relation|way|changeset)/*', function(req, res) {
 app.get('/user/:username', function(req, res) {
   res.redirect('http://www.openstreetmap.org/user/' + req.params.username);
 });
-
-// OSM API
-app.use('/api', poiApi.routes());
-
-// oauth (prob move this into poi-api soon!
-app.use('/oauth', poiApi.oauth());
-
-// iD Editor
-app.use(express.static(path.join(__dirname, '/node_modules/places/places')));
-app.use('/dist', express.static(path.join(__dirname, '/node_modules/places/dist')));
 
 app.listen(app.get('port'));
 console.log('Node.js server listening on port ' + app.get('port'));
