@@ -5,30 +5,23 @@ var express = require('express'),
   allowXSS = require('./lib/allowXSS'),
   bodyParser = require('body-parser');
 // Set the environment variables
-
-exports.routesNew = function() {
-  var app = express.Router();
-  app.get('/t', function(req, res) {
-    console.log('%s %s %s', req.method, req.url, req.path);
-    res.send('hi');
-  });
-  return app;
-};
-
+//
 exports.routes = function() {
+  var router = express.Router();
+  // parse application/x-www-form-urlencoded
+  router.use(bodyParser.urlencoded({
+    extended: false
+  }));
+  //
+  // // parse application/json
+  router.use(bodyParser.json());
 
-  var app = express.Router();
-  var poiApp = require('./lib/apiWrapper')(app);
-  // app.use(bodyParser.json);
-  // app.use(bodyParser.urlencoded({
-  //   extended: false
-  // }));
-
+  var poiApp = require('./lib/apiWrapper')(router);
 
   // From http://wiki.openstreetmap.org/wiki/API_v0.6#General_information
 
   // Allow external webpages to read our JavaScript
-  // allowXSS(app);
+  allowXSS(router);
 
   // API Calls
   apiXapi.map(function(apiCall) {
@@ -42,20 +35,16 @@ exports.routes = function() {
     });
   });
 
-  return app;
+  return router;
 };
 
 exports.oauth = function() {
-  var app = express.Router();
-  app.use(bodyParser.json);
-  app.use(bodyParser.urlencoded({
-    extended: false
-  }));
+  var router = express.Router();
 
   // Return the oauth calls
   oauth.map(function(oauthCall) {
-    app[(oauthCall.method).toLowerCase()](oauthCall.path, oauthCall.process);
+    router[(oauthCall.method).toLowerCase()](oauthCall.path, oauthCall.process);
   });
 
-  return app;
+  return router;
 };
