@@ -2,13 +2,8 @@ var express = require('express'),
   poiApi = require('poi-api'),
   path = require('path'),
   exphbs = require('express-handlebars');
-//   bodyParser = require('body-parser');
 // // Set the environment variables
 var app = express();
-// app.use(bodyParser.json);
-// app.use(bodyParser.urlencoded({
-//   extended: false
-// }));
 
 app.set('port', process.env.PORT || 8000);
 
