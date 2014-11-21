@@ -28,6 +28,6 @@
     "osm-and-geojson": "git+https://github.com/jimmyrocks/osm-and-geojson.git#gh-pages",
     "pg": "3.6.2",
     "q": "1.0.1",
-    "xmljs_translator": "git+https://github.com/jimmyrocks/xmljs_translator.git#master"
+    "xmljs_trans_js": "git+https://github.com/jimmyrocks/xmljs_trans_js.git#master"
   }
 }
