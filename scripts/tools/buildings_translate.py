@@ -6,6 +6,9 @@ def filterTags(attrs):
 
     if 'Building_ID' in attrs:
         tags['nps:building_id'] = attrs['Building_ID']
+        
+    if 'MAXIMO_ID' in attrs:
+        tags['nps:fmss_id'] = attrs['Building_ID']
 
     if 'Common_Name' in attrs:
         tags['name'] = attrs['Common_Name'].title()
