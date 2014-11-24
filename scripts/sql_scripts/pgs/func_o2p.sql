@@ -67,6 +67,7 @@ FROM (
         ) out_sub
       WHERE
         role != 'inner' AND
+        ST_NPoints(geom) >= 4 AND
         ST_IsClosed(geom)
     ) outside LEFT OUTER JOIN (
       SELECT
@@ -82,6 +83,7 @@ FROM (
         ) in_sub
       WHERE
         role = 'inner' AND
+        ST_NPoints(geom) >= 4 AND
         ST_IsClosed(geom)
     ) inside ON ST_CONTAINS(ST_MakePolygon(outside.line), inside.line)
   GROUP BY
