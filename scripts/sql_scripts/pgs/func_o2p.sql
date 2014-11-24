@@ -46,7 +46,7 @@ SELECT
 FROM (
   SELECT
     ST_ForceRHR(CASE
-      WHEN holes[1] IS NULL THEN st_makepolygon(shell)
+      WHEN holes[1] IS NULL THEN ST_MakePolygon(shell)
       ELSE ST_MakePolygon(shell, holes)
     END) polygon
   FROM (
