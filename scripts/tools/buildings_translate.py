@@ -8,7 +8,7 @@ def filterTags(attrs):
         tags['nps:building_id'] = attrs['Building_ID']
 
     if 'MAXIMO_ID' in attrs:
-        tags['nps:fmss_id'] = attrs['Building_ID']
+        tags['nps:fmss_id'] = attrs['MAXIMO_ID']
 
     if 'Common_Name' in attrs:
         tags['name'] = attrs['Common_Name'].title()
@@ -20,6 +20,7 @@ def filterTags(attrs):
     just add these as defaults
     '''
     tags['nps:fcat'] = 'other'
+    tags['source'] = 'nps:fmss_buildings'
     tags['building'] = 'yes'
 
     '''
