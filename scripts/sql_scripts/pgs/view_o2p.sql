@@ -528,6 +528,7 @@ CREATE OR REPLACE VIEW public.planet_osm_polygon_view AS
               )
         ) AND ways.tags <> ''::hstore AND
           ways.tags IS NOT NULL AND
+          ST_NPoints(o2p_calculate_nodes_to_line(ways.nodes)) >= 4 AND
           ST_IsClosed(o2p_calculate_nodes_to_line(ways.nodes)) AND
           array_length(ways.nodes, 1) > 3 AND
           (
@@ -632,6 +633,7 @@ UNION
         WHERE
           relations.tags <> ''::hstore AND
           relations.tags IS NOT NULL AND
+          ST_NPoints(o2p_calculate_nodes_to_line(ways.nodes)) >= 4 AND
           ST_IsClosed(o2p_calculate_nodes_to_line(ways.nodes)) AND
           array_length(ways.nodes, 1) > 3 AND
           exist(relations.tags, 'type'::text) AND
