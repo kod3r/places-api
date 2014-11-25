@@ -18,7 +18,7 @@
       "per_page": "5000"
     },
     "waynodes": {
-      "maximum": "2000"
+      "maximum": "50000"
     },
     "changesets": {
       "maximum_elements": "50000"
