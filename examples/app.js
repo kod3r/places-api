@@ -10,6 +10,13 @@ app.set('port', process.env.PORT || 8000);
 //var allowXSS = require('./node_modules/poi-api/lib/allowXSS.js');
 //allowXSS(app);
 
+// the allowXSS.js needs to be updated, in the meantime this will work
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Authorization, Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
 app.engine('handlebars', exphbs({
   defaultLayout: 'main'
 }));
