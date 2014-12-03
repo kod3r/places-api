@@ -1,39 +1,39 @@
 var express = require('express'),
-  app = express(),
-  config = require('./config');
-app.use(express.bodyParser());
-var poiApp = require('./lib/apiWrapper')(app),
+  config = require('./config'),
   apiXapi = require('./lib/apis/xapi'),
   oauth = require('./lib/oauth/paths'),
   allowXSS = require('./lib/allowXSS');
+// Set the environment variables
+//
 exports.routes = function() {
-
+  var router = express.Router(),
+    poiApp = require('./lib/apiWrapper')(router);
   // From http://wiki.openstreetmap.org/wiki/API_v0.6#General_information
-
   // Allow external webpages to read our JavaScript
-  allowXSS(app);
+  allowXSS(router);
 
   // API Calls
   apiXapi.map(function(apiCall) {
-    poiApp.allow(apiCall.method, apiCall.path, '0.6', apiCall.auth, apiCall.process);
+    poiApp.allow(apiCall.method, apiCall.path, '0.6', apiCall.format, apiCall.auth, apiCall.process);
   });
 
   // Overall capabilities
-  poiApp.allow('GET', 'capabilities', null, null, function(req, res) {
+  poiApp.allow('GET', 'capabilities', null, null, null, function(req, res) {
     res.send({
       'api': config.capabilities
     });
   });
 
-  return app;
+  return router;
 };
 
 exports.oauth = function() {
+  var router = express.Router();
 
   // Return the oauth calls
   oauth.map(function(oauthCall) {
-    app[(oauthCall.method).toLowerCase()](oauthCall.path, oauthCall.process);
+    router[(oauthCall.method).toLowerCase()](oauthCall.path, oauthCall.process);
   });
 
-  return app;
+  return router;
 };

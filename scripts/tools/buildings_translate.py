@@ -7,11 +7,21 @@ def filterTags(attrs):
     if 'Building_ID' in attrs:
         tags['nps:building_id'] = attrs['Building_ID']
 
+    if 'MAXIMO_ID' in attrs:
+        tags['nps:fmss_id'] = attrs['MAXIMO_ID']
+
     if 'Common_Name' in attrs:
         tags['name'] = attrs['Common_Name'].title()
 
     if 'Unit_Code' in attrs:
         tags['nps:alphacode'] = attrs['Unit_Code'].title()
+
+    '''
+    just add these as defaults
+    '''
+    tags['nps:fcat'] = 'other'
+    tags['source'] = 'nps:fmss_buildings'
+    tags['building'] = 'yes'
 
     '''
     Now for the big list!

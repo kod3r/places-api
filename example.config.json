@@ -18,7 +18,7 @@
       "per_page": "5000"
     },
     "waynodes": {
-      "maximum": "2000"
+      "maximum": "50000"
     },
     "changesets": {
       "maximum_elements": "50000"
@@ -40,6 +40,7 @@
     "pgs": "RENDERING_DATABASE_NAME"
   },
   "oauth": {
+    "external": true,
     "server": "api06.dev.openstreetmap.org",
     "consumerKey": "g3cmPe2OSqxkDmSIi8tOZjG4s1DYQtgtyYOOq1yx",
     "consumerSecret": "VaqYSfpCGFOletdeDaPanfrpbrZbQh38ytBLo3mX"
