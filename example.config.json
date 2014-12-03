@@ -40,6 +40,7 @@
     "pgs": "RENDERING_DATABASE_NAME"
   },
   "oauth": {
+    "external": true,
     "server": "api06.dev.openstreetmap.org",
     "consumerKey": "g3cmPe2OSqxkDmSIi8tOZjG4s1DYQtgtyYOOq1yx",
     "consumerSecret": "VaqYSfpCGFOletdeDaPanfrpbrZbQh38ytBLo3mX"
