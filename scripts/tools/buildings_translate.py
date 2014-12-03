@@ -17,7 +17,7 @@ def filterTags(attrs):
     Now for the big list!
     '''
 
-    if 'Main_usage_type' in attrs:
+    if 'Main_usage_type' in attrs and attrs['Main_usage_type'].title():
         tags['nps:fcat'] = attrs['Main_usage_type'].title()
 
         '''All Other       building=yes           '''
