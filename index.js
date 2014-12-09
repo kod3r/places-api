@@ -1,4 +1,5 @@
 var express = require('express'),
+  bodyParser = require('body-parser'),
   config = require('./config'),
   apiXapi = require('./lib/apis/xapi'),
   oauth = require('./lib/oauth/paths'),
@@ -32,7 +33,7 @@ exports.oauth = function() {
 
   // Return the oauth calls
   oauth.map(function(oauthCall) {
-    router[(oauthCall.method).toLowerCase()](oauthCall.path, oauthCall.process);
+    router[(oauthCall.method).toLowerCase()](oauthCall.path, bodyParser.json(), oauthCall.process);
   });
 
   return router;
