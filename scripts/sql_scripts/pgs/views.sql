@@ -51,9 +51,9 @@ SELECT
   (SELECT json_agg(members) FROM (
     SELECT
       CASE
-        WHEN member_type='R' then 'relation'
-        WHEN member_type='W' then 'way'
-        WHEN member_type='N' then 'node'
+        WHEN UPPER(member_type)='R' then 'relation'
+        WHEN UPPER(member_type)='W' then 'way'
+        WHEN UPPER(member_type)='N' then 'node'
         ELSE null
       END as "type",
       member_id as "ref",
