@@ -154,7 +154,7 @@ CREATE OR REPLACE FUNCTION getBbox (numeric, numeric, numeric, numeric, numeric)
       relation_members
       JOIN ways_in_bbox
         ON ways_in_bbox.way_id = relation_members.member_id
-        AND relation_members.member_type = 'W'
+        AND UPPER(relation_members.member_type) = 'W'
     UNION
       SELECT DISTINCT
         relation_members.relation_id
@@ -162,7 +162,7 @@ CREATE OR REPLACE FUNCTION getBbox (numeric, numeric, numeric, numeric, numeric)
         relation_members
         JOIN nodes_in_query
           ON nodes_in_query.node_id = relation_members.member_id
-          and relation_members.member_type = 'N';
+          and UPPER(relation_members.member_type) = 'N';
 
     SELECT json_agg(to_json(bboxNodes)) FROM (
     SELECT
