@@ -2,7 +2,7 @@ var express = require('express'),
   bodyParser = require('body-parser'),
   config = require('./config'),
   apiXapi = require('./lib/apis/xapi'),
-  apiNps = require('./lib/apis/nps'),
+  apiData = require('./lib/apis/data'),
   oauth = require('./lib/oauth/paths'),
   allowXSS = require('./lib/allowXSS');
 // Set the environment variables
@@ -18,10 +18,10 @@ exports.routes = function() {
   apiXapi.map(function(apiCall) {
     poiApp.allow(apiCall.method, apiCall.path, '0.6', apiCall.format, apiCall.auth, apiCall.process);
   });
-  
-  // NPS Calls
-  apiNps.map(function(apiCall) {
-    poiApp.allow(apiCall.method, apiCall.path, 'nps', apiCall.format, apiCall.auth, apiCall.process);
+
+  // Data Calls
+  apiData.map(function(apiCall) {
+    poiApp.allow(apiCall.method, apiCall.path, 'data', apiCall.format, apiCall.auth, apiCall.process);
   });
 
   // Overall capabilities
