@@ -519,7 +519,7 @@ CREATE OR REPLACE VIEW public.planet_osm_polygon_view AS
               relation_members JOIN relations 
               ON relation_members.relation_id = relations.id
             WHERE relation_members.member_id = ways.id AND
-              relation_members.member_type = 'W'::bpchar AND
+              UPPER(relation_members.member_type) = 'W'::bpchar AND
                 (
                   (relations.tags -> 'type'::text) = 'multipolygon'::text OR
                   (relations.tags -> 'type'::text) = 'boundary'::text OR
