@@ -39,7 +39,7 @@
         "FROM",
         "  relation_members",
         "WHERE",
-        "  relation_members.member_type = 'N'",
+        "  UPPER(relation_members.member_type) = 'N'",
         "  AND relation_members.member_id = '{{id}}'"
       ],
       "relationsWithWay": [
@@ -48,7 +48,7 @@
         "FROM",
         "  relation_members",
         "WHERE",
-        "  relation_members.member_type = 'W'",
+        "  UPPER(relation_members.member_type) = 'W'",
         "  AND relation_members.member_id = '{{id}}'"
       ],
       "relationsWithRelation": [
@@ -57,7 +57,7 @@
         "FROM",
         "  relation_members",
         "WHERE",
-        "  relation_members.member_type = 'R'",
+        "  UPPER(relation_members.member_type) = 'R'",
         "  AND relation_members.member_id = '{{id}}'"
       ],
       "waysInRelation": [
