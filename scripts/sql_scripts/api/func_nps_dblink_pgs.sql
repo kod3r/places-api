@@ -11,7 +11,7 @@ CREATE OR REPLACE FUNCTION nps_dblink_pgs(
       res
     FROM
       dblink(
-        'dbname=poi_pgs user=postgres password=postgres',
+        'dbname=poi_pgs user=postgres',
         v_sql
       ) AS pgs(res boolean) into v_res;
 
@@ -33,7 +33,7 @@ CREATE OR REPLACE FUNCTION nps_dblink_pgs_text(
       res
     FROM
       dblink(
-        'dbname=poi_pgs user=postgres password=postgres',
+        'dbname=poi_pgs user=postgres',
         v_sql
       ) AS pgs(res text) into v_res;
 
