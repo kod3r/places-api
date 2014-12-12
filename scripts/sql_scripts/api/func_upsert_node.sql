@@ -20,11 +20,14 @@ $BODY$
     v_user_id bigint;
     v_res boolean;
     v_uuid text; -- if text is in this field, it will add a uuid field to new entries
+    v_unitcode_field text;
+    v_unitcode text;
     BEGIN
       -- Set some values
         v_timestamp := now();
         v_tile := tile_for_point(v_lat, v_lon);
         v_uuid := 'nps:places_uuid';
+        v_unitcode_field := 'nps:alphacode';
         SELECT
           changesets.user_id
         FROM
@@ -106,6 +109,20 @@ $BODY$
          v_new_id AS node_id,
          v_new_version AS version,
          v_uuid,
+         uuid_generate_v4()
+       );
+       SELECT tag FROM api_current_nodes WHERE id = v_new_id INTO v_tags;
+    END IF;
+    
+    SELECT v_tags::json -> 'nps:alphacode' INTO v_unitcode;
+    IF length(v_unitcode) < 1 THEN
+     SELECT code FROM nps_dblink_pgs_text('SELECT unit_code FROM render_park_polys WHERE ST_Within(ST_Transform(ST_SetSrid(ST_MakePoint(' || quote_literal(v_lat/10000000::float) || ', ' || quote_literal(v_lon/10000000::float) || '),4326),3857),poly_geom) ORDER BY minzoompoly DESC, area DESC LIMIT 1') as code into v_unitcode;
+     INSERT INTO
+       node_tags (
+       SELECT
+         v_new_id AS node_id,
+         v_new_version AS version,
+         v_unitcode_field,
          uuid_generate_v4()
        );
        SELECT tag FROM api_current_nodes WHERE id = v_new_id INTO v_tags;
