@@ -113,19 +113,34 @@ $BODY$
        );
        SELECT tag FROM api_current_nodes WHERE id = v_new_id INTO v_tags;
     END IF;
-    
-    SELECT v_tags::json -> 'nps:alphacode' INTO v_unitcode;
-    IF length(v_unitcode) < 1 THEN
-     SELECT code FROM nps_dblink_pgs_text('SELECT unit_code FROM render_park_polys WHERE ST_Within(ST_Transform(ST_SetSrid(ST_MakePoint(' || quote_literal(v_lat/10000000::float) || ', ' || quote_literal(v_lon/10000000::float) || '),4326),3857),poly_geom) ORDER BY minzoompoly DESC, area DESC LIMIT 1') as code into v_unitcode;
-     INSERT INTO
-       node_tags (
+
+-- Unit Code
+    SELECT v FROM
+     (
        SELECT
-         v_new_id AS node_id,
-         v_new_version AS version,
-         v_unitcode_field,
-         uuid_generate_v4()
-       );
+         tag->>'k' as k,
+         tag->>'v' as v
+       FROM
+         json_array_elements(v_tags) as tag
+     ) tags
+     WHERE
+       tags.k = v_unitcode_field
+     LIMIT 1
+       into v_unitcode;
+       
+    IF v_unitcode IS NULL THEN
+     SELECT code FROM nps_dblink_pgs_text('SELECT unit_code FROM render_park_polys WHERE ST_Within(ST_Transform(ST_SetSrid(ST_MakePoint(' || quote_literal(v_lon/10000000::float) || ', ' || quote_literal(v_lat/10000000::float) || '),4326),3857),poly_geom) ORDER BY minzoompoly DESC, area DESC LIMIT 1') as code into v_unitcode;
+       IF v_unitcode IS NOT NULL THEN
+       INSERT INTO
+         node_tags (
+         SELECT
+	   v_new_id AS node_id,
+	   v_new_version AS version,
+	   v_unitcode_field,
+	   v_unitcode
+         );
        SELECT tag FROM api_current_nodes WHERE id = v_new_id INTO v_tags;
+      END IF;
     END IF;
 
     -- Update the pgsnapshot view
