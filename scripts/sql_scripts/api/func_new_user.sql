@@ -148,7 +148,7 @@ CREATE OR REPLACE FUNCTION new_user(
     ) session into v_return_json;
 
     -- Update the pgsnapshot view
-    SELECT res FROM nps_dblink_pgs('select * from pgs_new_user(' || quote_literal(v_id) || ', ' || quote_literal(v_display_name) || ')') into v_res;
+    SELECT res FROM nps_dblink_pgs('select * from pgs_new_user(' || quote_literal(v_id) || ', ' || quote_literal(v_display_name) || ')') as res into v_res;
 
     RETURN v_return_json;
   END;
