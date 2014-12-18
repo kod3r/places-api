@@ -25,7 +25,7 @@ CREATE OR REPLACE FUNCTION upsert_way(
     v_unitcode text;
   BEGIN 
     -- Set some values
-      v_uuid_field := 'nps:places_uuid';
+      v_uuid_field := 'nps:places_id';
       v_unitcode_field := 'nps:unit_code';
       v_timestamp := now();
       SELECT
