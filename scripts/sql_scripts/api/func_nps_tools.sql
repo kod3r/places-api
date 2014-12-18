@@ -63,7 +63,7 @@ CREATE OR REPLACE FUNCTION nps_dblink_pgs_text(
 $nps_dblink_pgs_text$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION nps_get_unitcode(integer, integer)
-  RETURNS json AS
+  RETURNS text AS
 $BODY$
   DECLARE
     v_lat ALIAS FOR $1;
