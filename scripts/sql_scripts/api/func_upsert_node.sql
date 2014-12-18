@@ -1,7 +1,4 @@
--- Function: upsert_node(bigint, integer, integer, bigint, boolean, json)
-
--- DROP FUNCTION upsert_node(bigint, integer, integer, bigint, boolean, json);
-
+--upsert_node
 CREATE OR REPLACE FUNCTION upsert_node(bigint, integer, integer, bigint, boolean, json)
   RETURNS diffresult AS
 $BODY$
@@ -19,14 +16,15 @@ $BODY$
     v_new_version bigint;
     v_user_id bigint;
     v_res boolean;
-    v_uuid text; -- if text is in this field, it will add a uuid field to new entries
+    v_uuid_field text;
+    v_uuid text;
     v_unitcode_field text;
     v_unitcode text;
     BEGIN
       -- Set some values
         v_timestamp := now();
         v_tile := tile_for_point(v_lat, v_lon);
-        v_uuid := 'nps:places_id';
+        v_uuid_field := 'nps:places_uuid';
         v_unitcode_field := 'nps:unit_code';
         SELECT
           changesets.user_id
@@ -86,6 +84,25 @@ $BODY$
        v_tile,
        v_new_version
      );
+
+
+-- uuid
+  v_uuid := nps_get_value(v_uuid_field, v_tags);
+  IF v_uuid IS NULL THEN
+   SELECT
+     nps_update_value(v_uuid_field, uuid_generate_v4()::text, v_tags)
+   INTO
+     v_tags;
+  END IF;
+
+-- Unit Code
+  v_unitcode := nps_get_value(v_unitcode_field, v_tags);
+  IF v_unitcode IS NULL THEN
+   SELECT
+     nps_update_value(v_unitcode_field, nps_get_unitcode(v_lat, v_lon), v_tags)
+   INTO
+     v_tags;
+  END IF;
      
 -- Tags
      INSERT INTO
@@ -101,47 +118,6 @@ $BODY$
            v_tags
          )
        );
-
-    IF length(v_uuid) > 0 AND v_new_version = 1 THEN
-     INSERT INTO
-       node_tags (
-       SELECT
-         v_new_id AS node_id,
-         v_new_version AS version,
-         v_uuid,
-         uuid_generate_v4()
-       );
-       SELECT tag FROM api_current_nodes WHERE id = v_new_id INTO v_tags;
-    END IF;
-
--- Unit Code
-    SELECT v FROM
-     (
-       SELECT
-         tag->>'k' as k,
-         tag->>'v' as v
-       FROM
-         json_array_elements(v_tags) as tag
-     ) tags
-     WHERE
-       tags.k = v_unitcode_field
-     LIMIT 1
-       into v_unitcode;
-       
-    IF v_unitcode IS NULL THEN
-     SELECT code FROM nps_dblink_pgs_text('SELECT unit_code FROM render_park_polys WHERE ST_Within(ST_Transform(ST_SetSrid(ST_MakePoint(' || quote_literal(v_lon/10000000::float) || ', ' || quote_literal(v_lat/10000000::float) || '),4326),3857),poly_geom) ORDER BY minzoompoly DESC, area DESC LIMIT 1') as code into v_unitcode;
-       IF v_unitcode IS NOT NULL THEN
-       INSERT INTO
-         node_tags (
-         SELECT
-	   v_new_id AS node_id,
-	   v_new_version AS version,
-	   v_unitcode_field,
-	   v_unitcode
-         );
-       SELECT tag FROM api_current_nodes WHERE id = v_new_id INTO v_tags;
-      END IF;
-    END IF;
 
     -- Update the pgsnapshot view
     SELECT res FROM nps_dblink_pgs('select * from pgs_upsert_node(' || quote_literal(v_new_id) || ', ' || quote_literal(v_lat) || ', ' || quote_literal(v_lon) || ', ' || quote_literal(v_changeset) || ', ' || quote_literal(v_visible) || ', ' || quote_literal(v_timestamp) || ', ' || quote_literal(v_tags) || ', ' || quote_literal(v_new_version) || ', ' || quote_literal(v_user_id) || ')') as res into v_res;
