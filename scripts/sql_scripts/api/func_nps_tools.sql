@@ -61,3 +61,24 @@ CREATE OR REPLACE FUNCTION nps_dblink_pgs_text(
     RETURN v_res;
   END;
 $nps_dblink_pgs_text$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION nps_get_unitcode(integer, integer)
+  RETURNS json AS
+$BODY$
+  DECLARE
+    v_lat ALIAS FOR $1;
+    v_lon ALIAS FOR $2;
+    v_unitcode text;
+    BEGIN
+      SELECT
+        code
+      FROM
+        nps_dblink_pgs_text(
+          'SELECT unit_code FROM render_park_polys WHERE ST_Within(ST_Transform(ST_SetSrid(ST_MakePoint(' || quote_literal(v_lon/10000000::float) || ', ' || quote_literal(v_lat/10000000::float) || '),4326),3857),poly_geom) ORDER BY minzoompoly DESC, area DESC LIMIT 1') as code
+      INTO v_unitcode;
+
+    RETURN v_unitcode;
+    END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
