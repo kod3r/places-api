@@ -21,7 +21,7 @@ CREATE OR REPLACE FUNCTION upsert_relation(
   BEGIN
     -- Set some values
       v_timestamp := now();
-      v_uuid := 'nps:places_uuid';
+      v_uuid := 'nps:places_id';
       SELECT
         changesets.user_id
       FROM
