@@ -22,7 +22,7 @@ CREATE OR REPLACE FUNCTION upsert_way(
   BEGIN 
     -- Set some value
       v_timestamp := now();
-      v_uuid = 'nps:places_uuid';
+      v_uuid = 'nps:places_id';
       SELECT
         changesets.user_id
       FROM
