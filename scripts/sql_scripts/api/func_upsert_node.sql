@@ -26,7 +26,7 @@ $BODY$
       -- Set some values
         v_timestamp := now();
         v_tile := tile_for_point(v_lat, v_lon);
-        v_uuid := 'nps:places_uuid';
+        v_uuid := 'nps:places_id';
         v_unitcode_field := 'nps:unit_code';
         SELECT
           changesets.user_id
