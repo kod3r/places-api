@@ -117,3 +117,43 @@ $BODY$
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
+
+CREATE OR REPLACE FUNCTION nps_get_relation_center(json)
+  RETURNS json AS
+$BODY$
+  DECLARE
+    v_members ALIAS FOR $1;
+    v_coords json;
+  BEGIN
+
+    --TODO: This doesn't support relations with nodes
+    SELECT
+      row_to_json(result)
+    FROM (
+      SELECT
+          avg(current_nodes.latitude)::int as latitude,
+          avg(current_nodes.longitude)::int as longitude
+      FROM
+        current_nodes
+      WHERE
+        id IN (
+          SELECT
+            node_id
+          FROM (
+            json_populate_recordset(
+              null::relation_members,
+              v_members
+            ) this_obj JOIN
+            current_way_nodes ON
+            this_obj.member_id = current_way_nodes.way_id
+          )
+        )
+      ) result
+    INTO
+      v_coords;
+
+  RETURN v_coords;
+  END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
