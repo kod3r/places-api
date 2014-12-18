@@ -127,7 +127,7 @@ $BODY$
           'SELECT unit_code FROM render_park_polys WHERE ST_Within(ST_Transform(ST_SetSrid(ST_MakePoint(' || quote_literal(v_lon/10000000::float) || ', ' || quote_literal(v_lat/10000000::float) || '),4326),3857),poly_geom) ORDER BY minzoompoly DESC, area DESC LIMIT 1') as code
       INTO v_unitcode;
 
-    RETURN v_unitcode;
+    RETURN lower(v_unitcode);
     END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
