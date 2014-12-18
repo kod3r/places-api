@@ -123,6 +123,7 @@ sudo -u postgres createlang -d $dbnamepgs plpgsql
 sudo sed -i "s:/srv/www/master.osm.compton.nu:$includes_dir:g" $includes_dir/db/sql/structure.sql
 sudo -u postgres psql -d $dbnameapi -f $includes_dir/db/sql/structure.sql
 sudo -u postgres psql -d $dbnameapi -c "CREATE EXTENSION dblink;"
+sudo -u postgres psql -d $dbnameapi -c "CREATE EXTENSION hstore;"
 
 sudo -u postgres psql -d $dbnamepgs -c "CREATE EXTENSION postgis;"
 sudo -u postgres psql -d $dbnamepgs -c "CREATE EXTENSION postgis_topology;"
