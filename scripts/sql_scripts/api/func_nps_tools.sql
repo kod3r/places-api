@@ -82,6 +82,28 @@ $BODY$
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
+  
+ CREATE OR REPLACE FUNCTION nps_get_unitcode(json)
+  RETURNS text AS
+$BODY$
+  DECLARE
+    v_json ALIAS FOR $1;
+    v_lat integer;
+    v_lon integer;
+    v_unitcode text;
+    BEGIN
+      v_lat := v_json->>'latitude'::integer;
+      v_lon := v_json->>'longitude'::integer;
+
+      SELECT
+        nps_get_unitcode(v_lat, v_lon)
+      INTO v_unitcode;
+
+    RETURN v_unitcode;
+    END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
 
 CREATE OR REPLACE FUNCTION nps_get_way_center(json)
   RETURNS json AS
