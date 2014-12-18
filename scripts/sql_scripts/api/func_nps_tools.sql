@@ -1,62 +1,26 @@
--- Convert JSON to hstore
-CREATE OR REPLACE FUNCTION public.json_to_hstore(
-  json
-)
-  RETURNS hstore AS $json_to_hstore$
-DECLARE
-  v_json ALIAS for $1;
-  v_hstore HSTORE;
-BEGIN
-SELECT
-  hstore(array_agg(key), array_agg(value))
-FROM
- json_each_text(v_json)
-INTO
-  v_hstore;
-
- RETURN v_hstore;
-END;
-$json_to_hstore$
-LANGUAGE plpgsql;
-
- CREATE OR REPLACE FUNCTION nps_update_value(text, text, json)
-  RETURNS json AS
+ CREATE OR REPLACE FUNCTION nps_get_value(text, json)
+  RETURNS text AS
 $BODY$
   DECLARE
     v_key ALIAS FOR $1;
-    v_value ALIAS FOR $2;
-    v_tags ALIAS FOR $3;
-    v_new_json JSON;
+    v_tags ALIAS FOR $2;
+    v_value text;
     BEGIN
 
-SELECT
-  json_agg(result)
-FROM (
-  (
-    SELECT k,v FROM (
-      SELECT
-        tag->>'k' as k,
-        tag->>'v' as v
-      FROM
-        json_array_elements(
-          v_tags::json
-        ) as tag
-    ) tags
-    WHERE
-      tags.k != v_key
-  )
-  UNION (
-    SELECT k,v FROM (
-      SELECT
-        v_key as k,
-        v_value as v
-    ) tags
-  )
-) result
-    INTO
-      v_new_json;
+    SELECT v FROM
+     (
+       SELECT
+         tag->>'k' as k,
+         tag->>'v' as v
+       FROM
+         json_array_elements(v_tags) as tag
+     ) tags
+     WHERE
+       tags.k = v_key
+     LIMIT 1
+       into v_value;
 
-    RETURN v_new_json;
+    RETURN v_value;
     END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -168,8 +132,8 @@ $BODY$
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
-  
- CREATE OR REPLACE FUNCTION nps_get_unitcode(json)
+
+CREATE OR REPLACE FUNCTION nps_get_unitcode(json)
   RETURNS text AS
 $BODY$
   DECLARE
@@ -178,12 +142,9 @@ $BODY$
     v_lon integer;
     v_unitcode text;
     BEGIN
-      v_lat := v_json->>'latitude'::integer;
-      v_lon := v_json->>'longitude'::integer;
-
-      SELECT
-        nps_get_unitcode(v_lat, v_lon)
-      INTO v_unitcode;
+      v_lat := (v_json->>'latitude')::integer;
+      v_lon := (v_json->>'longitude')::integer;
+      v_unitcode := nps_get_unitcode(v_lat, v_lon);
 
     RETURN v_unitcode;
     END;
