@@ -1,3 +1,4 @@
+--upsert_relation
 CREATE OR REPLACE FUNCTION upsert_relation(
   bigint,
   integer,
@@ -17,11 +18,15 @@ CREATE OR REPLACE FUNCTION upsert_relation(
     v_new_version bigint;
     v_user_id bigint;
     v_res boolean;
+    v_uuid_field text;
     v_uuid text;
+    v_unitcode_field text;
+    v_unitcode text;
   BEGIN
     -- Set some values
       v_timestamp := now();
-      v_uuid := 'nps:places_id';
+      v_uuid_field := 'nps:places_uuid';
+      v_unitcode_field := 'nps:unit_code';
       SELECT
         changesets.user_id
       FROM
@@ -60,6 +65,25 @@ CREATE OR REPLACE FUNCTION upsert_relation(
       v_new_id,
       v_new_version;
 
+    -- uuid
+      v_uuid := nps_get_value(v_uuid_field, v_tags);
+      IF v_uuid IS NULL THEN
+       SELECT
+         nps_update_value(v_uuid_field, uuid_generate_v4()::text, v_tags)
+       INTO
+         v_tags;
+      END IF;
+
+    -- Unit Code
+      v_unitcode := nps_get_value(v_unitcode_field, v_tags);
+      IF v_unitcode IS NULL THEN
+       SELECT
+         nps_update_value(v_unitcode_field, nps_get_unitcode(nps_get_relation_center(v_members)), v_tags)
+       INTO
+         v_tags;
+      END IF;
+
+    -- Insert into the relations table  
     INSERT INTO
       relations (
         relation_id,
@@ -91,19 +115,6 @@ CREATE OR REPLACE FUNCTION upsert_relation(
           v_tags
         )
       );
-      
-    IF length(v_uuid) > 0 AND v_new_version = 1 THEN
-     INSERT INTO
-       relation_tags (
-       SELECT
-         v_new_id AS way_id,
-         v_uuid as k,
-         uuid_generate_v4() as v,
-         v_new_version AS version
-       );
-       SELECT tag FROM api_current_relations WHERE id = v_new_id INTO v_tags;
-    END IF;
-
 
       -- Associated Members
       INSERT INTO
