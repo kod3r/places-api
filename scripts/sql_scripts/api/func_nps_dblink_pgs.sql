@@ -1,3 +1,24 @@
+-- Convert JSON to hstore
+CREATE OR REPLACE FUNCTION public.json_to_hstore(
+  json
+)
+  RETURNS hstore AS $json_to_hstore$
+DECLARE
+  v_json ALIAS for $1;
+  v_hstore HSTORE;
+BEGIN
+SELECT
+  hstore(array_agg(key), array_agg(value))
+FROM
+ json_each_text(v_json)
+INTO
+  v_hstore;
+
+ RETURN v_hstore;
+END;
+$json_to_hstore$
+LANGUAGE plpgsql;
+
 --DROP FUNCTION nps_dblink_pgs(text);
 CREATE OR REPLACE FUNCTION nps_dblink_pgs(
   text
