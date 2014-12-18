@@ -19,6 +19,92 @@ END;
 $json_to_hstore$
 LANGUAGE plpgsql;
 
+ CREATE OR REPLACE FUNCTION nps_update_value(text, text, json)
+  RETURNS json AS
+$BODY$
+  DECLARE
+    v_key ALIAS FOR $1;
+    v_value ALIAS FOR $2;
+    v_tags ALIAS FOR $3;
+    v_new_json JSON;
+    BEGIN
+
+SELECT
+  json_agg(result)
+FROM (
+  (
+    SELECT k,v FROM (
+      SELECT
+        tag->>'k' as k,
+        tag->>'v' as v
+      FROM
+        json_array_elements(
+          v_tags::json
+        ) as tag
+    ) tags
+    WHERE
+      tags.k != v_key
+  )
+  UNION (
+    SELECT k,v FROM (
+      SELECT
+        v_key as k,
+        v_value as v
+    ) tags
+  )
+) result
+    INTO
+      v_new_json;
+
+    RETURN v_new_json;
+    END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
+ CREATE OR REPLACE FUNCTION nps_update_value(text, text, json)
+  RETURNS json AS
+$BODY$
+  DECLARE
+    v_key ALIAS FOR $1;
+    v_value ALIAS FOR $2;
+    v_tags ALIAS FOR $3;
+    v_new_json JSON;
+    BEGIN
+
+SELECT
+  json_agg(result)
+FROM (
+  (
+    SELECT k,v FROM (
+      SELECT
+        tag->>'k' as k,
+        tag->>'v' as v
+      FROM
+        json_array_elements(
+          v_tags::json
+        ) as tag
+    ) tags
+    WHERE
+      tags.k != v_key
+  )
+  UNION (
+    SELECT k,v FROM (
+      SELECT
+        v_key as k,
+        v_value as v
+    ) tags
+  )
+) result
+    INTO
+      v_new_json;
+
+    RETURN v_new_json;
+    END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
 --DROP FUNCTION nps_dblink_pgs(text);
 CREATE OR REPLACE FUNCTION nps_dblink_pgs(
   text
