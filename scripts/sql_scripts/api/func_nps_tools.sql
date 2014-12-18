@@ -82,3 +82,38 @@ $BODY$
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
+
+CREATE OR REPLACE FUNCTION nps_get_way_center(json)
+  RETURNS json AS
+$BODY$
+  DECLARE
+    v_nodes ALIAS FOR $1;
+    v_coords JSON;
+  BEGIN
+
+    SELECT
+      row_to_json(result)
+    FROM (
+      SELECT
+        avg(current_nodes.latitude)::int as latitude,
+        avg(current_nodes.longitude)::int as longitude
+      FROM
+        (
+          SELECT
+            node_id
+          FROM
+            json_populate_recordset(
+              null::way_nodes,
+              v_nodes
+            )
+        ) way_nodes JOIN current_nodes ON
+        way_nodes.node_id = current_nodes.id
+    ) result
+    INTO
+      v_coords;
+      
+  RETURN v_coords;
+  END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
