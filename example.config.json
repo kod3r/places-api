@@ -37,7 +37,7 @@
     "password": "PASSWORD",
     "address": "localhost",
     "api": "API_DATABASE_NAME",
-    "pgs": "RENDERING_DATABASE_NAME"
+    "pgs": "PGSNAPSHOT_DATABASE_NAME"
   },
   "oauth": {
     "external": true,
