@@ -36,13 +36,17 @@
     "username": "USERNAME",
     "password": "PASSWORD",
     "address": "localhost",
-    "api": "API_DATABASE_NAME",
-    "pgs": "PGSNAPSHOT_DATABASE_NAME"
+    "api": "poi_api",
+    "pgs": "poi_pgs"
   },
   "oauth": {
-    "external": true,
-    "server": "api06.dev.openstreetmap.org",
-    "consumerKey": "g3cmPe2OSqxkDmSIi8tOZjG4s1DYQtgtyYOOq1yx",
-    "consumerSecret": "VaqYSfpCGFOletdeDaPanfrpbrZbQh38ytBLo3mX"
+    "consumerKey": "CONSUMER KEY",
+    "consumerSecret": "CONSUMER SECRET",
+    "external": false,
+    "local": {
+      "auth": "/account/logon/",
+      "server": "localhost" 
+    },
+    "server": "www.openstreetmap.org"
   }
 }
