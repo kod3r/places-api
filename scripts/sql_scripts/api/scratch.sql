@@ -83,3 +83,29 @@ $api_update_object$ LANGUAGE plpgsql;
 -- delete from nodes where changeset_id = 27;
 -- delete from ways_tags where changeset_id = 27; <-- won't work, but couldn't test on my dataset 
 -- delete from ways where changeset_id = 27;
+
+
+
+-- Change a username
+
+--API
+
+-- Get the ids for the usernames from the user table
+SELECT * FROM users WHERE display_name ~* 'name'
+
+UPDATE changesets 
+SET user_id = '-2'
+WHERE user_id = 74228;
+
+--PGS
+UPDATE nodes
+SET user_id = '-2'
+WHERE user_id = 74228;
+
+UPDATE ways
+SET user_id = '-2'
+WHERE user_id = 74228;
+
+UPDATE relations
+SET user_id = '-2'
+WHERE user_id = 74228;
