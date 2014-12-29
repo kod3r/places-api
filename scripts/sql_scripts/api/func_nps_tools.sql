@@ -1,4 +1,4 @@
- CREATE OR REPLACE FUNCTION nps_get_value(text, json)
+CREATE OR REPLACE FUNCTION nps_get_value(text, json)
   RETURNS text AS
 $BODY$
   DECLARE
