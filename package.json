@@ -1,5 +1,5 @@
 {
-  "name": "poi-api",
+  "name": "places-api",
   "version": "0.0.1",
   "description": "a node.js implementation of the OpenStreetMap API",
   "keywords": ["express", "nps", "OpenStreetMap", "API"],
@@ -17,7 +17,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "http://github.com/nationalparkservice/poi-api"
+    "url": "http://github.com/nationalparkservice/places-api"
   },
   "dependencies": {
     "body-parser": "1.9.2",
