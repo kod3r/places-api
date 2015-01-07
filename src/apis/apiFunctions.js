@@ -75,10 +75,7 @@ exports = module.exports = {
     changeset: function(data, database, callback) {
 
       var rejectFunction = function(err) {
-        database().query('ROLLBACK;', 'Rollback', function() {
-          //TODO: This should run a database function that deletes the whole changeset
-          callback(err);
-        });
+        callback(err);
       };
 
       var changesetRequest = {},
@@ -103,12 +100,12 @@ exports = module.exports = {
           queryList = {
             'changeset': 'SELECT upsert_changeset(\'{{id}}\', \'{{user_id}}\', \'{{tag}}\') AS changeset',
             'node': 'SELECT to_json(upsert_node(\'{{id}}\', \'{{lat}}\', \'{{lon}}\', \'{{changeset}}\', \'{{visible}}\', \'{{tag}}\')) AS node',
-            'way': 'SELECT to_jsoon(upsert_way(\'{{id}}\', \'{{changeset}}\', \'{{visible}}\', \'{{nd}}\', \'{{tag}}\')) AS way',
+            'way': 'SELECT to_json(upsert_way(\'{{id}}\', \'{{changeset}}\', \'{{visible}}\', \'{{nd}}\', \'{{tag}}\')) AS way',
             'relation': 'SELECT to_json(upsert_relation(\'{{id}}\', \'{{changeset}}\', \'{{visible}}\', \'{{member}}\', \'{{tag}}\')) AS relation'
           };
 
           if (queryList[type]) {
-            console.log(change);
+            // console.log(change);
             query = database().addParams(queryList[type], type, change);
 
             database().query(query, type, function(_, queryRes) {
@@ -215,29 +212,30 @@ exports = module.exports = {
         changesetRequest.delete = data.osmChange.delete;
 
         // Start a transaction
-        database().query('BEGIN;', 'Begin', function(err) {
-          if (err) {
-            callback(err);
-          } else {
-            processRequests('node')
+        processRequests('node')
+          .then(function() {
+            // console.log('p1');
+            processRequests('way')
               .then(function() {
-                console.log('p1');
-                processRequests('way')
+                // console.log('p2');
+                processRequests('relation')
                   .then(function() {
-                    console.log('p2');
-                    processRequests('relation')
-                      .then(function() {
-                        console.log('p3');
-                        database().query('COMMIT;', 'Commit', function(commitErr) {
-                          callback({
-                            'data': commitErr || returnData
-                          });
-                        });
-                      }, function(e){console.log('e3');rejectFunction(e, callback);});
-                  }, function(e){console.log('e2');rejectFunction(e, callback);});
-              }, function(e){console.log('e1');rejectFunction(e, callback);});
-          }
-        });
+                    // console.log('p3');
+                    callback({
+                      'data': returnData
+                    });
+                  }, function(e) {
+                    // console.log('e3');
+                    rejectFunction(e, callback);
+                  });
+              }, function(e) {
+                // console.log('e2');
+                rejectFunction(e, callback);
+              });
+          }, function(e) {
+            // console.log('e1');
+            rejectFunction(e, callback);
+          });
 
       } else if (data && data.osm && data.osm && data.osm.changeset) {
         // Upsert Changeset
