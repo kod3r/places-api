@@ -230,3 +230,68 @@ $BODY$
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
+
+-- Function: api_update_changeset(integer)
+-- DROP FUNCTION api_update_changeset(integer);
+CREATE OR REPLACE FUNCTION api_update_changeset(integer)
+  RETURNS boolean AS
+$BODY$
+  DECLARE
+    v_changeset ALIAS FOR $1;
+    v_res boolean;
+    v_row record;
+    v_refs json;
+    BEGIN
+
+    -- NODE
+    FOR v_row IN SELECT id, lat*10000000 as lat, lon*10000000 as lon, changeset, visible, timestamp, tag, version, "uid" FROM api_current_nodes WHERE changeset = v_changeset LOOP
+      SELECT res FROM nps_dblink_pgs('select * from pgs_upsert_node(' || quote_literal(v_row.id) || ', ' || quote_literal(v_row.lat) || ', ' || quote_literal(v_row.lon) || ', ' || quote_literal(v_row.changeset) || ', ' || quote_literal(v_row.visible) || ', ' || quote_literal(v_row.timestamp) || ', ' || quote_literal(v_row.tag) || ', ' || quote_literal(v_row.version) || ', ' || quote_literal(v_row.uid) || ')') as pgs(res boolean) into v_res; 
+    END LOOP;  
+
+    -- WAY
+    FOR v_row IN SELECT id, changeset, visible, timestamp, nd as nodes, tag as tags, version, uid as user_id FROM api_current_ways WHERE changeset = v_changeset LOOP
+      SELECT
+        to_json(array_agg(way_nodes))
+      FROM (
+        SELECT
+          node_id,
+          way_id,
+          sequence_id
+        FROM
+          current_way_nodes
+        WHERE
+          way_id = v_row.id AND
+          node_id IN (
+            SELECT ((json_array_elements(v_row.nodes))->'ref')::text::bigint)
+          ) way_nodes INTO v_refs;
+
+      SELECT res FROM nps_dblink_pgs('select * from pgs_upsert_way(' || quote_literal(v_row.id) || ', ' || quote_literal(v_row.changeset) || ', ' || quote_literal(v_row.visible) || ', ' || quote_literal(v_row.timestamp) || ', ' || quote_literal(v_refs) || ', ' || quote_literal(v_row.tags) || ', ' || quote_literal(v_row.version) || ', ' || quote_literal(v_row.user_id) || ')') as pgs(res boolean) into v_res;
+    END LOOP; 
+  
+    -- RELATION
+    FOR v_row IN SELECT id, changeset, visible, member as members, tag as tags, timestamp, version, uid as user_id FROM api_current_relations WHERE changeset = v_changeset LOOP
+      SELECT
+          to_json(array_agg(current_relations))
+        FROM (
+          SELECT
+            relation_id,
+            member_id,
+            member_type,
+            member_role,
+            row_number() OVER ()-1 as sequence_id FROM (
+          SELECT
+            v_row.id as relation_id,
+            ((json_array_elements(v_row.members))->>'ref')::text::bigint as member_id,
+            ((json_array_elements(v_row.members))->>'type') as member_type,
+            ((json_array_elements(v_row.members))->>'role') as member_role
+        ) rels ) current_relations INTO v_refs;
+      SELECT res FROM nps_dblink_pgs('select * from pgs_upsert_relation(' || quote_literal(v_row.id) || ', ' || quote_literal(v_row.changeset) || ', ' || quote_literal(v_row.visible) || ', ' || quote_literal(v_refs) || ', ' || quote_literal(v_row.tags) || ', ' || quote_literal(v_row.timestamp) || ', '  || quote_literal(v_row.version) || ', ' || quote_literal(v_row.user_id) || ')') as pgs(res boolean) into v_res;
+    END LOOP; 
+
+    RETURN v_res;
+  END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION api_update_changeset(integer)
+  OWNER TO postgres;
