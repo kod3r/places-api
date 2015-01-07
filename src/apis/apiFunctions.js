@@ -73,6 +73,14 @@ exports = module.exports = {
   },
   readOsmChange: {
     changeset: function(data, database, callback) {
+
+      var rejectFunction = function(err) {
+        database().query('ROLLBACK;', 'Rollback', function() {
+          //TODO: This should run a database function that deletes the whole changeset
+          callback(err);
+        });
+      };
+
       var changesetRequest = {},
         functionList = [],
         returnData = {},
@@ -201,24 +209,35 @@ exports = module.exports = {
         };
 
       // Assign the values to the request object
-      if (data && data.osmChange) { // && data.osmChange.create && data.osmChange.modify && data.osmChange.delete) {
-        changesetRequest.create = (data.osmChange.create);
-        changesetRequest.modify = (data.osmChange.modify);
-        changesetRequest.delete = (data.osmChange.delete);
+      if (data && data.osmChange) {
+        changesetRequest.create = data.osmChange.create;
+        changesetRequest.modify = data.osmChange.modify;
+        changesetRequest.delete = data.osmChange.delete;
 
-        //TODO: Better errors!
-        processRequests('node')
-          .then(function() {
-            processRequests('way')
+        // Start a transaction
+        database().query('BEGIN;', 'Begin', function(err) {
+          if (err) {
+            callback(err);
+          } else {
+            processRequests('node')
               .then(function() {
-                processRequests('relation')
+                console.log('p1');
+                processRequests('way')
                   .then(function() {
-                    callback({
-                      'data': returnData
-                    });
-                  });
-              });
-          });
+                    console.log('p2');
+                    processRequests('relation')
+                      .then(function() {
+                        console.log('p3');
+                        database().query('COMMIT;', 'Commit', function(commitErr) {
+                          callback({
+                            'data': commitErr || returnData
+                          });
+                        });
+                      }, function(e){console.log('e3');rejectFunction(e, callback);});
+                  }, function(e){console.log('e2');rejectFunction(e, callback);});
+              }, function(e){console.log('e1');rejectFunction(e, callback);});
+          }
+        });
 
       } else if (data && data.osm && data.osm && data.osm.changeset) {
         // Upsert Changeset
