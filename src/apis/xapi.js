@@ -1,11 +1,9 @@
 // Determines whether to use the 0.6 API or the pgsnapshot API based on the query
-
-var api06 = require('./0.6'),
-  pgsnapshot = require('./pgsnapshot');
-
-var combineCalls = function() {
-  var callArray = [],
-    calls = {};
+module.exports = function(config) {
+  var calls = {},
+    callArray = [],
+    pgsnapshot = require('./pgsnapshot')(config),
+    api06 = require('./0.6')(config);
 
   // Look through all the calls in 0.6 and make a list
   for (var i = 0; i < api06.length; i++) {
@@ -20,5 +18,3 @@ var combineCalls = function() {
   }
   return callArray;
 };
-
-exports = module.exports = combineCalls();
