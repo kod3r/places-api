@@ -65,9 +65,9 @@ module.exports = function(dbtype, config) {
         // console.log('Params', params);
         client.query(query, params, function(err, results) {
           if (err) {
-            console.log('finished ' + type + ' with error after: ' + (new Date() - startTime) + 'ms');
-            console.log('error: ', err);
-            console.log('params: ', params);
+            // console.log('finished ' + type + ' with error after: ' + (new Date() - startTime) + 'ms');
+            // console.log('error: ', err);
+            // console.log('params: ', params);
             queryResult.error = {
               'code': '404'
             };
@@ -132,8 +132,7 @@ module.exports = function(dbtype, config) {
             });
 
             Q.all(requestList).catch(function(e) {
-              console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%');
-              callback(res, e);
+                callback(res, e);
             }).then(function(newResult) {
               done();
               if (callback) {
