@@ -114,7 +114,7 @@ var bodyParser = require('body-parser'),
           if (!formatResponse[format]) {
             format = 'xml';
           }
-          console.log(typeof callback);
+          // console.log(typeof callback);
           callback(formatResponse[format]());
         };
 
