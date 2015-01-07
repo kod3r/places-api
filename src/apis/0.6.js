@@ -365,12 +365,12 @@ module.exports = function(config) {
         console.log('changing uid', req.params.uid);
         data.osm.changeset.user_id = req.params.uid;
         apiFunctions.readOsmChange.changeset(data, database, function(result) {
-          if (result) {
+          if (result && !result.error) {
             res.send(result.data.changeset[0].id, 'txt');
           } else {
             res.status({
-              'statusCode': 400,
-              'details': result
+              'statusCode': result && result.error && result.error.code ? result.error.code : 400,
+              'details': result ? (result.details ? result.details : result) : null
             });
           }
         });
@@ -438,14 +438,14 @@ module.exports = function(config) {
     'process': function(req, res) {
       apiFunctions.readXmlReq(req, function(error, data) {
         apiFunctions.readOsmChange.changeset(data, database, function(result) {
-          if (result.data) {
+          if (result && result.data) {
             res.send(result.data, 'xml', {
               'wrapType': 'diffResult'
             });
           } else {
             res.status({
-              'statusCode': 400,
-              'details': result
+              'statusCode': result && result.error & result.error.code ? result.error.code : 400,
+              'details': result && result.details ? result.details : result
             });
           }
         });
