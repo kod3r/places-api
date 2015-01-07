@@ -146,6 +146,7 @@ var bodyParser = require('body-parser'),
           // TODO: Should errors be reported in HTML?
           // Status is used for error reporting
           var result;
+          format = format || 'txt'; //Default the format to text unless it's explicitly set
 
           // Allow for reporting or poorly reported errors
           error = error || {};
