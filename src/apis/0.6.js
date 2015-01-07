@@ -362,7 +362,7 @@ module.exports = function(config) {
     'process': function(req, res) {
       apiFunctions.readXmlReq(req, function(error, data) {
         // Add in the user id from the auth step
-        console.log('changing uid', req.params.uid);
+        // console.log('changing uid', req.params.uid);
         data.osm.changeset.user_id = req.params.uid;
         apiFunctions.readOsmChange.changeset(data, database, function(result) {
           if (result && !result.error) {
