@@ -2,9 +2,7 @@
 
 var Q = require('q'),
   xmlJs = require('xmljs_trans_js'),
-  database = require('../database')('api'),
-  queries = require('./sql/apiSql'),
-  oauth = require('../oauth/authorizationRequest');
+  queries = require('./sql/apiSql');
 
 exports = module.exports = {
   respond: function(res, dbResult) {
@@ -74,7 +72,7 @@ exports = module.exports = {
     }
   },
   readOsmChange: {
-    changeset: function(data, callback) {
+    changeset: function(data, database, callback) {
       var changesetRequest = {},
         functionList = [],
         returnData = {},
@@ -97,7 +95,7 @@ exports = module.exports = {
           queryList = {
             'changeset': 'SELECT upsert_changeset(\'{{id}}\', \'{{user_id}}\', \'{{tag}}\') AS changeset',
             'node': 'SELECT to_json(upsert_node(\'{{id}}\', \'{{lat}}\', \'{{lon}}\', \'{{changeset}}\', \'{{visible}}\', \'{{tag}}\')) AS node',
-            'way': 'SELECT to_json(upsert_way(\'{{id}}\', \'{{changeset}}\', \'{{visible}}\', \'{{nd}}\', \'{{tag}}\')) AS way',
+            'way': 'SELECT to_jsoon(upsert_way(\'{{id}}\', \'{{changeset}}\', \'{{visible}}\', \'{{nd}}\', \'{{tag}}\')) AS way',
             'relation': 'SELECT to_json(upsert_relation(\'{{id}}\', \'{{changeset}}\', \'{{visible}}\', \'{{member}}\', \'{{tag}}\')) AS relation'
           };
 
@@ -121,7 +119,6 @@ exports = module.exports = {
           } else {
             deferred.reject('Invalid Type');
           }
-
           return deferred.promise;
         },
         processRequests = function(type) {
@@ -209,15 +206,19 @@ exports = module.exports = {
         changesetRequest.modify = (data.osmChange.modify);
         changesetRequest.delete = (data.osmChange.delete);
 
-        processRequests('node').then(function() {
-          processRequests('way').then(function() {
-            processRequests('relation').then(function() {
-              callback({
-                'data': returnData
+        //TODO: Better errors!
+        processRequests('node')
+          .then(function() {
+            processRequests('way')
+              .then(function() {
+                processRequests('relation')
+                  .then(function() {
+                    callback({
+                      'data': returnData
+                    });
+                  });
               });
-            });
           });
-        });
 
       } else if (data && data.osm && data.osm && data.osm.changeset) {
         // Upsert Changeset
@@ -255,7 +256,7 @@ exports = module.exports = {
     }
     return output;
   },
-  queryMultipleElements: function(req, res, type) {
+  queryMultipleElements: function(req, res, type, database) {
     //http://wiki.openstreetmap.org/wiki/API_v0.6#Multi_fetch:_GET_.2Fapi.2F0.6.2F.5Btypes.7Cways.7Crelations.5D.3F.23parameters
     var types = type + 's',
       typeList, query;
@@ -280,18 +281,21 @@ exports = module.exports = {
       });
     }
   },
-  auth: {
-    oauth: function(req, res, callback) {
-      oauth(req, function(data) {
-        if (data.valid && data.userId) {
-          req.params.uid = data.userId;
-          callback(req, res);
-        } else {
-          res.status({
-            'statusCode': 401
-          });
-        }
-      });
-    }
+  auth: function(config) {
+    return {
+      oauth: function(req, res, callback) {
+        var oauth = require('../oauth/authorizationRequest')(config);
+        oauth(req, function(data) {
+          if (data.valid && data.userId) {
+            req.params.uid = data.userId;
+            callback(req, res);
+          } else {
+            res.status({
+              'statusCode': 401
+            });
+          }
+        });
+      }
+    };
   }
 };
