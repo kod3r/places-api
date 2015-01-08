@@ -26,7 +26,7 @@
     "method-override": "2.3.0",
     "oauth": "0.9.12",
     "oauthorize": "0.1.0",
-    "osm-and-geojson": "git+https://github.com/jimmyrocks/osm-and-geojson.git#gh-pages",
+    "osm-and-geojson": "git+https://github.com/nationalparkservice/osm-and-geojson.git#gh-pages",
     "pg": "3.6.2",
     "q": "1.0.1",
     "xmljs_trans_js": "git+https://github.com/jimmyrocks/xmljs_trans_js.git#master"
