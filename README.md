@@ -20,7 +20,7 @@ The following steps are designed to be copied and pasted directly into your CLI.
 ####\#4. Copy the example.config.json to config.json
   `cp example.config.json config.json`
 ####\#5. Open the config.json with your favorite text editor and change the values to match your settings
-  ```which subl || which vim`` config.json`
+  ```which subl || which vim` config.json``
 ####\#6. You're ready to run the website!
   `npm start`
 
