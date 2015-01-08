@@ -64,7 +64,7 @@ module.exports = function(config) {
         'pgs_current_nodes JOIN (',
         'SELECT DISTINCT nodes.id as node_id FROM',
         '( SELECT nodes.id, nodes.tags FROM nodes WHERE',
-        'array_length(hstore_to_array(delete(tags, \'nps:places_uuid\')),1)/2 > 0 AND'
+        'array_length(hstore_to_array(delete(tags, \'nps:places_id\')),1)/2 > 0 AND'
       ];
 
 
