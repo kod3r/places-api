@@ -20,14 +20,13 @@
     "url": "http://github.com/nationalparkservice/places-api"
   },
   "dependencies": {
-    "body-parser": "1.9.2",
-    "express": "4.x",
-    "method-override": "2.3.0",
+    "body-parser": "1.10.1",
+    "express": "4.10.7",
+    "method-override": "2.3.1",
     "oauth": "0.9.12",
-    "oauthorize": "0.1.0",
-    "osm-and-geojson": "git+https://github.com/jimmyrocks/osm-and-geojson.git#gh-pages",
-    "pg": "3.6.2",
-    "q": "1.0.1",
-    "xmljs_trans_js": "git+https://github.com/jimmyrocks/xmljs_trans_js.git#master"
+    "osm-and-geojson": "git+https://github.com/nationalparkservice/osm-and-geojson.git#gh-pages",
+    "pg": "4.1.1",
+    "q": "1.1.2",
+    "xmljs_trans_js": "git+https://github.com/nationalparkservice/xmljs_trans_js.git#master"
   }
 }
