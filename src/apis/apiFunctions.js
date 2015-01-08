@@ -75,6 +75,11 @@ exports = module.exports = {
     changeset: function(data, database, callback) {
 
       var rejectFunction = function(err) {
+        var revertQuery;
+        if (err.params && err.params.changeset) {
+          revertQuery = 'SELECT * FROM api_revert_changeset(' + err.params.changeset + ')';
+          database().query(revertQuery, 'Revert', function() {});
+        }
         callback(err);
       };
 
@@ -105,7 +110,6 @@ exports = module.exports = {
           };
 
           if (queryList[type]) {
-            // console.log(change);
             query = database().addParams(queryList[type], type, change);
 
             database().query(query, type, function(_, queryRes) {
@@ -118,6 +122,7 @@ exports = module.exports = {
                 });
                 deferred.resolve(queryRes);
               } else {
+                queryRes.params = change;
                 deferred.reject(queryRes);
               }
             });
@@ -214,26 +219,20 @@ exports = module.exports = {
         // Start a transaction
         processRequests('node')
           .then(function() {
-            // console.log('p1');
             processRequests('way')
               .then(function() {
-                // console.log('p2');
                 processRequests('relation')
                   .then(function() {
-                    // console.log('p3');
                     callback({
                       'data': returnData
                     });
                   }, function(e) {
-                    // console.log('e3');
                     rejectFunction(e, callback);
                   });
               }, function(e) {
-                // console.log('e2');
                 rejectFunction(e, callback);
               });
           }, function(e) {
-            // console.log('e1');
             rejectFunction(e, callback);
           });
 
