@@ -4,9 +4,9 @@ var bodyParser = require('body-parser'),
   zlib = require('zlib'),
   xmlJs = require('xmljs_trans_js'),
   logError = function(err) {
-    console.log('###############');
-    console.log(err);
-    console.log('###############');
+    // console.log('###############');
+    // console.log(err);
+    // console.log('###############');
   },
   fns = {
     results: function(config) {
@@ -109,24 +109,16 @@ var bodyParser = require('body-parser'),
                 },
               };
 
-              console.log('f1',format);
             if (req.params) {
-              console.log('f2',format);
               // Allow for a default format to be set, then try xml if nothing is specified
               format = format ? format : req.params.format;
-              console.log('f3',format);
               if (format === 'jsonp') {
                 format = 'json';
-              console.log('f4',format);
               }
             }
-              console.log('f5',format);
             if (!formatResponse[format]) {
               format = 'xml';
-              console.log('f6',format);
             }
-              console.log('f7',format);
-            // console.log(typeof callback);
             callback(formatResponse[format]());
           };
 
@@ -259,9 +251,9 @@ var bodyParser = require('body-parser'),
     reportError: function(config) {
       return function(err, req, res) {
         if (!res.headersSent) {
-          console.log('$$$$$$$$$$$$$$$$$$$');
-          console.log('e', err);
-          console.log('$$$$$$$$$$$$$$$$$$$');
+          // console.log('$$$$$$$$$$$$$$$$$$$');
+          // console.log('e', err);
+          // console.log('$$$$$$$$$$$$$$$$$$$');
           req.query = req.query || {};
           fns.newResult(null, config, function(newReq, newRes) {
             newRes.status({
