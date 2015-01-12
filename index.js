@@ -1,13 +1,7 @@
-var express = require('express'),
+var allowXSS = require('./src/allowXSS'),
   bodyParser = require('body-parser'),
-  allowXSS = require('./src/allowXSS');
-
-var errorWrapper = function(errorFunction) {
-  return function(err, req, res, next) {
-    console.log('ERROR', err);
-    errorFunction(err, req, res, next);
-  };
-};
+  express = require('express'),
+  timeout = require('connect-timeout');
 
 module.exports = function(config) {
 
@@ -41,7 +35,8 @@ module.exports = function(config) {
         });
       });
 
-      router.use(errorWrapper(placesApp.onError));
+      router.use(placesApp.onError);
+      router.use(timeout(config.capabilities.timeout.seconds + 's'));
       return router;
     },
     'oauth': function() {
@@ -52,10 +47,10 @@ module.exports = function(config) {
         router[(oauthCall.method).toLowerCase()](oauthCall.path, bodyParser.json(), oauthCall.process);
       });
 
-      router.use(errorWrapper(function(err, res){
+      router.use(function(err, res) {
         res.set('Content-Type', 'text/html');
         res.status(500).send(JSON.stringify(err, null, 2));
-      }));
+      });
 
       return router;
     }
