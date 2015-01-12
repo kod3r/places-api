@@ -129,11 +129,9 @@ module.exports = function(config) {
           if (dbResult && dbResult.data && dbResult.data.point && dbResult.data.point[0]) {
             // Remove the 'point' layer so the result is uniform with all the other results
             dbResult.data = apiFunctions.deleteEmptyTags(dbResult.data.point[0]);
-
-            // TODO: limits need to be added to the point query
-
-            apiFunctions.respond(expressRes, dbResult);
           }
+            // TODO: limits need to be added to the point query
+            apiFunctions.respond(expressRes, dbResult);
         });
       } else {
         res.status({
