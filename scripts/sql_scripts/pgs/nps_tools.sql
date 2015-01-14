@@ -146,7 +146,7 @@ LANGUAGE plpgsql;
 --------------------------------
 CREATE OR REPLACE VIEW public.nps_planet_osm_point_view AS 
 SELECT
-  "osm_id", "name", "fcat", "tags", "created", "way", nps_node_o2p_calculate_zorder(fcat) as z_order
+  "osm_id", "version", "name", "fcat", "tags", "created", "way", nps_node_o2p_calculate_zorder(fcat) as z_order
 FROM (
   SELECT
     nodes.id AS "osm_id",
@@ -163,7 +163,7 @@ FROM (
       SELECT
         array_length(array_agg(key),1)
       FROM
-        unnest(akeys(nodes.tag)) key
+        unnest(akeys(nodes.tags)) key
       WHERE
         key NOT LIKE 'nps:%'
     ) > 0
