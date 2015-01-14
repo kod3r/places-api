@@ -101,17 +101,23 @@ IF v_tag_count > 0 THEN
           hstore_len
         FROM (
           SELECT
-            name, 
-            (SELECT hstore(array_agg(key), array_agg(tags->key)) from unnest(akeys(tags)) key WHERE key not like 'nps:%') tags,
-            (SELECT array_length(array_agg(key),1) FROM unnest(akeys(tags)) key WHERE key not like 'nps:%') hstore_len
+            hstore_tag_list.name, 
+            (SELECT hstore(array_agg(key), array_agg(hstore_tag_list.tags->key)) from unnest(akeys(hstore_tag_list.tags)) key WHERE key not like 'nps:%') tags,
+            (SELECT array_length(array_agg(key),1) FROM unnest(akeys(hstore_tag_list.tags)) key WHERE key not like 'nps:%') hstore_len
           FROM
-            tag_list
-          WHERE
-            tag_list.geometry @> ARRAY['point'] AND
-            (v_all OR (
-              tag_list.searchable is null OR
-              tag_list.searchable is true
-            ))
+            (
+              SELECT
+                name,
+                json_to_hstore(tags) tags
+              FROM
+                tag_list
+              WHERE
+                tag_list.geometry @> ARRAY['point'] AND
+                (v_all OR (
+                  tag_list.searchable is null OR
+                  tag_list.searchable is true
+                ))
+            ) hstore_tag_list
         ) available_tags
       ) explode_tags
     ) paired_tags
