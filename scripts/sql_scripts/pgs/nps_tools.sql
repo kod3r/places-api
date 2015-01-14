@@ -71,7 +71,14 @@ DECLARE
   v_tag_count bigint;
 BEGIN
 
-SELECT array_length(hstore_to_array(delete(v_hstore, 'nps:places_uuid')),1)/2 INTO v_tag_count;
+SELECT
+  array_length(array_agg(key),1)
+FROM
+  unnest(akeys(v_hstore)) key
+WHERE
+  key NOT LIKE 'nps:%'
+INTO
+  v_tag_count;
 
 IF v_tag_count > 0 THEN
   SELECT
@@ -95,8 +102,8 @@ IF v_tag_count > 0 THEN
         FROM (
           SELECT
             name, 
-            delete(json_to_hstore(tags), 'nps:fcat') tags,
-            array_length(%% (delete(json_to_hstore(tags), 'nps:fcat')),1)/2 hstore_len
+            (SELECT hstore(array_agg(key), array_agg(tags->key)) from unnest(akeys(tags)) key WHERE key not like 'nps:%') tags,
+            (SELECT array_length(array_agg(key),1) FROM unnest(akeys(tags)) key WHERE key not like 'nps:%') hstore_len
           FROM
             tag_list
           WHERE
@@ -132,23 +139,24 @@ LANGUAGE plpgsql;
 
 CREATE OR REPLACE VIEW public.nps_planet_osm_point_view AS 
 SELECT
-  osm_id, "name", "fcat", "tags", "created", "way", nps_node_o2p_calculate_zorder(fcat) as z_order
+  "id", "name", "type", "places_id", "unit_code", "rendered", "tags", "the_geom"
 FROM (
   SELECT
-    nodes.id AS osm_id,
+    nodes.id AS id,
     nodes.tags -> 'name'::text AS "name",
-    o2p_get_name(tags, 'N') AS "fcat",
-    tags AS "tags",
-    NOW()::timestamp without time zone AS created,
-    st_transform(nodes.geom, 900913) AS way
+    o2p_get_name(tags, 'N', true) AS "type",
+    nodes.tags -> 'nps:places_id'::text AS "places_id",
+    nodes.tags -> 'nps:unit_code'::text AS "unit_code",
+    tags::json::text AS "tags",
+    NOW()::timestamp without time zone AS "rendered",
+    st_transform(nodes.geom, 900913) AS "the_geom"
   FROM
     nodes
   WHERE
-    nodes.tags <> ''::hstore AND 
-    nodes.tags IS NOT NULL
+    (SELECT array_length(array_agg(key),1) FROM unnest(akeys(nodes.tags)) key WHERE key not like 'nps:%') > 0
 ) base
 WHERE
-  fcat IS NOT NULL;
+  type IS NOT NULL;
   
 ------------------
 
