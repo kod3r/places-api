@@ -145,16 +145,16 @@ LANGUAGE plpgsql;
 
 CREATE OR REPLACE VIEW public.nps_planet_osm_point_view AS 
 SELECT
-  "id", "name", "type", "places_id", "unit_code", "rendered", "tags", "the_geom"
+  "osm_id", "name", "fcat", "places_id", "unit_code", "created", "tags", "the_geom"
 FROM (
   SELECT
-    nodes.id AS id,
+    nodes.id AS "osm_id",
     nodes.tags -> 'name'::text AS "name",
-    o2p_get_name(tags, 'N', true) AS "type",
+    o2p_get_name(tags, 'N', true) AS "fcat",
     nodes.tags -> 'nps:places_id'::text AS "places_id",
     nodes.tags -> 'nps:unit_code'::text AS "unit_code",
     tags::json::text AS "tags",
-    NOW()::timestamp without time zone AS "rendered",
+    NOW()::timestamp without time zone AS "created",
     st_transform(nodes.geom, 900913) AS "the_geom"
   FROM
     nodes
@@ -162,7 +162,7 @@ FROM (
     (SELECT array_length(array_agg(key),1) FROM unnest(akeys(nodes.tags)) key WHERE key not like 'nps:%') > 0
 ) base
 WHERE
-  type IS NOT NULL;
+  "fcat" IS NOT NULL;
   
 ------------------
 
