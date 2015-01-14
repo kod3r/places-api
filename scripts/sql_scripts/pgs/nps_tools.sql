@@ -141,30 +141,36 @@ IF v_tag_count > 0 THEN
 END;
 $o2p_get_name$
 LANGUAGE plpgsql;
--------------
+--------------------------------
 
+--------------------------------
 CREATE OR REPLACE VIEW public.nps_planet_osm_point_view AS 
 SELECT
-  "osm_id", "name", "fcat", "places_id", "unit_code", "created", "tags", "the_geom"
+  "osm_id", "name", "fcat", "tags", "created", "way", nps_node_o2p_calculate_zorder(fcat) as z_order
 FROM (
   SELECT
     nodes.id AS "osm_id",
+    nodes.version AS "version",
     nodes.tags -> 'name'::text AS "name",
-    o2p_get_name(tags, 'N', true) AS "fcat",
-    nodes.tags -> 'nps:places_id'::text AS "places_id",
-    nodes.tags -> 'nps:unit_code'::text AS "unit_code",
-    tags::json::text AS "tags",
-    NOW()::timestamp without time zone AS "created",
-    st_transform(nodes.geom, 900913) AS "the_geom"
+    o2p_get_name(tags, 'N') AS "fcat",
+    tags AS "tags",
+    NOW()::timestamp without time zone AS created,
+    st_transform(nodes.geom, 900913) AS way
   FROM
     nodes
   WHERE
-    (SELECT array_length(array_agg(key),1) FROM unnest(akeys(nodes.tags)) key WHERE key not like 'nps:%') > 0
+    (
+      SELECT
+        array_length(array_agg(key),1)
+      FROM
+        unnest(akeys(nodes.tag)) key
+      WHERE
+        key NOT LIKE 'nps:%'
+    ) > 0
 ) base
 WHERE
-  "fcat" IS NOT NULL;
-  
-------------------
+  fcat IS NOT NULL;
+--------------------------------
 
 -- Function: public.nps_pgs_update_o2p(bigint, character)
 
