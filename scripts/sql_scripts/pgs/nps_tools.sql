@@ -184,19 +184,18 @@ $BODY$
     v_member_type ALIAS FOR $2;
     v_rel_id BIGINT;
   BEGIN
-  INSERT INTO nps_change_log (osm_id, member_type, version, way, created, change_time) VALUES ((
+  INSERT INTO nps_change_log (
     SELECT
-      v_id,
-      v_member_type,
-      "planet_osm_point"."version",
-      "planet_osm_point"."way",
-      "planet_osm_point"."created",
-      NOW()::timestamp without time zone
+      v_id AS "osm_id",
+      "planet_osm_point"."version" AS "version",
+      v_member_type AS "member_type",
+      "planet_osm_point"."way" AS "way",
+      "planet_osm_point"."created" AS "created",
+      NOW()::timestamp without time zone AS "change_time"
     FROM
        planet_osm_point
     WHERE
-      osm_id = v_id
-    )
+      osm_id = '1'
   );
     -- Update this object in the nps o2p tables
         IF v_member_type = 'N' THEN
