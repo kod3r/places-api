@@ -191,7 +191,7 @@ $BODY$
       "planet_osm_point"."version",
       "planet_osm_point"."way",
       "planet_osm_point"."created",
-      NOW()::timestamp without time zone,
+      NOW()::timestamp without time zone
     FROM
        planet_osm_point
     WHERE
