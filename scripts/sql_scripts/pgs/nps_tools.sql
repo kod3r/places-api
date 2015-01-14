@@ -195,7 +195,7 @@ $BODY$
     FROM
        planet_osm_point
     WHERE
-      osm_id = '1'
+      osm_id = v_id
   );
     -- Update this object in the nps o2p tables
         IF v_member_type = 'N' THEN
