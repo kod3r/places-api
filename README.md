@@ -1,9 +1,8 @@
-#places-api
-
-##Description
+## Description
 
 places-api is an implementation of the [OpenStreetMap API](http://wiki.openstreetmap.org/wiki/API_v0.6) written in [node.js](http://nodejs.org/) as middleware for the [express.js](http://expressjs.com/) web application framework.
 
+<<<<<<< HEAD
 ##API Installation
 
 The places-api acts as middleware for [express.js](https://github.com/strongloop/express), and cannot run on its own.
@@ -30,12 +29,12 @@ The following steps are designed to be copied and pasted directly into your CLI.
 
 ####\#1. Run the postgresql 9.3 and PostGIS 2.1 install script here:
   `sh ./scripts/install_postgres_9.3.sh`
-  
+
   \# postgresql 9.4 should work as well, but it has not been tested
 ####\#2. Either clone an existing set of places_api databases or run the database setup script:
   `sh ./scripts/create_osm_db.sh`
 
-##Usage
+## Usage
 
 The iD editor that is include will not work be default, since it needs to be built.
 You will need to remove the places-editor from the /node_modules directory and clone it in instead
@@ -45,4 +44,4 @@ After, it's cloned, edit the js/id/id.js file's npmap variable to reflect the pa
 
 Once you do that, run an `npm install` on it and the `make` command.
 
-You can then navigate to http://SERVER:PORT/dist and start editting the map!
+You can then navigate to http://SERVER:PORT/dist and start editing the map!

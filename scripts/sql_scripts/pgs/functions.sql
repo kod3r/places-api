@@ -122,7 +122,8 @@ CREATE OR REPLACE FUNCTION pgs_upsert_way(
          );
       END IF;
       
-      SELECT pgs_update_o2p(v_id, 'W') into v_X;
+      --SELECT pgs_update_o2p(v_id, 'W') into v_X;
+      SELECT nps_pgs_update_o2p(v_id, 'W') into v_X;
 
     RETURN v_X;
     END;
@@ -191,7 +192,8 @@ CREATE OR REPLACE FUNCTION pgs_upsert_relation(
         );
     END IF;
     
-    SELECT pgs_update_o2p(v_id, 'R') into v_X;
+    --SELECT pgs_update_o2p(v_id, 'R') into v_X;
+    SELECT nps_pgs_update_o2p(v_id, 'R') into v_X;
 
     RETURN v_X;
     END;

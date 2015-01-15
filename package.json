@@ -22,11 +22,11 @@
   "dependencies": {
     "body-parser": "1.10.1",
     "connect-timeout": "1.5.0",
-    "express": "4.10.7",
+    "express": "4.11.0",
     "method-override": "2.3.1",
     "oauth": "0.9.12",
     "osm-and-geojson": "git+https://github.com/nationalparkservice/osm-and-geojson.git#gh-pages",
-    "pg": "4.1.1",
+    "pg": "4.2.0",
     "q": "1.1.2",
     "xmljs_trans_js": "git+https://github.com/nationalparkservice/xmljs_trans_js.git#master"
   }
