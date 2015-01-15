@@ -225,10 +225,11 @@ $BODY$
       "planet_osm_point"."created" AS "created",
       NOW()::timestamp without time zone AS "change_time"
     FROM
-       planet_osm_point
+       planet_osm_point -- TODO: Change this to nps_render_point
     WHERE
       osm_id = v_id
   );
+  -- TODO: Union with code to copy in values for polygons and lines
   
   -- Update this object in the nps o2p tables
     IF v_member_type = 'N' THEN
