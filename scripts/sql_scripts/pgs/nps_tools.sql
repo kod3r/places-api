@@ -38,6 +38,7 @@ COMMENT ON COLUMN public.nps_render_point.unit_code IS 'The unit code of the par
 CREATE OR REPLACE VIEW public.nps_cartodb_point_view AS
 SELECT
   "nps_render_point"."osm_id" AS "cartodb_id",
+  "nps_render_point"."version" AS "version",
   "nps_render_point"."tags" -> 'name'::text AS "name",
   "nps_render_point"."tags" -> 'nps:places_id'::text AS "places_id",
   "nps_render_point"."unit_code" AS "unit_code",
