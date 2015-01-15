@@ -32,6 +32,17 @@ COMMENT ON COLUMN public.nps_render_point.rendered IS 'This contains the time th
 COMMENT ON COLUMN public.nps_render_point.the_geom IS 'Contains the geometry for the point.';
 COMMENT ON COLUMN public.nps_render_point.z_order IS 'Contains the display order of the points.  This is a calculated field, it is calclated from the "tags" field using the "nps_node_o2p_calculate_zorder" function.';
 COMMENT ON COLUMN public.nps_render_point.unit_code IS 'The unit code of the park that contains this point';
+
+------------------------------
+-- nps_render_log
+------------------------------
+-- This table is how we keep track of each process that was run
+CREATE TABLE nps_render_log
+(
+  render_id bigint,
+  task_name character varying(255),
+  run_time timestamp without time zone
+);
 -----------------------------------------------------------------------
 
 -----------------------------------------------------------------------
