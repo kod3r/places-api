@@ -1,30 +1,38 @@
 -----------------------------------------------------------------------
 -- nps render tables
 
+-- Table: public.nps_render_point
+
+-- DROP TABLE public.nps_render_point;
+
 CREATE TABLE public.nps_render_point
 (
-   osm_id bigint, 
-   version integer, 
-   name text, 
-   type text, 
-   tags public.hstore, 
-   rendered timestamp without time zone, 
-   the_geom public.geometry, 
-   z_order integer, 
-   CONSTRAINT osm_id PRIMARY KEY (osm_id)
-) 
-WITH (
-  OIDS = FALSE
+  osm_id bigint NOT NULL,
+  version integer,
+  name text,
+  type text, -- This is a calculated field. It calculates the point "type" from its "tags" field. It uses the o2p_get_name function to perform the calculation.
+  tags hstore, -- This contains all of the OpenStreetMap style tags associated with this point.
+  rendered timestamp without time zone, -- This contains the time that this specific point was rendered. This is important for synchronizing the render tools.
+  the_geom geometry, -- Contains the geometry for the point.
+  z_order integer, -- Contains the display order of the points.  This is a calculated field, it is calclated from the "tags" field using the "nps_node_o2p_calculate_zorder" function.
+  unit_code text, -- The unit code of the park that contains this point
+  CONSTRAINT osm_id PRIMARY KEY (osm_id)
 )
-;
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE public.nps_render_point
+  OWNER TO osm;
+COMMENT ON TABLE public.nps_render_point
+  IS 'This table contains the most recent version of all visible points in order to be displayed on park tiles as well as be used in CartoDB.
+In the future (as on jan 2015) this table will only contain the points that have been fully validated';
 COMMENT ON COLUMN public.nps_render_point.type IS 'This is a calculated field. It calculates the point "type" from its "tags" field. It uses the o2p_get_name function to perform the calculation.';
 COMMENT ON COLUMN public.nps_render_point.tags IS 'This contains all of the OpenStreetMap style tags associated with this point.';
 COMMENT ON COLUMN public.nps_render_point.rendered IS 'This contains the time that this specific point was rendered. This is important for synchronizing the render tools.';
 COMMENT ON COLUMN public.nps_render_point.the_geom IS 'Contains the geometry for the point.';
 COMMENT ON COLUMN public.nps_render_point.z_order IS 'Contains the display order of the points.  This is a calculated field, it is calclated from the "tags" field using the "nps_node_o2p_calculate_zorder" function.';
-COMMENT ON TABLE public.nps_render_point
-  IS 'This table contains the most recent version of all visible points in order to be displayed on park tiles as well as be used in CartoDB.
-In the future (as on jan 2015) this table will only contain the points that have been fully validated';
+COMMENT ON COLUMN public.nps_render_point.unit_code IS 'The unit code of the park that contains this point';
+
 
 -----------------------------------------------------------------------
 
@@ -183,18 +191,18 @@ SELECT
   "tags", 
   "created", 
   "way",
-  nps_node_o2p_calculate_zorder(fcat) as "z_order"--,
-  --"unit_code"
+  nps_node_o2p_calculate_zorder(fcat) as "z_order",
+  "unit_code"
 FROM (
   SELECT
-    "nodes"."id AS" "osm_id",
+    "nodes"."id" AS "osm_id",
     "nodes"."version" AS "version",
     "nodes"."tags" -> 'name'::text AS "name",
     o2p_get_name("tags", 'N') AS "fcat",
     "tags" AS "tags",
     NOW()::timestamp without time zone AS "created",
     st_transform(nodes.geom, 900913) AS "way",
-    --Get unit code? TODO: Do it here or above? Figure that out!
+    "nodes"."tags" -> 'nps:unit_code'::text AS "unit_code"
   FROM
     "nodes"
   WHERE
@@ -243,12 +251,7 @@ $BODY$
   
   -- Update this object in the nps o2p tables
     IF v_member_type = 'N' THEN
-      -- TODO: Remove planet_osm_point code (make sure it's not references anywhere else)
-      DELETE FROM planet_osm_point WHERE osm_id = v_id;
-      INSERT INTO planet_osm_point (
-        SELECT * FROM nps_planet_osm_point_view WHERE osm_id = v_id
-      );
-      
+
       DELETE FROM nps_render_point WHERE osm_id = v_id;
       INSERT INTO nps_render_point (
         SELECT
@@ -259,8 +262,8 @@ $BODY$
           "tags" AS "tags",
           "created" AS "rendered",
           "way" AS "the_geom",
-          "unit_code" AS "unit_code",
-          "z_order" AS "z_order"
+          "z_order" AS "z_order",
+          "unit_code" AS "unit_code"
         FROM nps_planet_osm_point_view
         WHERE osm_id = v_id
       );
