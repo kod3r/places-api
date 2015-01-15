@@ -215,19 +215,20 @@ $BODY$
     v_rel_id BIGINT;
   BEGIN
   
-  -- Add this object to the change log, which is used to keep the renderers synchronized
+  -- Add any information that will be deleting / changing
+  -- to the change log, which is used to keep the renderers synchronized
   INSERT INTO nps_change_log (
     SELECT
       v_id AS "osm_id",
-      "planet_osm_point"."version" AS "version",
+      "nps_render_point"."version" AS "version",
       v_member_type AS "member_type",
-      "planet_osm_point"."way" AS "way",
-      "planet_osm_point"."created" AS "created",
+      "nps_render_point"."the_geom" AS "way",
+      "nps_render_point"."rendered" AS "created",
       NOW()::timestamp without time zone AS "change_time"
     FROM
-       planet_osm_point -- TODO: Change this to nps_render_point
+       "nps_render_point"
     WHERE
-      osm_id = v_id
+      "osm_id" = v_id
   );
   -- TODO: Union with code to copy in values for polygons and lines
   
