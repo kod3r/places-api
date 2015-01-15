@@ -123,11 +123,11 @@ DECLARE
 BEGIN
 
 SELECT
-  array_length(array_agg(key),1)
+  array_length(array_agg("key"),1)
 FROM
-  unnest(akeys(v_hstore)) key
+  unnest(akeys(v_hstore)) "key"
 WHERE
-  key NOT LIKE 'nps:%'
+  "key" NOT LIKE 'nps:%'
 INTO
   v_tag_count;
 
@@ -224,7 +224,7 @@ FROM (
     "nodes"."id" AS "osm_id",
     "nodes"."version" AS "version",
     "nodes"."tags" -> 'name'::text AS "name",
-    o2p_get_name("tags", 'N') AS "fcat",
+    o2p_get_name("tags", 'N', true) AS "fcat",
     "tags" AS "tags",
     NOW()::timestamp without time zone AS "created",
     st_transform(nodes.geom, 900913) AS "way",
