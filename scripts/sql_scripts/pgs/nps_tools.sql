@@ -1,3 +1,33 @@
+-----------------------------------------------------------------------
+-- nps render tables
+
+CREATE TABLE public.nps_render_point
+(
+   osm_id bigint, 
+   version integer, 
+   name text, 
+   type text, 
+   tags public.hstore, 
+   rendered timestamp without time zone, 
+   the_geom public.geometry, 
+   z_order integer, 
+   CONSTRAINT osm_id PRIMARY KEY (osm_id)
+) 
+WITH (
+  OIDS = FALSE
+)
+;
+COMMENT ON COLUMN public.nps_render_point.type IS 'This is a calculated field. It calculates the point "type" from its "tags" field. It uses the o2p_get_name function to perform the calculation.';
+COMMENT ON COLUMN public.nps_render_point.tags IS 'This contains all of the OpenStreetMap style tags associated with this point.';
+COMMENT ON COLUMN public.nps_render_point.rendered IS 'This contains the time that this specific point was rendered. This is important for synchronizing the render tools.';
+COMMENT ON COLUMN public.nps_render_point.the_geom IS 'Contains the geometry for the point.';
+COMMENT ON COLUMN public.nps_render_point.z_order IS 'Contains the display order of the points.  This is a calculated field, it is calclated from the "tags" field using the "nps_node_o2p_calculate_zorder" function.';
+COMMENT ON TABLE public.nps_render_point
+  IS 'This table contains the most recent version of all visible points in order to be displayed on park tiles as well as be used in CartoDB.
+In the future (as on jan 2015) this table will only contain the points that have been fully validated';
+
+-----------------------------------------------------------------------
+
 CREATE OR REPLACE FUNCTION public.nps_node_o2p_calculate_zorder(text)
   RETURNS integer AS
 $BODY$
