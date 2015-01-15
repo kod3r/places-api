@@ -32,8 +32,21 @@ COMMENT ON COLUMN public.nps_render_point.rendered IS 'This contains the time th
 COMMENT ON COLUMN public.nps_render_point.the_geom IS 'Contains the geometry for the point.';
 COMMENT ON COLUMN public.nps_render_point.z_order IS 'Contains the display order of the points.  This is a calculated field, it is calclated from the "tags" field using the "nps_node_o2p_calculate_zorder" function.';
 COMMENT ON COLUMN public.nps_render_point.unit_code IS 'The unit code of the park that contains this point';
+-----------------------------------------------------------------------
 
-
+-----------------------------------------------------------------------
+CREATE OR REPLACE VIEW public.nps_cartodb_point_view AS
+SELECT
+  "nps_render_point"."osm_id" AS "cartodb_id",
+  "nps_render_point"."tags" -> 'name'::text AS "name",
+  "nps_render_point"."tags" -> 'nps:places_id'::text AS "places_id",
+  "nps_render_point"."unit_code" AS "unit_code",
+  "nps_render_point"."type" AS "type",
+  "nps_render_point"."tags"::json::text AS tags,
+  "nps_render_point"."the_geom" AS the_geom
+FROM "nps_render_point";;
+COMMENT ON VIEW public.nps_cartodb_point_view
+  IS 'This view is designed to transform our internal nps_render_point table into the table we maintain in cartodb.';
 -----------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION public.nps_node_o2p_calculate_zorder(text)
