@@ -192,7 +192,18 @@ SELECT
   "created", 
   "way",
   nps_node_o2p_calculate_zorder(fcat) as "z_order",
-  "unit_code"
+  COALESCE("unit_code", (
+    -- If the unit_code is null, try to join it up
+    SELECT
+      LOWER(unit_code)
+    FROM
+      render_park_polys
+    WHERE
+      -- The projection for OSM is 900913, although we use 3857, and they are identical
+      -- PostGIS requires a 'transform' between these two SRIDs when doing a comparison
+      ST_Transform("base"."way", 3857) && "render_park_polys"."poly_geom" AND 
+      ST_Contains("render_park_polys"."poly_geom",ST_Transform("base"."way", 3857))
+    )) AS "unit_code"
 FROM (
   SELECT
     "nodes"."id" AS "osm_id",
