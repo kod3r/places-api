@@ -203,7 +203,9 @@ SELECT
       -- PostGIS requires a 'transform' between these two SRIDs when doing a comparison
       ST_Transform("base"."way", 3857) && "render_park_polys"."poly_geom" AND 
       ST_Contains("render_park_polys"."poly_geom",ST_Transform("base"."way", 3857))
-    )) AS "unit_code"
+    ORDER BY minzoompoly, area
+    LIMIT 1
+  )) AS "unit_code"
 FROM (
   SELECT
     "nodes"."id" AS "osm_id",
