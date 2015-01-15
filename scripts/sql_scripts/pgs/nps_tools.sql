@@ -47,6 +47,21 @@ SELECT
 FROM "nps_render_point";;
 COMMENT ON VIEW public.nps_cartodb_point_view
   IS 'This view is designed to transform our internal nps_render_point table into the table we maintain in cartodb.';
+  
+---------------------------------
+-- View: nps_tilemill_point_view
+
+-- DROP VIEW nps_tilemill_point_view;
+CREATE OR REPLACE VIEW nps_tilemill_point_view AS 
+ SELECT nps_render_point.osm_id,
+    nps_render_point.name,
+    o2p_get_name(nps_render_point.tags, 'N'::bpchar, false) AS type,
+    nps_render_point.the_geom,
+    nps_render_point.z_order,
+    nps_render_point.unit_code,
+    render_park_polys.minzoompoly
+   FROM nps_render_point
+     LEFT JOIN render_park_polys ON lower(nps_render_point.unit_code) = lower(render_park_polys.unit_code::text);
 -----------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION public.nps_node_o2p_calculate_zorder(text)
