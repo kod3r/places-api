@@ -214,6 +214,8 @@ $BODY$
     v_member_type ALIAS FOR $2;
     v_rel_id BIGINT;
   BEGIN
+  
+  -- Add this object to the change log, which is used to keep the renderers synchronized
   INSERT INTO nps_change_log (
     SELECT
       v_id AS "osm_id",
@@ -227,12 +229,31 @@ $BODY$
     WHERE
       osm_id = v_id
   );
-    -- Update this object in the nps o2p tables
-        IF v_member_type = 'N' THEN
-          DELETE FROM planet_osm_point WHERE osm_id = v_id;
-          INSERT INTO planet_osm_point (
-            SELECT * FROM nps_planet_osm_point_view WHERE osm_id = v_id
-          );
+  
+  -- Update this object in the nps o2p tables
+    IF v_member_type = 'N' THEN
+      -- TODO: Remove planet_osm_point code (make sure it's not references anywhere else)
+      DELETE FROM planet_osm_point WHERE osm_id = v_id;
+      INSERT INTO planet_osm_point (
+        SELECT * FROM nps_planet_osm_point_view WHERE osm_id = v_id
+      );
+      
+      DELETE FROM nps_render_point WHERE osm_id = v_id;
+      INSERT INTO nps_render_point (
+        SELECT
+          "osm_id" AS "osm_id",
+          "version" AS "version",
+          "name" AS "name",
+          "fcat" AS "type",
+          "tags" AS "tags",
+          "created" AS "rendered",
+          "way" AS "the_geom",
+          "z_order" AS "z_order"
+        FROM nps_planet_osm_point_view
+        WHERE osm_id = v_id
+      );
+      
+      -- TODO: Add code to render polygons and lines
     END IF;
 
   RETURN true;
