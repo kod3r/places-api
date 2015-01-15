@@ -250,6 +250,7 @@ $BODY$
           "tags" AS "tags",
           "created" AS "rendered",
           "way" AS "the_geom",
+          "unit_code" AS "unit_code",
           "z_order" AS "z_order"
         FROM nps_planet_osm_point_view
         WHERE osm_id = v_id
