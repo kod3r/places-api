@@ -267,9 +267,7 @@ FROM (
       WHERE
         "key" NOT LIKE 'nps:%'
     ) > 0
-) "base"
-WHERE
-  "fcat" IS NOT NULL;
+) "base";
 --------------------------------
 
 -- Function: public.nps_pgs_update_o2p(bigint, character)
