@@ -212,78 +212,101 @@ $json_to_hstore$
 LANGUAGE plpgsql;
   
 --
+--
 CREATE OR REPLACE FUNCTION public.o2p_get_name(
   hstore,
-  character(1),
+  text[],
   boolean
 )
   RETURNS text AS $o2p_get_name$
 DECLARE
   v_hstore ALIAS for $1;
-  v_member_type ALIAS FOR $2; -- Current not used, update this!
+  v_geometry_type ALIAS FOR $2;
   v_all ALIAS for $3;
   v_name TEXT;
   v_tag_count bigint;
 BEGIN
 
 SELECT
-  array_length(array_agg("key"),1)
+  ARRAY_LENGTH(ARRAY_AGG("key"),1)
 FROM
-  unnest(akeys(v_hstore)) "key"
+  UNNEST(AKEYS(v_hstore)) "key"
 WHERE
   "key" NOT LIKE 'nps:%'
 INTO
   v_tag_count;
 
+
 IF v_tag_count > 0 THEN
   SELECT
-    name
+    "name"
   FROM (
     SELECT
-      name,
-      max(hstore_len) hstore_len,
-      count(*) match_count
+      CASE 
+        WHEN max("geometry") && v_geometry_type THEN "name"
+        ELSE null
+      END as "name",
+      max("hstore_len") AS "hstore_len",
+      count(*) AS "match_count",
+      max("matchscore") as "matchscore",
+      bool_and("searchable") as "searchable"
     FROM (
       SELECT
-        name,
-        available_tags,
-        each(v_hstore) input_tags,
-        hstore_len
+        "name",
+        "available_tags",
+        "searchable",
+        "matchscore",
+        "geometry",
+        each(v_hstore) AS "input_tags",
+        "hstore_len"
       FROM (
         SELECT
-          name,
-          each(tags) available_tags,
-          hstore_len
+          "name",
+          each("tags") AS "available_tags",
+          "searchable",
+          "matchscore",
+          "geometry",
+          "hstore_len"
         FROM (
           SELECT
-            hstore_tag_list.name, 
-            (SELECT hstore(array_agg(key), array_agg(hstore_tag_list.tags->key)) from unnest(akeys(hstore_tag_list.tags)) key WHERE key not like 'nps:%') tags,
-            (SELECT array_length(array_agg(key),1) FROM unnest(akeys(hstore_tag_list.tags)) key WHERE key not like 'nps:%') hstore_len
+            "hstore_tag_list"."name",
+            "searchable",
+            "matchscore",
+            "geometry",
+            (SELECT hstore(array_agg("key"), array_agg(hstore_tag_list.tags->"key")) from unnest(akeys(hstore_tag_list.tags)) "key" WHERE "key" NOT LIKE 'nps:%') "tags",
+            (SELECT array_length(array_agg("key"),1) FROM unnest(akeys("hstore_tag_list"."tags")) "key" WHERE "key" NOT LIKE 'nps:%') "hstore_len"
           FROM
             (
               SELECT
-                name,
-                json_to_hstore(tags) tags
+                "name",
+                json_to_hstore("tags") AS "tags",
+                "searchable",
+                "matchscore",
+                "geometry"
               FROM
-                tag_list
+                "tag_list"
               WHERE
-                tag_list.geometry @> ARRAY['point'] AND
+                ((ARRAY['point'] && v_geometry_type AND "tag_list"."geometry" && ARRAY['point']) OR
+                (ARRAY['line','area'] && v_geometry_type AND "tag_list"."geometry" && ARRAY['line','area'])) AND
                 (v_all OR (
-                  tag_list.searchable is null OR
-                  tag_list.searchable is true
+                  "tag_list"."searchable" is null OR
+                  "tag_list"."searchable" is true
                 ))
-            ) hstore_tag_list
-        ) available_tags
-      ) explode_tags
-    ) paired_tags
+            ) "hstore_tag_list"
+        ) "available_tags"
+      ) "explode_tags"
+    ) "paired_tags"
     WHERE
-      available_tags = input_tags
-    GROUP BY name
-    ) counted_tags
+      "available_tags" = "input_tags"  OR
+      (hstore(available_tags)->'value' = '*' AND hstore(available_tags)->'key' = hstore(input_tags)->'key')
+    GROUP BY "name"
+    ) "counted_tags"
   WHERE
-    hstore_len = match_count
+    "hstore_len" = "match_count"
   ORDER BY
-    match_count DESC
+    "match_count" DESC,
+    "searchable" DESC,
+    "matchscore" DESC
   LIMIT
     1
   INTO
@@ -296,6 +319,8 @@ IF v_tag_count > 0 THEN
 END;
 $o2p_get_name$
 LANGUAGE plpgsql;
+--------------------------------
+
 --------------------------------
 
 --------------------------------
