@@ -53,7 +53,7 @@ SELECT
   "nps_render_point"."tags" -> 'name'::text AS "name",
   "nps_render_point"."tags" -> 'nps:places_id'::text AS "places_id",
   "nps_render_point"."unit_code" AS "unit_code",
-  "nps_render_point"."type" AS "type",
+  "nps_render_point"."nps_type" AS "type",
   "nps_render_point"."tags"::json::text AS tags,
   "nps_render_point"."the_geom" AS the_geom
 FROM "nps_render_point";;
@@ -67,7 +67,7 @@ COMMENT ON VIEW public.nps_cartodb_point_view
 CREATE OR REPLACE VIEW nps_tilemill_point_view AS 
  SELECT nps_render_point.osm_id,
     nps_render_point.name,
-    o2p_get_name(nps_render_point.tags, 'N'::bpchar, false) AS type,
+    nps_render_point.nps_type AS type,
     nps_render_point.the_geom,
     nps_render_point.z_order,
     nps_render_point.unit_code,
@@ -75,6 +75,7 @@ CREATE OR REPLACE VIEW nps_tilemill_point_view AS
    FROM nps_render_point
      LEFT JOIN render_park_polys ON lower(nps_render_point.unit_code) = lower(render_park_polys.unit_code::text);
 -----------------------------------------------------------------------
+
 
 CREATE OR REPLACE FUNCTION public.nps_node_o2p_calculate_zorder(text)
   RETURNS integer AS
