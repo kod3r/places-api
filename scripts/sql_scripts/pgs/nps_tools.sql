@@ -228,10 +228,11 @@ SELECT
   "version",
   "name",
   "fcat",
+  "nps_fcat",
   "tags", 
   "created", 
   "way",
-  nps_node_o2p_calculate_zorder(fcat) as "z_order",
+  nps_node_o2p_calculate_zorder("base"."nps_fcat") as "z_order",
   COALESCE("unit_code", (
     -- If the unit_code is null, try to join it up
     SELECT
@@ -251,7 +252,8 @@ FROM (
     "nodes"."id" AS "osm_id",
     "nodes"."version" AS "version",
     "nodes"."tags" -> 'name'::text AS "name",
-    o2p_get_name("tags", 'N', true) AS "fcat",
+    o2p_get_name("tags", ARRAY['point'], true) AS "fcat",
+    o2p_get_name("tags", ARRAY['point'], false) AS "nps_fcat",
     "tags" AS "tags",
     NOW()::timestamp without time zone AS "created",
     st_transform(nodes.geom, 900913) AS "way",
@@ -267,7 +269,9 @@ FROM (
       WHERE
         "key" NOT LIKE 'nps:%'
     ) > 0
-) "base";
+) "base"
+WHERE
+  "fcat" IS NOT NULL;
 --------------------------------
 
 -- Function: public.nps_pgs_update_o2p(bigint, character)
