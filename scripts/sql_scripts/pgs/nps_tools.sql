@@ -10,7 +10,8 @@ CREATE TABLE public.nps_render_point
   osm_id bigint NOT NULL,
   version integer,
   name text,
-  type text, -- This is a calculated field. It calculates the point "type" from its "tags" field. It uses the o2p_get_name function to perform the calculation.
+  type text, -- This is a calculated field. It calculates the point "type" from its "tags" field. It uses the o2p_get_name (true) function to perform the calculation.
+  nps_type text, -- This is a calculated field. It calculates the polygon "type" from its "tags" field. It uses the o2p_get_name (false) function to perform the calculation.
   tags hstore, -- This contains all of the OpenStreetMap style tags associated with this point.
   rendered timestamp without time zone, -- This contains the time that this specific point was rendered. This is important for synchronizing the render tools.
   the_geom geometry, -- Contains the geometry for the point.
@@ -33,6 +34,81 @@ COMMENT ON COLUMN public.nps_render_point.the_geom IS 'Contains the geometry for
 COMMENT ON COLUMN public.nps_render_point.z_order IS 'Contains the display order of the points.  This is a calculated field, it is calclated from the "tags" field using the "nps_node_o2p_calculate_zorder" function.';
 COMMENT ON COLUMN public.nps_render_point.unit_code IS 'The unit code of the park that contains this point';
 
+
+-----------------------------------------------------------------------
+-- nps render tables
+
+-- Table: public.nps_render_polygon
+
+-- DROP TABLE public.nps_render_polygon;
+
+CREATE TABLE public.nps_render_polygon
+(
+  osm_id bigint NOT NULL,
+  version integer,
+  name text,
+  type text, -- This is a calculated field. It calculates the polygon "type" from its "tags" field. It uses the o2p_get_name (true) function to perform the calculation.
+  nps_type text, -- This is a calculated field. It calculates the polygon "type" from its "tags" field. It uses the o2p_get_name (false) function to perform the calculation.
+  tags hstore, -- This contains all of the OpenStreetMap style tags associated with this polygon.
+  rendered timestamp without time zone, -- This contains the time that this specific polygon was rendered. This is important for synchronizing the render tools.
+  the_geom geometry, -- Contains the geometry for the polygon.
+  z_order integer, -- Contains the display order of the polygons.  This is a calculated field, it is calclated from the "tags" field using the "nps_node_o2p_calculate_zorder" function.
+  unit_code text, -- The unit code of the park that contains this polygon
+  CONSTRAINT nps_render_polygon_osm_id PRIMARY KEY (osm_id)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE public.nps_render_polygon
+  OWNER TO osm;
+COMMENT ON TABLE public.nps_render_polygon
+  IS 'This table contains the most recent version of all visible polygons in order to be displayed on park tiles as well as be used in CartoDB.
+In the future (as on jan 2015) this table will only contain the polygons that have been fully validated';
+COMMENT ON COLUMN public.nps_render_polygon.type IS 'This is a calculated field. It calculates the polygon "type" from its "tags" field. It uses the o2p_get_name function to perform the calculation.';
+COMMENT ON COLUMN public.nps_render_polygon.tags IS 'This contains all of the OpenStreetMap style tags associated with this polygon.';
+COMMENT ON COLUMN public.nps_render_polygon.rendered IS 'This contains the time that this specific polygon was rendered. This is important for synchronizing the render tools.';
+COMMENT ON COLUMN public.nps_render_polygon.the_geom IS 'Contains the geometry for the polygon.';
+COMMENT ON COLUMN public.nps_render_polygon.z_order IS 'Contains the display order of the polygons.  This is a calculated field, it is calclated from the "tags" field using the "nps_node_o2p_calculate_zorder" function.';
+COMMENT ON COLUMN public.nps_render_polygon.unit_code IS 'The unit code of the park that contains this polygon';
+
+
+-----------------------------------------------------------------------
+-- nps render tables
+
+-- Table: public.nps_render_line
+
+-- DROP TABLE public.nps_render_line;
+
+CREATE TABLE public.nps_render_line
+(
+  osm_id bigint NOT NULL,
+  version integer,
+  name text,
+  type text, -- This is a calculated field. It calculates the line "type" from its "tags" field. It uses the o2p_get_name (true) function to perform the calculation.
+  nps_type text, -- This is a calculated field. It calculates the polygon "type" from its "tags" field. It uses the o2p_get_name (false) function to perform the calculation.
+  tags hstore, -- This contains all of the OpenStreetMap style tags associated with this line.
+  rendered timestamp without time zone, -- This contains the time that this specific line was rendered. This is important for synchronizing the render tools.
+  the_geom geometry, -- Contains the geometry for the line.
+  z_order integer, -- Contains the display order of the lines.  This is a calculated field, it is calclated from the "tags" field using the "nps_node_o2p_calculate_zorder" function.
+  unit_code text, -- The unit code of the park that contains this line
+  CONSTRAINT nps_render_line_osm_id PRIMARY KEY (osm_id)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE public.nps_render_line
+  OWNER TO osm;
+COMMENT ON TABLE public.nps_render_line
+  IS 'This table contains the most recent version of all visible lines in order to be displayed on park tiles as well as be used in CartoDB.
+In the future (as on jan 2015) this table will only contain the lines that have been fully validated';
+COMMENT ON COLUMN public.nps_render_line.type IS 'This is a calculated field. It calculates the line "type" from its "tags" field. It uses the o2p_get_name function to perform the calculation.';
+COMMENT ON COLUMN public.nps_render_line.tags IS 'This contains all of the OpenStreetMap style tags associated with this line.';
+COMMENT ON COLUMN public.nps_render_line.rendered IS 'This contains the time that this specific line was rendered. This is important for synchronizing the render tools.';
+COMMENT ON COLUMN public.nps_render_line.the_geom IS 'Contains the geometry for the line.';
+COMMENT ON COLUMN public.nps_render_line.z_order IS 'Contains the display order of the lines.  This is a calculated field, it is calclated from the "tags" field using the "nps_node_o2p_calculate_zorder" function.';
+COMMENT ON COLUMN public.nps_render_line.unit_code IS 'The unit code of the park that contains this line';
+
+--------------------------------------------------------
 ------------------------------
 -- nps_render_log
 ------------------------------
