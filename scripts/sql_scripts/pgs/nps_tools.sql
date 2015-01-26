@@ -293,97 +293,89 @@ $BODY$
   INSERT INTO nps_change_log (
     SELECT
       v_id AS "osm_id",
-      "nps_render_point"."version" AS "version",
+      MIN("nps_rendered"."version") AS "version",
       v_member_type AS "member_type",
-      "nps_render_point"."the_geom" AS "way",
-      "nps_render_point"."rendered" AS "created",
+      ST_UNION("nps_rendered"."the_geom") AS "way",
+      MIN("nps_rendered"."rendered") AS "created",
       NOW()::timestamp without time zone AS "change_time"
-    FROM
-       "nps_render_point"
+    FROM (
+       SELECT
+         "osm_id",
+         "version",
+         "the_geom",
+         "rendered"
+       FROM
+         "nps_render_point"
+       UNION ALL
+       SELECT
+         "osm_id",
+         "version",
+         "the_geom",
+         "rendered"
+       FROM
+         "nps_render_polygon"
+       UNION ALL
+       SELECT
+         "osm_id",
+         "version",
+         "the_geom",
+         "rendered"
+       FROM
+         "nps_render_line") AS "nps_rendered"
     WHERE
       "osm_id" = v_id
   );
-  INSERT INTO nps_change_log (
-    SELECT
-      v_id AS "osm_id",
-      "nps_render_polygon"."version" AS "version",
-      v_member_type AS "member_type",
-      "nps_render_polygon"."the_geom" AS "way",
-      "nps_render_polygon"."rendered" AS "created",
-      NOW()::timestamp without time zone AS "change_time"
-    FROM
-       "nps_render_polygon"
-    WHERE
-      "osm_id" = v_id
-  );
-  INSERT INTO nps_change_log (
-    SELECT
-      v_id AS "osm_id",
-      "nps_render_line"."version" AS "version",
-      v_member_type AS "member_type",
-      "nps_render_line"."the_geom" AS "way",
-      "nps_render_line"."rendered" AS "created",
-      NOW()::timestamp without time zone AS "change_time"
-    FROM
-       "nps_render_line"
-    WHERE
-      "osm_id" = v_id
-  );
-  
-  -- Update this object in the nps rendered tables
-    IF v_member_type = 'N' THEN
 
-      DELETE FROM nps_render_point WHERE osm_id = v_id;
-      INSERT INTO nps_render_point (
-        SELECT
-          "osm_id" AS "osm_id",
-          "version" AS "version",
-          "name" AS "name",
-          "nps_fcat" AS "type",
-          "tags" AS "tags",
-          "created" AS "rendered",
-          "way" AS "the_geom",
-          "z_order" AS "z_order",
-          "unit_code" AS "unit_code"
-        FROM nps_planet_osm_point_view
-        WHERE osm_id = v_id
-      );
-    ELSE
+    DELETE FROM "nps_render_point" WHERE osm_id = v_id;
+    INSERT INTO "nps_render_point" (
+      SELECT
+        "osm_id" AS "osm_id",
+        "version" AS "version",
+        "name" AS "name",
+        "fcat" AS "type",
+        "nps_fcat" AS "nps_type",
+        "tags" AS "tags",
+        "created" AS "rendered",
+        "way" AS "the_geom",
+        "z_order" AS "z_order",
+        "unit_code" AS "unit_code"
+      FROM "nps_planet_osm_point_view"
+      WHERE "osm_id" = v_id
+    );
 
-      DELETE FROM nps_render_polygon WHERE osm_id = v_id;
-      INSERT INTO nps_render_polygon (
-        SELECT
-          "osm_id" AS "osm_id",
-          "version" AS "version",
-          "name" AS "name",
-          "nps_fcat" AS "type",
-          "tags" AS "tags",
-          "created" AS "rendered",
-          "way" AS "the_geom",
-          "z_order" AS "z_order",
-          "unit_code" AS "unit_code"
-        FROM nps_planet_osm_polygon_view
-        WHERE osm_id = v_id
-      );
+    DELETE FROM "nps_render_polygon" WHERE "osm_id" = v_id;
+    INSERT INTO "nps_render_polygon" (
+      SELECT
+        "osm_id" AS "osm_id",
+        "version" AS "version",
+        "name" AS "name",
+        "fcat" AS "type",
+        "nps_fcat" AS "nps_type",
+        "tags" AS "tags",
+        "created" AS "rendered",
+        "way" AS "the_geom",
+        "z_order" AS "z_order",
+        "unit_code" AS "unit_code"
+      FROM "nps_planet_osm_polygon_view"
+      WHERE "osm_id" = v_id
+    );
 
-      DELETE FROM nps_render_line WHERE osm_id = v_id;
-      INSERT INTO nps_render_line (
-        SELECT
-          "osm_id" AS "osm_id",
-          "version" AS "version",
-          "name" AS "name",
-          "nps_fcat" AS "type",
-          "tags" AS "tags",
-          "created" AS "rendered",
-          "way" AS "the_geom",
-          "z_order" AS "z_order",
-          "unit_code" AS "unit_code"
-        FROM nps_planet_osm_line_view
-        WHERE osm_id = v_id
-      );
-      
-      -- TODO: Add code to render polygons and lines
-    END IF;
+    DELETE FROM "nps_render_line" WHERE osm_id = v_id;
+    INSERT INTO "nps_render_line" (
+      SELECT
+        "osm_id" AS "osm_id",
+        "version" AS "version",
+        "name" AS "name",
+        "fcat" AS "type",
+        "nps_fcat" AS "nps_type",
+        "tags" AS "tags",
+        "created" AS "rendered",
+        "way" AS "the_geom",
+        "z_order" AS "z_order",
+        "unit_code" AS "unit_code"
+      FROM "nps_planet_osm_line_view"
+      WHERE "osm_id" = v_id
+    );
 
   RETURN true;
   END;
