@@ -351,6 +351,211 @@ WHERE
   "fcat" IS NOT NULL;
 --------------------------------
 
+--------------------------------
+CREATE OR REPLACE VIEW public.nps_planet_osm_polygon_view AS 
+SELECT
+  "base"."osm_id",
+  "base"."version",
+  "base"."name",
+  "base"."fcat",
+  "base"."nps_fcat",
+  "base"."tags", 
+  "base"."created", 
+  "base"."way",
+  nps_node_o2p_calculate_zorder("base"."nps_fcat") AS "z_order",
+  COALESCE("base"."unit_code", (
+    -- If the unit_code is null, try to join it up
+    SELECT
+      LOWER("render_park_polys"."unit_code")
+    FROM
+      "render_park_polys"
+    WHERE
+      -- The projection for OSM is 900913, although we use 3857, and they are identical
+      -- PostGIS requires a 'transform' between these two SRIDs when doing a comparison
+      ST_Transform("base"."way", 3857) && "render_park_polys"."poly_geom" AND 
+      ST_Contains("render_park_polys"."poly_geom",ST_Transform("base"."way", 3857))
+    ORDER BY "render_park_polys"."minzoompoly", "render_park_polys"."area"
+    LIMIT 1
+  )) AS "unit_code"
+FROM (
+  SELECT
+    "ways"."id" AS "osm_id",
+    "ways"."version" AS "version",
+    "ways"."tags" -> 'name'::text AS "name",
+    o2p_get_name("ways"."tags", ARRAY['area'], true) AS "fcat",
+    o2p_get_name("ways"."tags", ARRAY['area'], false) AS "nps_fcat",
+    "ways"."tags" AS "tags",
+    NOW()::timestamp without time zone AS "created",
+    ST_MakePolygon(ST_Transform(o2p_calculate_nodes_to_line("ways"."nodes"), 900913)) AS way,
+    "ways"."tags" -> 'nps:unit_code'::text AS "unit_code"
+  FROM
+    "ways"
+  WHERE
+    ARRAY_LENGTH("ways"."nodes", 1) > 4 AND
+    NOT (EXISTS (
+      SELECT
+        1
+      FROM
+        relation_members JOIN relations 
+        ON "relation_members"."relation_id" = "relations"."id"
+      WHERE "relation_members"."member_id" = "ways"."id" AND
+        UPPER("relation_members"."member_type") = 'W'::bpchar AND
+          (
+            ("relations"."tags" -> 'type'::text) = 'multipolygon'::text OR
+            ("relations"."tags" -> 'type'::text) = 'boundary'::text OR
+            ("relations"."tags" -> 'type'::text) = 'route'::text
+          )
+    )) AND
+    (
+      SELECT
+        ARRAY_LENGTH(array_agg("key"),1)
+      FROM
+        UNNEST(AKEYS("ways"."tags")) "key"
+      WHERE
+        "key" NOT LIKE 'nps:%'
+    ) > 0 AND
+    ST_IsClosed(o2p_calculate_nodes_to_line("ways"."nodes"))
+  UNION ALL
+  SELECT
+    "rel_poly"."osm_id" AS "osm_id",
+    "rel_poly"."version" AS "version",
+    "rel_poly"."tags" -> 'name'::text AS "name",
+    o2p_get_name("rel_poly"."tags", ARRAY['area'], true) AS "fcat",
+    o2p_get_name("rel_poly"."tags", ARRAY['area'], false) AS "nps_fcat",
+    "rel_poly"."tags" AS "tags",
+    NOW()::timestamp without time zone AS "created",
+    rel_poly.way AS "way",
+    "rel_poly"."tags" -> 'nps:unit_code'::text AS "unit_code"
+  FROM (
+    SELECT
+      "relation_members"."relation_id" * (-1) AS "osm_id",
+      "relations"."version" AS "version",
+      "ways"."tags",
+      ST_Transform(UNNEST(o2p_aggregate_polygon_relation("relation_members"."relation_id")), 900913) AS "way"
+    FROM
+      "ways"
+        JOIN "relation_members" ON "ways"."id" = "relation_members"."member_id"
+        JOIN "relations" ON "relation_members"."relation_id" = "relations"."id"
+    WHERE
+      (
+        SELECT
+          ARRAY_LENGTH(ARRAY_AGG("key"),1)
+        FROM
+          UNNEST(AKEYS("ways"."tags")) "key"
+        WHERE
+          "key" NOT LIKE 'nps:%'
+      ) > 0 AND
+      ARRAY_LENGTH("ways"."nodes", 1) > 4 AND
+      ST_IsClosed(o2p_calculate_nodes_to_line(ways.nodes)) AND
+      exist(relations.tags, 'type'::text) AND
+      (
+        (relations.tags -> 'type'::text) = 'multipolygon'::text OR
+        (relations.tags -> 'type'::text) = 'boundary'::text OR
+        (relations.tags -> 'type'::text) = 'route'::text
+      )
+  ) rel_poly
+) "base"
+WHERE
+  "base"."fcat" IS NOT NULL;
+--------------------------------
+
+--------------------------------
+CREATE OR REPLACE VIEW public.nps_planet_osm_line_view AS 
+SELECT
+  "base"."osm_id",
+  "base"."version",
+  "base"."name",
+  "base"."fcat",
+  "base"."nps_fcat",
+  "base"."tags", 
+  "base"."created", 
+  "base"."way",
+  nps_node_o2p_calculate_zorder("base"."nps_fcat") AS "z_order",
+  COALESCE("base"."unit_code", (
+    -- If the unit_code is null, try to join it up
+    SELECT
+      LOWER("render_park_polys"."unit_code")
+    FROM
+      "render_park_polys"
+    WHERE
+      -- The projection for OSM is 900913, although we use 3857, and they are identical
+      -- PostGIS requires a 'transform' between these two SRIDs when doing a comparison
+      ST_Transform("base"."way", 3857) && "render_park_polys"."poly_geom" AND 
+      ST_Contains("render_park_polys"."poly_geom",ST_Transform("base"."way", 3857))
+    ORDER BY "render_park_polys"."minzoompoly", "render_park_polys"."area"
+    LIMIT 1
+  )) AS "unit_code"
+FROM (
+  SELECT
+    "ways"."id" AS "osm_id",
+    "ways"."version" AS "version",
+    "ways"."tags" -> 'name'::text AS "name",
+    o2p_get_name("ways"."tags", ARRAY['line'], true) AS "fcat",
+    o2p_get_name("ways"."tags", ARRAY['line'], false) AS "nps_fcat",
+    "ways"."tags" AS "tags",
+    NOW()::timestamp without time zone AS "created",
+    ST_Transform(o2p_calculate_nodes_to_line(ways.nodes), 900913) AS "way",
+    "ways"."tags" -> 'nps:unit_code'::text AS "unit_code"
+  FROM
+    "ways"
+  WHERE
+    NOT (EXISTS (
+      SELECT
+        1
+      FROM
+        relation_members JOIN relations 
+        ON "relation_members"."relation_id" = "relations"."id"
+      WHERE "relation_members"."member_id" = "ways"."id" AND
+        UPPER("relation_members"."member_type") = 'W'::bpchar AND
+        ("relations"."tags" -> 'type'::text) = 'route'::text
+    )) AND
+    (
+      SELECT
+        ARRAY_LENGTH(array_agg("key"),1)
+      FROM
+        UNNEST(AKEYS("ways"."tags")) "key"
+      WHERE
+        "key" NOT LIKE 'nps:%'
+    ) > 0
+  UNION ALL
+  SELECT
+    "rel_line"."osm_id" AS "osm_id",
+    "rel_line"."version" AS "version",
+    "rel_line"."tags" -> 'name'::text AS "name",
+    o2p_get_name("rel_line"."tags", ARRAY['line'], true) AS "fcat",
+    o2p_get_name("rel_line"."tags", ARRAY['line'], false) AS "nps_fcat",
+    "rel_line"."tags" AS "tags",
+    NOW()::timestamp without time zone AS "created",
+    rel_line.way AS "way",
+    "rel_line"."tags" -> 'nps:unit_code'::text AS "unit_code"
+  FROM (
+    SELECT
+      "relation_members"."relation_id" * (-1) AS "osm_id",
+      "relations"."version",
+      "ways"."tags",
+      ST_Transform(unnest(o2p_aggregate_line_relation("relation_members"."relation_id")), 900913) AS "way"
+      FROM
+        "ways"
+        JOIN "relation_members" ON "ways"."id" = "relation_members"."member_id"
+        JOIN "relations" ON "relation_members"."relation_id" = "relations"."id"
+      WHERE
+        (
+          SELECT
+            ARRAY_LENGTH(ARRAY_AGG("key"),1)
+          FROM
+            UNNEST(AKEYS("ways"."tags")) "key"
+          WHERE
+            "key" NOT LIKE 'nps:%'
+        ) > 0 AND
+        exist(relations.tags, 'type'::text)
+      ) rel_line
+) "base"
+WHERE
+  "base"."fcat" IS NOT NULL;
+--------------------------------
+
+----------------------------------------
+
 -- Function: public.nps_pgs_update_o2p(bigint, character)
 
 -- DROP FUNCTION public.nps_pgs_update_o2p(bigint, character);
