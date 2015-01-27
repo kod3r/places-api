@@ -1,13 +1,9 @@
 var bodyParser = require('body-parser'),
   errorList = require('./errorList'),
+  errorLogger = require('./errorLogger'),
   osmGeojson = require('osm-and-geojson'),
   zlib = require('zlib'),
   xmlJs = require('xmljs_trans_js'),
-  logError = function(err) {
-    // console.log('###############');
-    // console.log(err);
-    // console.log('###############');
-  },
   fns = {
     results: function(config) {
       var modifiedResults = function(req, res, next) {
@@ -136,7 +132,7 @@ var bodyParser = require('body-parser'),
                   params: params
                 }
               };
-              logError(error);
+              errorLogger.error(error);
             } else {
               try {
                 buildResponse(inData, format, params, config, function(response) {
@@ -160,7 +156,7 @@ var bodyParser = require('body-parser'),
               } catch (e) {
                 e.message = 'Formatting Error: ' + e.message;
                 e.statusCode = 500;
-                logError(e);
+                errorLogger.error(e);
                 fns.reportError(config)(e, req, res);
               }
             }
@@ -206,11 +202,11 @@ var bodyParser = require('body-parser'),
               } catch (e) {
                 e.message = 'Formatting Error: ' + e.message;
                 e.statusCode = 500;
-                logError(e);
+                errorLogger.error(e);
                 fns.reportError(config)(e, req, res, next);
               }
             }
-            logError(error);
+            errorLogger.error(error);
           }
         };
       };
@@ -218,6 +214,7 @@ var bodyParser = require('body-parser'),
     },
     newResult: function(auth, config, callback) {
       return function(req, res, next) {
+        errorLogger.debug(req.path, req.query);
         var newRes = {},
           modifiedResults = fns.results(config)(req, res, next);
         newRes.modified = true;

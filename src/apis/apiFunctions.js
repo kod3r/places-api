@@ -3,6 +3,7 @@
 var Q = require('q'),
   xmlJs = require('xmljs_trans_js'),
   queries = require('./sql/apiSql');
+  var errorLogger = require('../errorLogger');
 
 exports = module.exports = {
   respond: function(res, dbResult) {
@@ -57,6 +58,7 @@ exports = module.exports = {
     req.on('end', function() {
       if (!calledback) {
         callback(null, xmlJs.jsonify(xmlData));
+        errorLogger.debug(xmlData);
         calledback = true;
       }
     });

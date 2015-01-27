@@ -28,6 +28,7 @@
     "osm-and-geojson": "git+https://github.com/nationalparkservice/osm-and-geojson.git#gh-pages",
     "pg": "4.2.0",
     "q": "1.1.2",
+    "winston": "0.8.3",
     "xmljs_trans_js": "git+https://github.com/nationalparkservice/xmljs_trans_js.git#master"
   }
 }
