@@ -102,6 +102,9 @@ exports = module.exports = {
             change.lat = -1;
           }
 
+          // If deleting a way, it basically just creates an empty way and doesn't send us a way, so let's assume all ways are empty ways unless otherwise specified.
+          change.nd = change.nd || '[]';
+
           queryList = {
             'changeset': 'SELECT upsert_changeset(\'{{id}}\', \'{{user_id}}\', \'{{tag}}\') AS changeset',
             'node': 'SELECT to_json(upsert_node(\'{{id}}\', \'{{lat}}\', \'{{lon}}\', \'{{changeset}}\', \'{{visible}}\', \'{{tag}}\')) AS node',
