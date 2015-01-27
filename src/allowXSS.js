@@ -1,6 +1,6 @@
 var methodOverride = require('method-override');
 
-exports = module.exports = function(app) {
+module.exports = function(app) {
   // Allow Cross Site Requests
   var allowCrossDomain = function(req, res, next) {
     var methods = 'GET,PUT,POST,DELETE,OPTIONS';

@@ -1,9 +1,8 @@
 var pg = require('pg'),
-  Q = require('q'),
-  config = require('../config');
+  Q = require('q');
 
-exports = module.exports = function(dbtype) {
-  if (!dbtype || !config.database[dbtype]) {
+module.exports = function(dbtype, config) {
+  if (!dbtype || !config || !config.database || !config.database[dbtype]) {
     // console.log('--dbtype error--', dbtype);
     throw 'invalid database type';
   }
@@ -66,20 +65,21 @@ exports = module.exports = function(dbtype) {
         // console.log('Params', params);
         client.query(query, params, function(err, results) {
           if (err) {
-            console.log('finished ' + type + ' with error after: ' + (new Date() - startTime) + 'ms');
-            console.log('error: ', err);
-            console.log('params: ', params);
+            // console.log('finished ' + type + ' with error after: ' + (new Date() - startTime) + 'ms');
+            // console.log('error: ', err);
+            // console.log('params: ', params);
             queryResult.error = {
               'code': '404'
             };
             queryResult.details = err;
             queryResult.details.query = query;
             queryResult.details.paramArray = params;
+            deferred.reject(queryResult);
           } else {
             // console.log('finished ' + type + ' after: ' + (new Date() - startTime) + 'ms');
             queryResult.data = databaseTools.parse(results, type);
+            deferred.resolve(queryResult);
           }
-          deferred.resolve(queryResult);
         });
         return deferred.promise;
       },
@@ -131,7 +131,9 @@ exports = module.exports = function(dbtype) {
               requestList.push(databaseTools.runIndividualQuery(paramQuery.query, paramQuery.queryParams, client, paramQuery.type));
             });
 
-            Q.all(requestList).done(function(newResult) {
+            Q.all(requestList).catch(function(e) {
+                callback(res, e);
+            }).then(function(newResult) {
               done();
               if (callback) {
                 callback(res, databaseTools.processResponse(newResult));
@@ -180,7 +182,8 @@ exports = module.exports = function(dbtype) {
         }
       },
       parse: function(results, type) {
-        var returnValue = {}, returnRow;
+        var returnValue = {},
+          returnRow;
         returnValue[type] = [];
 
         results.rows.map(function(row) {

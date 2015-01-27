@@ -230,3 +230,190 @@ $BODY$
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
+
+-- Function: api_update_changeset(integer)
+-- DROP FUNCTION api_update_changeset(integer);
+CREATE OR REPLACE FUNCTION api_update_changeset(integer)
+  RETURNS boolean AS
+$BODY$
+  DECLARE
+    v_changeset ALIAS FOR $1;
+    v_res boolean;
+    v_row record;
+    v_refs json;
+    BEGIN
+
+    -- NODE
+    FOR v_row IN SELECT id, lat*10000000 as lat, lon*10000000 as lon, changeset, visible, timestamp, tag, version, "uid" FROM api_current_nodes WHERE changeset = v_changeset LOOP
+      SELECT res FROM nps_dblink_pgs('select * from pgs_upsert_node(' || quote_literal(v_row.id) || ', ' || quote_literal(v_row.lat) || ', ' || quote_literal(v_row.lon) || ', ' || quote_literal(v_row.changeset) || ', ' || quote_literal(v_row.visible) || ', ' || quote_literal(v_row.timestamp) || ', ' || quote_literal(v_row.tag) || ', ' || quote_literal(v_row.version) || ', ' || quote_literal(v_row.uid) || ')') as res into v_res; 
+    END LOOP;  
+
+    -- WAY
+    FOR v_row IN SELECT id, changeset, visible, timestamp, nd as nodes, tag as tags, version, uid as user_id FROM api_current_ways WHERE changeset = v_changeset LOOP
+      SELECT
+        to_json(array_agg(way_nodes))
+      FROM (
+        SELECT
+          node_id,
+          way_id,
+          sequence_id
+        FROM
+          current_way_nodes
+        WHERE
+          way_id = v_row.id AND
+          node_id IN (
+            SELECT ((json_array_elements(v_row.nodes))->'ref')::text::bigint)
+          ) way_nodes INTO v_refs;
+
+      SELECT res FROM nps_dblink_pgs('select * from pgs_upsert_way(' || quote_literal(v_row.id) || ', ' || quote_literal(v_row.changeset) || ', ' || quote_literal(v_row.visible) || ', ' || quote_literal(v_row.timestamp) || ', ' || quote_literal(v_refs) || ', ' || quote_literal(v_row.tags) || ', ' || quote_literal(v_row.version) || ', ' || quote_literal(v_row.user_id) || ')') as res into v_res;
+    END LOOP; 
+  
+    -- RELATION
+    FOR v_row IN SELECT id, changeset, visible, member as members, tag as tags, timestamp, version, uid as user_id FROM api_current_relations WHERE changeset = v_changeset LOOP
+      SELECT
+          to_json(array_agg(current_relations))
+        FROM (
+          SELECT
+            relation_id,
+            member_id,
+            member_type,
+            member_role,
+            row_number() OVER ()-1 as sequence_id FROM (
+          SELECT
+            v_row.id as relation_id,
+            ((json_array_elements(v_row.members))->>'ref')::text::bigint as member_id,
+            ((json_array_elements(v_row.members))->>'type') as member_type,
+            ((json_array_elements(v_row.members))->>'role') as member_role
+        ) rels ) current_relations INTO v_refs;
+      SELECT res FROM nps_dblink_pgs('select * from pgs_upsert_relation(' || quote_literal(v_row.id) || ', ' || quote_literal(v_row.changeset) || ', ' || quote_literal(v_row.visible) || ', ' || quote_literal(v_refs) || ', ' || quote_literal(v_row.tags) || ', ' || quote_literal(v_row.timestamp) || ', '  || quote_literal(v_row.version) || ', ' || quote_literal(v_row.user_id) || ')') as res into v_res;
+    END LOOP; 
+
+    RETURN v_res;
+  END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION api_update_changeset(integer)
+  OWNER TO postgres;
+  
+-- Function: api_revert_changeset(integer)
+-- DROP FUNCTION api_revert_changeset(integer);
+CREATE OR REPLACE FUNCTION api_revert_changeset(integer)
+  RETURNS boolean AS
+$BODY$
+  DECLARE
+    v_changeset ALIAS FOR $1;
+    v_nodes bigint[];
+    v_ways bigint[];
+    v_relations bigint[];
+    v_res boolean;
+    v_row record;
+    v_refs json;
+    BEGIN
+    -- Get the values before we delete them
+    SELECT ARRAY_AGG(node_id) from nodes where changeset_id = v_changeset into v_nodes;
+    SELECT ARRAY_AGG(way_id) from ways where changeset_id = v_changeset into v_ways;
+    SELECT ARRAY_AGG(relation_id) from relations where changeset_id = v_changeset into v_relations;
+
+    -- Delete all entries for this changeset
+DELETE 
+FROM node_tags  
+     USING nodes 
+WHERE node_tags.node_id = nodes.node_id AND
+      node_tags.version = nodes.version AND     
+      nodes.changeset_id = v_changeset;
+      
+DELETE 
+FROM way_tags  
+     USING ways 
+WHERE way_tags.way_id = ways.way_id AND
+      way_tags.version = ways.version AND     
+      ways.changeset_id = v_changeset;
+
+DELETE 
+FROM way_nodes  
+     USING ways 
+WHERE way_nodes.way_id = ways.way_id AND
+      way_nodes.version = ways.version AND     
+      ways.changeset_id = v_changeset;
+
+DELETE 
+FROM relation_tags  
+     USING relations 
+WHERE relation_tags.relation_id = relations.relation_id AND
+      relation_tags.version = relations.version AND     
+      relations.changeset_id = v_changeset;
+
+DELETE 
+FROM relation_members  
+     USING relations 
+WHERE relation_members.relation_id = relations.relation_id AND
+      relation_members.version = relations.version AND     
+      relations.changeset_id = v_changeset;
+      
+    DELETE from nodes where changeset_id = v_changeset;
+    DELETE from ways where changeset_id = v_changeset;
+    DELETE from relations where changeset_id = v_changeset;
+    
+    DELETE from changeset_tags where changeset_id = v_changeset;
+    DELETE from changesets where id = v_changeset;
+
+    -- Update the entries
+    -- NODE
+    FOR v_row IN
+      SELECT empty_nodes.id, lat*10000000 as lat, lon*10000000 as lon, changeset, coalesce(visible, false) as visible, timestamp, tag, version, "uid" FROM
+        api_current_nodes RIGHT JOIN (SELECT unnest(v_nodes) as id) empty_nodes ON empty_nodes.id = api_current_nodes.id LOOP
+        SELECT res FROM nps_dblink_pgs('select * from pgs_upsert_node(' || quote_nullable(v_row.id) || ', ' || quote_nullable(v_row.lat) || ', ' || quote_nullable(v_row.lon) || ', ' || quote_nullable(v_row.changeset) || ', ' || quote_nullable(v_row.visible) || ', ' || quote_nullable(v_row.timestamp) || ', ' || quote_nullable(v_row.tag) || ', ' || quote_nullable(v_row.version) || ', ' || quote_nullable(v_row.uid) || ')') as res into v_res; 
+    END LOOP;  
+
+    -- WAY
+    FOR v_row IN
+      SELECT empty_ways.id, changeset, coalesce(visible, false) as visible, timestamp, nd as nodes, tag as tags, version, uid as user_id FROM
+        api_current_ways RIGHT JOIN (SELECT unnest(v_ways) as id) empty_ways ON  empty_ways.id = api_current_ways.id LOOP
+      SELECT
+        to_json(array_agg(way_nodes))
+      FROM (
+        SELECT
+          node_id,
+          way_id,
+          sequence_id
+        FROM
+          current_way_nodes
+        WHERE
+          way_id = v_row.id AND
+          node_id IN (
+            SELECT ((json_array_elements(v_row.nodes))->'ref')::text::bigint)
+          ) way_nodes INTO v_refs;
+
+      SELECT res FROM nps_dblink_pgs('select * from pgs_upsert_way(' || quote_nullable(v_row.id) || ', ' || quote_nullable(v_row.changeset) || ', ' || quote_nullable(v_row.visible) || ', ' || quote_nullable(v_row.timestamp) || ', ' || quote_nullable(v_refs) || ', ' || quote_nullable(v_row.tags) || ', ' || quote_nullable(v_row.version) || ', ' || quote_nullable(v_row.user_id) || ')') as res into v_res;
+    END LOOP; 
+  
+    -- RELATION
+    FOR v_row IN
+      SELECT empty_relations.id, changeset, coalesce(visible, false) as visible, member as members, tag as tags, timestamp, version, uid as user_id FROM
+        api_current_relations RIGHT JOIN (SELECT unnest(v_relations) as id) empty_relations ON  empty_relations.id = api_current_relations.id LOOP
+      SELECT
+          to_json(array_agg(current_relations))
+        FROM (
+          SELECT
+            relation_id,
+            member_id,
+            member_type,
+            member_role,
+            row_number() OVER ()-1 as sequence_id FROM (
+          SELECT
+            v_row.id as relation_id,
+            ((json_array_elements(v_row.members))->>'ref')::text::bigint as member_id,
+            ((json_array_elements(v_row.members))->>'type') as member_type,
+            ((json_array_elements(v_row.members))->>'role') as member_role
+        ) rels ) current_relations INTO v_refs;
+      SELECT res FROM nps_dblink_pgs('select * from pgs_upsert_relation(' || quote_nullable(v_row.id) || ', ' || quote_nullable(v_row.changeset) || ', ' || quote_nullable(v_row.visible) || ', ' || quote_nullable(v_refs) || ', ' || quote_nullable(v_row.tags) || ', ' || quote_nullable(v_row.timestamp) || ', '  || quote_nullable(v_row.version) || ', ' || quote_nullable(v_row.user_id) || ')') as res into v_res;
+    END LOOP; 
+
+    RETURN v_res;
+  END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION api_revert_changeset(integer)
+  OWNER TO postgres;
