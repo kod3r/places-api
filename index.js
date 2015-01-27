@@ -47,11 +47,6 @@ module.exports = function(config) {
         router[(oauthCall.method).toLowerCase()](oauthCall.path, bodyParser.json(), oauthCall.process);
       });
 
-      router.use(function(err, res) {
-        res.set('Content-Type', 'text/html');
-        res.status(500).send(JSON.stringify(err, null, 2));
-      });
-
       return router;
     }
   };
