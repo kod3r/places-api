@@ -2,7 +2,6 @@
 
 places-api is an implementation of the [OpenStreetMap API](http://wiki.openstreetmap.org/wiki/API_v0.6) written in [node.js](http://nodejs.org/) as middleware for the [express.js](http://expressjs.com/) web application framework.
 
-<<<<<<< HEAD
 ##API Installation
 
 The places-api acts as middleware for [express.js](https://github.com/strongloop/express), and cannot run on its own.
