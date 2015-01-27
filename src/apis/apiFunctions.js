@@ -280,18 +280,20 @@ exports = module.exports = {
   queryMultipleElements: function(req, res, type, database) {
     //http://wiki.openstreetmap.org/wiki/API_v0.6#Multi_fetch:_GET_.2Fapi.2F0.6.2F.5Btypes.7Cways.7Crelations.5D.3F.23parameters
     var types = type + 's',
-      typeList, query;
+      typeList, query, params = {};
     if (req.query[types] && !isNaN(req.query[types].replace(/,/g, ''))) {
       typeList = req.query[types].split(',');
       query = queries.select.current[types].concat('WHERE');
       typeList.map(function(typeId, typeIndex) {
         if (typeId && !isNaN(typeId)) {
+          params[type + typeIndex] = typeId;
           query.push('api_current_' + types + '.id = \'{{' + type + typeIndex + '}}\'');
           query.push('OR');
         }
       });
       query.pop();
       query = query.join('\n');
+      query = database().addParams(query, type, params);
       database(req, res).query(query, type, exports.respond);
     } else {
       exports.respond(res, {
