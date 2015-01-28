@@ -1,5 +1,5 @@
 var Bluebird = require('bluebird'),
-  errorLogger = require('errorLogger'),
+  errorLogger = require('./errorLogger'),
   pg = require('pg');
 
 module.exports = function(dbtype, config) {
