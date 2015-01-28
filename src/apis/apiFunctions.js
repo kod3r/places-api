@@ -1,6 +1,6 @@
 /* jshint camelcase: false */
 
-var Q = require('q'),
+var Bluebird = require('bluebird'),
   xmlJs = require('xmljs_trans_js'),
   queries = require('./sql/apiSql');
   var errorLogger = require('../errorLogger');
@@ -89,8 +89,8 @@ exports = module.exports = {
         functionList = [],
         returnData = {},
         runCommand = function(type, change) {
-          var deferred = Q.defer(),
-            queryList, query;
+          return new Bluebird(function(resolve, reject) {
+            var queryList, query;
 
           change.tag = exports.valToArray(change.tag);
           if (change.lon) {
@@ -125,16 +125,15 @@ exports = module.exports = {
                 queryRes.data[type].map(function(record) {
                   returnData[type].push(record[type]);
                 });
-                deferred.resolve(queryRes);
+                resolve(queryRes);
               } else {
                 queryRes.params = change;
-                deferred.reject(queryRes);
+                reject(queryRes);
               }
             });
           } else {
-            deferred.reject('Invalid Type');
-          }
-          return deferred.promise;
+            reject('Invalid Type');
+          }});
         },
         processRequests = function(type) {
           var action, changeIndex, change;
@@ -150,7 +149,7 @@ exports = module.exports = {
               }
             }
           }
-          return Q.all(functionList);
+          return Bluebird.all(functionList);
         },
         reassignNodes = function(type, changeset, referenceData) {
           //// TODO: Move this out of the function if we want
@@ -231,13 +230,13 @@ exports = module.exports = {
                     callback({
                       'data': returnData
                     });
-                  }, function(e) {
+                  }).catch(function(e) {
                     rejectFunction(e, callback);
                   });
-              }, function(e) {
+              }).catch(function(e) {
                 rejectFunction(e, callback);
               });
-          }, function(e) {
+          }).catch(function(e) {
             rejectFunction(e, callback);
           });
 

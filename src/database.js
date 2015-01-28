@@ -1,5 +1,5 @@
 var pg = require('pg'),
-  Q = require('q');
+  Bluebird = require('bluebird');
 
 module.exports = function(dbtype, config) {
   if (!dbtype || !config || !config.database || !config.database[dbtype]) {
@@ -57,31 +57,31 @@ module.exports = function(dbtype, config) {
         };
       },
       runIndividualQuery: function(query, params, client, type) {
-        var deferred = Q.defer(),
-          startTime = new Date(),
-          queryResult = {};
-        // console.log('Starting ' + type);
-        // console.log('Query', query);
-        // console.log('Params', params);
-        client.query(query, params, function(err, results) {
-          if (err) {
-            // console.log('finished ' + type + ' with error after: ' + (new Date() - startTime) + 'ms');
-            // console.log('error: ', err);
-            // console.log('params: ', params);
-            queryResult.error = {
-              'code': '404'
-            };
-            queryResult.details = err;
-            queryResult.details.query = query;
-            queryResult.details.paramArray = params;
-            deferred.reject(queryResult);
-          } else {
-            // console.log('finished ' + type + ' after: ' + (new Date() - startTime) + 'ms');
-            queryResult.data = databaseTools.parse(results, type);
-            deferred.resolve(queryResult);
-          }
+        return new Bluebird(function(resolve, reject) {
+          var queryResult = {};
+          // var startTime = new Date();
+          // console.log('Starting ' + type);
+          // console.log('Query', query);
+          // console.log('Params', params);
+          client.query(query, params, function(err, results) {
+            if (err) {
+              // console.log('finished ' + type + ' with error after: ' + (new Date() - startTime) + 'ms');
+              // console.log('error: ', err);
+              // console.log('params: ', params);
+              queryResult.error = {
+                'code': '404'
+              };
+              queryResult.details = err;
+              queryResult.details.query = query;
+              queryResult.details.paramArray = params;
+              reject(queryResult);
+            } else {
+              // console.log('finished ' + type + ' after: ' + (new Date() - startTime) + 'ms');
+              queryResult.data = databaseTools.parse(results, type);
+              resolve(queryResult);
+            }
+          });
         });
-        return deferred.promise;
       },
       processResponse: function(dbResult) {
         var response = {};
@@ -131,13 +131,13 @@ module.exports = function(dbtype, config) {
               requestList.push(databaseTools.runIndividualQuery(paramQuery.query, paramQuery.queryParams, client, paramQuery.type));
             });
 
-            Q.all(requestList).catch(function(e) {
-                callback(res, e);
-            }).then(function(newResult) {
+            Bluebird.all(requestList).then(function(newResult) {
               done();
               if (callback) {
                 callback(res, databaseTools.processResponse(newResult));
               }
+            }).catch(function(e) {
+              callback(res, e);
             });
           }
 
