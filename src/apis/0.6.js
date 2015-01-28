@@ -576,7 +576,7 @@ module.exports = function(config) {
             'josm_settings': josm
           });
         } else {
-          console.log(data, data.data.josm_settings);
+          // console.log(data, data.data.josm_settings);
           res.send({
             'Error': 'No OAuth exists for current user (' + req.params.uid + ')'
           });
