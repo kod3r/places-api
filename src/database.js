@@ -1,9 +1,10 @@
-var pg = require('pg'),
-  Bluebird = require('bluebird');
+var Bluebird = require('bluebird'),
+  errorLogger = require('errorLogger'),
+  pg = require('pg');
 
 module.exports = function(dbtype, config) {
   if (!dbtype || !config || !config.database || !config.database[dbtype]) {
-    // console.log('--dbtype error--', dbtype);
+    errorLogger.debug('--dbtype error--', dbtype);
     throw 'invalid database type';
   }
   return function(req, res) {
@@ -49,7 +50,7 @@ module.exports = function(dbtype, config) {
         }
 
         newQuery = newQuery.replace(re('&type&'), type);
-        //console.log(newQuery);
+        errorLogger.debug(newQuery);
         return {
           'query': newQuery,
           'queryParams': paramArray,
@@ -59,15 +60,15 @@ module.exports = function(dbtype, config) {
       runIndividualQuery: function(query, params, client, type) {
         return new Bluebird(function(resolve, reject) {
           var queryResult = {};
-          // var startTime = new Date();
-          // console.log('Starting ' + type);
-          // console.log('Query', query);
-          // console.log('Params', params);
+          var startTime = new Date();
+          errorLogger.debug('Starting ' + type);
+          errorLogger.debug('Query', query);
+          errorLogger.debug('Params', params);
           client.query(query, params, function(err, results) {
             if (err) {
-              // console.log('finished ' + type + ' with error after: ' + (new Date() - startTime) + 'ms');
-              // console.log('error: ', err);
-              // console.log('params: ', params);
+              errorLogger.debug('finished ' + type + ' with error after: ' + (new Date() - startTime) + 'ms');
+              errorLogger.debug('error: ', err);
+              errorLogger.debug('params: ', params);
               queryResult.error = {
                 'code': '404'
               };
@@ -76,7 +77,7 @@ module.exports = function(dbtype, config) {
               queryResult.details.paramArray = params;
               reject(queryResult);
             } else {
-              // console.log('finished ' + type + ' after: ' + (new Date() - startTime) + 'ms');
+              errorLogger.debug('finished ' + type + ' after: ' + (new Date() - startTime) + 'ms');
               queryResult.data = databaseTools.parse(results, type);
               resolve(queryResult);
             }
