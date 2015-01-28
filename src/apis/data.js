@@ -122,7 +122,6 @@ module.exports = function(config) {
       queryArray.push('TRUE');
       queryArray.push(') nodes_in_query on pgs_current_nodes.id = nodes_in_query.node_id');
       var query = queryArray.join(' ');
-      // console.log(query);
 
       if (true) { //TODO: eliminate invalid queries
         database(req, res).query(query, 'point', function(expressRes, dbResult) {
