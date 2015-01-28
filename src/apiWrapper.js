@@ -248,9 +248,7 @@ var bodyParser = require('body-parser'),
     reportError: function(config) {
       return function(err, req, res) {
         if (!res.headersSent) {
-          // console.log('$$$$$$$$$$$$$$$$$$$');
-          // console.log('e', err);
-          // console.log('$$$$$$$$$$$$$$$$$$$');
+          errorLogger.debug('apiWrapper.reportError', err);
           req.query = req.query || {};
           fns.newResult(null, config, function(newReq, newRes) {
             newRes.status({
