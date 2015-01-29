@@ -210,9 +210,9 @@ INTO
 END;
 $json_to_hstore$
 LANGUAGE plpgsql;
-  
---
---
+------------------------
+
+------------------------
 CREATE OR REPLACE FUNCTION public.o2p_get_name(
   hstore,
   text[],
@@ -249,6 +249,7 @@ IF v_tag_count > 0 THEN
       max("hstore_len") AS "hstore_len",
       count(*) AS "match_count",
       max("matchscore") as "matchscore",
+      "available_tags",
       bool_and("searchable") as "searchable"
     FROM (
       SELECT
@@ -299,14 +300,17 @@ IF v_tag_count > 0 THEN
     WHERE
       "available_tags" = "input_tags"  OR
       (hstore(available_tags)->'value' = '*' AND hstore(available_tags)->'key' = hstore(input_tags)->'key')
-    GROUP BY "name"
+    GROUP BY
+      "name",
+      "available_tags"
     ) "counted_tags"
   WHERE
     "hstore_len" = "match_count"
   ORDER BY
     "match_count" DESC,
     "searchable" DESC,
-    "matchscore" DESC
+    "matchscore" DESC,
+    (hstore("available_tags")) ->'value' = '*'
   LIMIT
     1
   INTO
@@ -321,7 +325,6 @@ $o2p_get_name$
 LANGUAGE plpgsql;
 --------------------------------
 
---------------------------------
 
 --------------------------------
 CREATE OR REPLACE VIEW public.nps_planet_osm_point_view AS 
