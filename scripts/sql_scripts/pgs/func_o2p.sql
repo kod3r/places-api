@@ -16,7 +16,7 @@ BEGIN
 SELECT
   geom as route
 FROM
-  o2p_aggregate_relation(2301099)
+  o2p_aggregate_relation(v_rel_id)
   INTO
     v_way;
 
