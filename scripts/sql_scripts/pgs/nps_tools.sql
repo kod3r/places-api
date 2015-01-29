@@ -456,7 +456,7 @@ FROM (
       "relation_members"."relation_id" * (-1) AS "osm_id",
       "relations"."version" AS "version",
       "relations"."tags",
-      ST_Transform(UNNEST(o2p_aggregate_polygon_relation("relation_members"."relation_id")), 900913) AS "way"
+      ST_Transform(ST_Union(o2p_aggregate_polygon_relation("relation_members"."relation_id")), 900913) AS "way"
     FROM
       "ways"
         JOIN "relation_members" ON "ways"."id" = "relation_members"."member_id"
