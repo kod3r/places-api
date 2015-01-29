@@ -466,7 +466,7 @@ FROM (
         SELECT
           ARRAY_LENGTH(ARRAY_AGG("key"),1)
         FROM
-          UNNEST(AKEYS("ways"."tags")) "key"
+          UNNEST(AKEYS("relations"."tags")) "key"
         WHERE
           "key" NOT LIKE 'nps:%'
       ) > 0 AND
@@ -568,7 +568,7 @@ FROM (
           SELECT
             ARRAY_LENGTH(ARRAY_AGG("key"),1)
           FROM
-            UNNEST(AKEYS("ways"."tags")) "key"
+            UNNEST(AKEYS("relations"."tags")) "key"
           WHERE
             "key" NOT LIKE 'nps:%'
         ) > 0 AND
