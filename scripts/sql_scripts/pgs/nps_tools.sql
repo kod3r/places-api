@@ -455,7 +455,7 @@ FROM (
     SELECT
       "relation_members"."relation_id" * (-1) AS "osm_id",
       "relations"."version" AS "version",
-      "ways"."tags",
+      "relations"."tags",
       ST_Transform(UNNEST(o2p_aggregate_polygon_relation("relation_members"."relation_id")), 900913) AS "way"
     FROM
       "ways"
@@ -478,6 +478,10 @@ FROM (
         (relations.tags -> 'type'::text) = 'boundary'::text OR
         (relations.tags -> 'type'::text) = 'route'::text
       )
+      GROUP BY
+        "relation_members"."relation_id",
+        "relations"."version",
+        "relations"."tags"
   ) rel_poly
 ) "base"
 WHERE
@@ -557,7 +561,7 @@ FROM (
     SELECT
       "relation_members"."relation_id" * (-1) AS "osm_id",
       "relations"."version",
-      "ways"."tags",
+      "relations"."tags",
       ST_Transform(unnest(o2p_aggregate_line_relation("relation_members"."relation_id")), 900913) AS "way"
       FROM
         "ways"
@@ -573,6 +577,10 @@ FROM (
             "key" NOT LIKE 'nps:%'
         ) > 0 AND
         exist(relations.tags, 'type'::text)
+        GROUP BY
+          "relation_members"."relation_id",
+          "relations"."version",
+          "relations"."tags"
       ) rel_line
 ) "base"
 WHERE
