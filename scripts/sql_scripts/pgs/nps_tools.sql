@@ -152,6 +152,39 @@ CREATE OR REPLACE VIEW nps_tilemill_point_view AS
      LEFT JOIN render_park_polys ON lower(nps_render_point.unit_code) = lower(render_park_polys.unit_code::text);
 -----------------------------------------------------------------------
 
+-----------------------------------------------------------------------
+CREATE OR REPLACE VIEW public.nps_cartodb_polygon_view AS
+SELECT
+  "nps_render_polygon"."osm_id" AS "cartodb_id",
+  "nps_render_polygon"."version" AS "version",
+  "nps_render_polygon"."tags" -> 'name'::text AS "name",
+  "nps_render_polygon"."tags" -> 'nps:places_id'::text AS "places_id",
+  "nps_render_polygon"."unit_code" AS "unit_code",
+  "nps_render_polygon"."nps_type" AS "type",
+  "nps_render_polygon"."tags"::json::text AS tags,
+  "nps_render_polygon"."the_geom" AS the_geom
+FROM "nps_render_polygon";;
+COMMENT ON VIEW public.nps_cartodb_polygon_view
+  IS 'This view is designed to transform our internal nps_render_polygon table into the table we maintain in cartodb.';
+  
+---------------------------------
+
+-----------------------------------------------------------------------
+CREATE OR REPLACE VIEW public.nps_cartodb_line_view AS
+SELECT
+  "nps_render_line"."osm_id" AS "cartodb_id",
+  "nps_render_line"."version" AS "version",
+  "nps_render_line"."tags" -> 'name'::text AS "name",
+  "nps_render_line"."tags" -> 'nps:places_id'::text AS "places_id",
+  "nps_render_line"."unit_code" AS "unit_code",
+  "nps_render_line"."nps_type" AS "type",
+  "nps_render_line"."tags"::json::text AS tags,
+  "nps_render_line"."the_geom" AS the_geom
+FROM "nps_render_line";;
+COMMENT ON VIEW public.nps_cartodb_line_view
+  IS 'This view is designed to transform our internal nps_render_line table into the table we maintain in cartodb.';
+  
+---------------------------------
 
 CREATE OR REPLACE FUNCTION public.nps_node_o2p_calculate_zorder(text)
   RETURNS integer AS
