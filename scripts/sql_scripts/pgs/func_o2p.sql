@@ -198,7 +198,7 @@ FROM (
                 ways ON ways.id = relation_members.member_id
               WHERE
                 relation_id = v_rel_id AND -- relation: 2301099 is rt 13 (for testing)
-                member_type = 'W'
+                UPPER(member_type) = 'W'
               ORDER BY
                 sequence_id
           ) way_rels
