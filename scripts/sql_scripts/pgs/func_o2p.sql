@@ -42,7 +42,7 @@ DECLARE
 BEGIN
 
 SELECT
-  array_agg(polygon) polygons
+  array_agg(ST_MakeValid(polygon)) polygons
 FROM (
   SELECT
     ST_ForceRHR(CASE
