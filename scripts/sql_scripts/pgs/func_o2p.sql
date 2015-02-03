@@ -55,7 +55,7 @@ FROM (
       array_agg(inside.line) AS holes
     FROM (
       SELECT
-        geom AS line,
+        ST_MakeValid(geom) AS line,
         role
       FROM
         (
