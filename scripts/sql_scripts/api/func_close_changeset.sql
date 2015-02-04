@@ -43,7 +43,7 @@ CREATE OR REPLACE FUNCTION close_changeset(
         WHERE
           "ways"."changeset_id" = "nodes"."changeset_id"
       )
-  ) "changedWays"
+  ) "changedWays";
   
   -- Get Changed Relations
   SELECT
@@ -84,7 +84,7 @@ CREATE OR REPLACE FUNCTION close_changeset(
         where
           "relations"."changeset_id" = "ways"."changeset_id"
       )
-  ) "changedRelations"
+  ) "changedRelations";
 
     RETURN true;
   END;
