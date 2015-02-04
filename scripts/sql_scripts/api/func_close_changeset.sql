@@ -33,7 +33,6 @@ CREATE OR REPLACE FUNCTION close_changeset(
       DISTINCT "way_id"
     FROM
       "nodes" JOIN "way_nodes" ON
-        "nodes"."version" = "way_nodes"."version" AND
         "nodes"."node_id" = "way_nodes"."node_id"
     WHERE
       "nodes"."changeset_id" = v_changeset_id AND
@@ -56,7 +55,6 @@ CREATE OR REPLACE FUNCTION close_changeset(
       DISTINCT "relation_members"."relation_id"
     FROM
       "nodes" JOIN "relation_members" ON
-        "nodes"."version" = "relation_members"."version" AND
         "nodes"."node_id" = "relation_members"."member_id"
     WHERE
       lower("relation_members"."member_type"::text) = 'node' AND
@@ -74,7 +72,6 @@ CREATE OR REPLACE FUNCTION close_changeset(
       DISTINCT "relation_members"."relation_id"
     FROM
       "ways" JOIN "relation_members" ON
-        "ways"."version" = "relation_members"."version" AND
         "ways"."way_id" = "relation_members"."member_id"
     WHERE
       lower("relation_members"."member_type"::text) = 'way' AND
