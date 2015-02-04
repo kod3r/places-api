@@ -452,7 +452,7 @@ FROM (
   FROM
     "ways"
   WHERE
-    ARRAY_LENGTH("ways"."nodes", 1) > 4 AND
+    ARRAY_LENGTH("ways"."nodes", 1) >= 4 AND
     NOT (EXISTS (
       SELECT
         1
@@ -506,7 +506,7 @@ FROM (
         WHERE
           "key" NOT LIKE 'nps:%'
       ) > 0 AND
-      ARRAY_LENGTH("ways"."nodes", 1) > 4 AND
+      ARRAY_LENGTH("ways"."nodes", 1) >= 4 AND
       ST_IsClosed(o2p_calculate_nodes_to_line(ways.nodes)) AND
       exist(relations.tags, 'type'::text) AND
       (
