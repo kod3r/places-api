@@ -1,4 +1,4 @@
---DROP FUNCTION close_changeset(bigint);
+--DROP FUNCTION new_session(bigint);
 CREATE OR REPLACE FUNCTION close_changeset(
   bigint
 ) RETURNS boolean AS $close_changeset$
@@ -27,7 +27,7 @@ CREATE OR REPLACE FUNCTION close_changeset(
     
   -- Get Changed Ways
   SELECT
-    (SELECT res FROM nps_dblink_pgs('select * from nps_pgs_update_o2p(' || quote_literal("changedWays"."way_id") || ', ' || quote_literal('W') || ')') as res)
+    array_agg((SELECT res FROM nps_dblink_pgs('select * from nps_pgs_update_o2p(' || quote_literal("changedWays"."way_id") || ', ' || quote_literal('W') || ')') as res))
   FROM (
     SELECT
       DISTINCT "way_id"
@@ -50,7 +50,7 @@ CREATE OR REPLACE FUNCTION close_changeset(
   
   -- Get Changed Relations
   SELECT
-    (SELECT res FROM nps_dblink_pgs('select * from nps_pgs_update_o2p(' || quote_literal("changedRelations"."relation_id") || ', ' || quote_literal('R') || ')') as res)
+    array_agg((SELECT res FROM nps_dblink_pgs('select * from nps_pgs_update_o2p(' || quote_literal("changedRelations"."relation_id") || ', ' || quote_literal('R') || ')') as res))
   FROM (
     SELECT
       DISTINCT "relation_members"."relation_id"
