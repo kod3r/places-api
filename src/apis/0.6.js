@@ -424,7 +424,7 @@ module.exports = function(config) {
     'path': 'changeset/:id(\\d+)/close',
     'auth': apiFunctions.auth(config),
     'process': function(req, res) {
-      var query = 'UPDATE changesets SET closed_at = now() WHERE id = \'{{id}}\'';
+      var query = 'SELECT close_changeset from close_changeset(\'{{id}}\')';
       database(req, res).query(query, 'changeset', function() {
         res.send('', 'txt');
       });
