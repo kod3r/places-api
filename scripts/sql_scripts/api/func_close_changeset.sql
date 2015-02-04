@@ -1,10 +1,12 @@
---DROP FUNCTION new_session(bigint);
+--DROP FUNCTION close_changeset(bigint);
 CREATE OR REPLACE FUNCTION close_changeset(
   bigint
 ) RETURNS boolean AS $close_changeset$
 
  DECLARE
     v_changeset_id ALIAS FOR $1;
+    v_return_vals boolean[];
+    v_changeset_exists boolean;
     BEGIN
   
   -- Close the changeset and assign its number of changes
@@ -43,7 +45,8 @@ CREATE OR REPLACE FUNCTION close_changeset(
         WHERE
           "ways"."changeset_id" = "nodes"."changeset_id"
       )
-  ) "changedWays";
+  ) "changedWays"
+  INTO v_return_vals;
   
   -- Get Changed Relations
   SELECT
@@ -84,9 +87,21 @@ CREATE OR REPLACE FUNCTION close_changeset(
         where
           "relations"."changeset_id" = "ways"."changeset_id"
       )
-  ) "changedRelations";
+  ) "changedRelations"
+  INTO v_return_vals;
 
-    RETURN true;
+  SELECT
+    EXISTS(
+      SELECT
+        "changesets"."id"
+      FROM
+        "changesets"
+      WHERE
+        "changesets"."id" = v_changeset_id
+    )
+  INTO v_changeset_exists;
+
+    RETURN v_changeset_exists;
   END;
   
 $close_changeset$ LANGUAGE plpgsql;
