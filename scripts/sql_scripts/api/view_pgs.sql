@@ -68,7 +68,7 @@ SELECT
       WHERE "current_relation_tags"."relation_id" = "current_relations"."id"
     ) "result"
   ) AS "tags",
-  ( SELECT json_agg("nodes_in_relation")
+  ( SELECT json_agg("members_in_relation")
     FROM (
       SELECT
         "current_relation_members"."member_id",
@@ -78,7 +78,7 @@ SELECT
       FROM "current_relation_members"
       WHERE "current_relation_members"."relation_id" = "current_relations"."id"
       ORDER BY "current_relation_members"."sequence_id"
-    ) "nodes_in_relation"
-  ) AS "nodes"
+    ) "members_in_relation"
+  ) AS "members"
 FROM
   "current_relations";
