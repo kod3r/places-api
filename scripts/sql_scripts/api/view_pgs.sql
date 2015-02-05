@@ -27,3 +27,37 @@ SELECT
   ) AS "nodes"
 FROM
   "current_ways";
+  
+CREATE VIEW pgs_current_relation AS
+-- Subqueries run much faster than joins for this
+SELECT
+  "current_relations"."id",
+  "current_relations"."version",
+  "current_relations"."visible",
+  ( SELECT "changesets"."user_id" 
+    FROM "changesets" 
+    WHERE "changesets"."id" = "current_relations"."changeset_id"
+  ) AS "user_id",
+  "current_relations"."timestamp",
+  "current_relations"."changeset_id", 
+  ( SELECT json_agg("result")
+    FROM (
+      SELECT "current_relation_tags"."k", "current_relation_tags"."v"
+      FROM "current_relation_tags"
+      WHERE "current_relation_tags"."relation_id" = "current_relations"."id"
+    ) "result"
+  ) AS "tags",
+  ( SELECT json_agg("nodes_in_relation")
+    FROM (
+      SELECT
+        "current_relation_members"."member_id",
+        "current_relation_members"."member_type",
+        "current_relation_members"."member_role",
+        "current_relation_members"."sequence_id"
+      FROM "current_relation_members"
+      WHERE "current_relation_members"."relation_id" = "current_relations"."id"
+      ORDER BY "current_relation_members"."sequence_id"
+    ) "nodes_in_relation"
+  ) AS "nodes"
+FROM
+  "current_relations";
