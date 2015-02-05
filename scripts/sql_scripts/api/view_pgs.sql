@@ -1,3 +1,24 @@
+CREATE OR REPLACE VIEW pgs_current_node AS
+-- Subqueries run much faster than joins for this
+SELECT
+  "current_nodes"."id" AS "id",
+  "current_nodes"."latitude"::float / 10000000 AS "lat",
+  "current_nodes"."longitude"::float / 10000000 AS "lon",
+  "current_nodes"."changeset_id",
+  "current_nodes"."visible",
+  "current_nodes"."timestamp",
+  ( SELECT json_agg("result")
+    FROM (
+      SELECT "current_node_tags"."k", "current_node_tags"."v"
+      FROM "current_node_tags"
+      WHERE "current_node_tags"."node_id" = "current_nodes"."id"
+    ) "result"
+  ) AS "tags",
+  "current_nodes"."version",
+  (SELECT "changesets"."user_id" FROM "changesets" WHERE "changesets"."id" = "current_nodes"."changeset_id")
+FROM
+  "current_nodes";
+
 CREATE VIEW pgs_current_way AS
 -- Subqueries run much faster than joins for this
 SELECT
