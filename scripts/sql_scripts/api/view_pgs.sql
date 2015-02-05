@@ -19,7 +19,7 @@ SELECT
 FROM
   "current_nodes";
 
-CREATE VIEW pgs_current_way AS
+CREATE OR REPLACE VIEW pgs_current_way AS
 -- Subqueries run much faster than joins for this
 SELECT
   "current_ways"."id",
@@ -49,7 +49,7 @@ SELECT
 FROM
   "current_ways";
   
-CREATE VIEW pgs_current_relation AS
+CREATE OR REPLACE VIEW pgs_current_relation AS
 -- Subqueries run much faster than joins for this
 SELECT
   "current_relations"."id",
