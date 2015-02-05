@@ -132,9 +132,6 @@ CREATE OR REPLACE FUNCTION upsert_way(
         )
       );
     
-    -- Update the pgsnapshot view
-    SELECT res FROM nps_dblink_pgs('select * from pgs_upsert_way(' || quote_literal(v_new_id) || ', ' || quote_literal(v_changeset) || ', ' || quote_literal(v_visible) || ', ' || quote_literal(v_timestamp) || ', ' || quote_literal(v_nodes) || ', ' || quote_literal(v_tags) || ', ' || quote_literal(v_new_version) || ', ' || quote_literal(v_user_id) || ')') as res into v_res;
-
     RETURN (v_id, v_new_id, v_new_version);
     END;
 $upsert_way$ LANGUAGE plpgsql;
