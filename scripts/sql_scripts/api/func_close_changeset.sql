@@ -49,11 +49,11 @@ CREATE OR REPLACE FUNCTION close_changeset(
     "pgs_current_node"."id" IN (
       -- Get updated Ways
      SELECT
-        "current_nodes"."id"
+        "nodes"."node_id"
       FROM
-        "current_nodes"
+        "nodes"
       WHERE
-        "current_nodes"."changeset_id" = v_changeset_id
+        "nodes"."changeset_id" = v_changeset_id
     ) ) "changed_nodes"
     INTO v_return_values;
 
@@ -82,20 +82,20 @@ CREATE OR REPLACE FUNCTION close_changeset(
     "pgs_current_way"."id" IN (
       -- Get updated Ways
      SELECT
-        "current_ways"."id"
+        "ways"."way_id"
       FROM
-        "current_ways"
+        "ways"
       WHERE
-        "current_ways"."changeset_id" = v_changeset_id
+        "ways"."changeset_id" = v_changeset_id
       UNION ALL
       -- Get ways that have nodes that have been changed
       SELECT
-        "current_way_nodes"."way_id"
+        "way_nodes"."way_id"
       FROM
-        "current_nodes" JOIN "current_way_nodes" ON
-          "current_nodes"."id" = "current_way_nodes"."node_id"
+        "nodes" JOIN "way_nodes" ON
+          "nodes"."node_id" = "way_nodes"."node_id"
       WHERE
-        "current_nodes"."changeset_id" = v_changeset_id
+        "nodes"."changeset_id" = v_changeset_id
     ) ) "changed_ways"
     INTO v_return_values;
 
@@ -108,32 +108,32 @@ CREATE OR REPLACE FUNCTION close_changeset(
   FROM "pgs_current_relation" WHERE "pgs_current_relation"."id" IN 
   (
     SELECT
-      "current_relation_members"."relation_id"
+      "relation_members"."relation_id"
     FROM
-      "nodes" JOIN "current_relation_members" ON
-        "nodes"."node_id" = "current_relation_members"."member_id"
+      "nodes" JOIN "relation_members" ON
+        "nodes"."node_id" = "relation_members"."member_id"
     WHERE
-      lower("current_relation_members"."member_type"::text) = 'node' AND
+      lower("relation_members"."member_type"::text) = 'node' AND
       "nodes"."changeset_id" = v_changeset_id
     UNION ALL 
     SELECT
-      "current_relation_members"."relation_id"
+      "relation_members"."relation_id"
     FROM
-      "current_ways" JOIN "current_relation_members" ON
-        "current_ways"."id" = "current_relation_members"."member_id"
+      "ways" JOIN "relation_members" ON
+        "ways"."way_id" = "relation_members"."member_id"
     WHERE
-      lower("current_relation_members"."member_type"::text) = 'way' AND
-      "current_ways"."changeset_id" = v_changeset_id
+      lower("relation_members"."member_type"::text) = 'way' AND
+      "ways"."changeset_id" = v_changeset_id
     UNION ALL
     SELECT
-      "current_relation_members"."relation_id"
+      "relation_members"."relation_id"
     FROM
-      "current_nodes" JOIN "current_way_nodes" ON 
-        "current_nodes"."id" = "current_way_nodes"."node_id" JOIN "current_relation_members" ON
-        "current_relation_members"."member_id" = "current_way_nodes"."way_id"
+      "nodes" JOIN "way_nodes" ON 
+        "nodes"."node_id" = "way_nodes"."node_id" JOIN "relation_members" ON
+        "relation_members"."member_id" = "way_nodes"."way_id"
     WHERE 
-      "current_nodes"."changeset_id" = v_changeset_id AND
-      lower("current_relation_members"."member_type"::text) = 'way'
+      "nodes"."changeset_id" = v_changeset_id AND
+      lower("relation_members"."member_type"::text) = 'way'
   )
   INTO v_return_values;
 
