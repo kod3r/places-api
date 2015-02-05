@@ -53,7 +53,7 @@ CREATE OR REPLACE FUNCTION close_changeset(
       FROM
         "current_nodes"
       WHERE
-        "current_nodes"."changeset_id" = 768
+        "current_nodes"."changeset_id" = v_changeset_id
     ) ) "changed_nodes"
     INTO v_return_values;
 
