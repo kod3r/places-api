@@ -5,7 +5,7 @@ CREATE OR REPLACE FUNCTION close_changeset(
 
  DECLARE
     v_changeset_id ALIAS FOR $1;
-    v_return_vals boolean[];
+    v_return_values boolean[];
     v_changeset_exists boolean;
     BEGIN
   
@@ -135,7 +135,7 @@ CREATE OR REPLACE FUNCTION close_changeset(
       "current_nodes"."changeset_id" = v_changeset_id AND
       lower("current_relation_members"."member_type"::text) = 'way'
   )
-  INTO v_return_vals;
+  INTO v_return_values;
 
   SELECT
     EXISTS(
