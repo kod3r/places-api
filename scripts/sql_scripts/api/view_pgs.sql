@@ -15,7 +15,7 @@ SELECT
     ) "result"
   ) AS "tags",
   "current_nodes"."version",
-  (SELECT "changesets"."user_id" FROM "changesets" WHERE "changesets"."id" = "current_nodes"."changeset_id")
+  (SELECT "changesets"."user_id" FROM "changesets" WHERE "changesets"."id" = "current_nodes"."changeset_id") AS "user_id"
 FROM
   "current_nodes";
 
