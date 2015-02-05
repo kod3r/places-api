@@ -2,8 +2,8 @@ CREATE OR REPLACE VIEW pgs_current_node AS
 -- Subqueries run much faster than joins for this
 SELECT
   "current_nodes"."id" AS "id",
-  "current_nodes"."latitude"::float / 10000000 AS "lat",
-  "current_nodes"."longitude"::float / 10000000 AS "lon",
+  "current_nodes"."latitude" AS "lat",
+  "current_nodes"."longitude" AS "lon",
   "current_nodes"."changeset_id",
   "current_nodes"."visible",
   "current_nodes"."timestamp",
