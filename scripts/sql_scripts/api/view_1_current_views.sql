@@ -1,3 +1,20 @@
+-- Change the tags to allow values as text instead of varchar(255)
+ALTER TABLE changeset_tags
+ALTER COLUMN k TYPE TEXT,
+ALTER COLUMN v TYPE TEXT;
+
+ALTER TABLE node_tags
+ALTER COLUMN k TYPE TEXT,
+ALTER COLUMN v TYPE TEXT;
+
+ALTER TABLE relation_tags
+ALTER COLUMN k TYPE TEXT,
+ALTER COLUMN v TYPE TEXT;
+
+ALTER TABLE way_tags
+ALTER COLUMN k TYPE TEXT,
+ALTER COLUMN v TYPE TEXT;
+
 -- View: current_node_tags
 
 -- DROP VIEW current_node_tags;
