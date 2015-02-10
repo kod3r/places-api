@@ -640,94 +640,111 @@ $BODY$
   
   -- Add any information that will be deleting / changing
   -- to the change log, which is used to keep the renderers synchronized
-  INSERT INTO nps_change_log (
-    SELECT
-      v_id AS "osm_id",
-      MIN("nps_rendered"."version") AS "version",
-      v_member_type AS "member_type",
-      ST_UNION("nps_rendered"."the_geom") AS "way",
-      MIN("nps_rendered"."rendered") AS "created",
-      NOW()::timestamp without time zone AS "change_time"
-    FROM (
-       SELECT
-         "osm_id",
-         "version",
-         "the_geom",
-         "rendered"
-       FROM
-         "nps_render_point"
-       UNION ALL
-       SELECT
-         "osm_id",
-         "version",
-         "the_geom",
-         "rendered"
-       FROM
-         "nps_render_polygon"
-       UNION ALL
-       SELECT
-         "osm_id",
-         "version",
-         "the_geom",
-         "rendered"
-       FROM
-         "nps_render_line") AS "nps_rendered"
-    WHERE
-      "osm_id" = v_id
-  );
+    IF UPPER(v_member_type) = 'N' THEN
+    -- Nodes have different OSM_IDs than ways, so we do them separently
+      INSERT INTO nps_change_log (
+        SELECT
+          v_id AS "osm_id",
+          MIN("nps_rendered"."version") AS "version",
+          v_member_type AS "member_type",
+          ST_UNION("nps_rendered"."the_geom") AS "way",
+          MIN("nps_rendered"."rendered") AS "created",
+          NOW()::timestamp without time zone AS "change_time"
+        FROM (
+           SELECT
+             "osm_id",
+             "version",
+             "the_geom",
+             "rendered"
+           FROM
+             "nps_render_point") AS "nps_rendered"
+        WHERE
+          "osm_id" = v_id
+      );
 
-    DELETE FROM "nps_render_point" WHERE osm_id = v_id;
-    INSERT INTO "nps_render_point" (
+      DELETE FROM "nps_render_point" WHERE osm_id = v_id;
+      INSERT INTO "nps_render_point" (
+        SELECT
+          "osm_id" AS "osm_id",
+          "version" AS "version",
+          "name" AS "name",
+          "fcat" AS "type",
+          "nps_fcat" AS "nps_type",
+          "tags" AS "tags",
+          "created" AS "rendered",
+          "way" AS "the_geom",
+          "z_order" AS "z_order",
+          "unit_code" AS "unit_code"
+        FROM "nps_planet_osm_point_view"
+        WHERE "osm_id" = v_id
+      );
+    ELSE
+      -- Nodes have different OSM_IDs than ways, so we do them separently
+      -- relations also have different ids, but we make them negative so they can fit in the same namespace
+      INSERT INTO nps_change_log (
       SELECT
-        "osm_id" AS "osm_id",
-        "version" AS "version",
-        "name" AS "name",
-        "fcat" AS "type",
-        "nps_fcat" AS "nps_type",
-        "tags" AS "tags",
-        "created" AS "rendered",
-        "way" AS "the_geom",
-        "z_order" AS "z_order",
-        "unit_code" AS "unit_code"
-      FROM "nps_planet_osm_point_view"
-      WHERE "osm_id" = v_id
+        v_id AS "osm_id",
+        MIN("nps_rendered"."version") AS "version",
+        v_member_type AS "member_type",
+        ST_UNION("nps_rendered"."the_geom") AS "way",
+        MIN("nps_rendered"."rendered") AS "created",
+        NOW()::timestamp without time zone AS "change_time"
+      FROM (
+         SELECT
+           "osm_id",
+           "version",
+           "the_geom",
+           "rendered"
+         FROM
+           "nps_render_polygon"
+         UNION ALL
+         SELECT
+           "osm_id",
+           "version",
+           "the_geom",
+           "rendered"
+         FROM
+           "nps_render_line") AS "nps_rendered"
+      WHERE
+        "osm_id" = v_id
     );
 
-    DELETE FROM "nps_render_polygon" WHERE "osm_id" = v_id;
-    INSERT INTO "nps_render_polygon" (
-      SELECT
-        "osm_id" AS "osm_id",
-        "version" AS "version",
-        "name" AS "name",
-        "fcat" AS "type",
-        "nps_fcat" AS "nps_type",
-        "tags" AS "tags",
-        "created" AS "rendered",
-        "way" AS "the_geom",
-        "z_order" AS "z_order",
-        "unit_code" AS "unit_code"
-      FROM "nps_planet_osm_polygon_view"
-      WHERE "osm_id" = v_id
-    );
+      DELETE FROM "nps_render_polygon" WHERE "osm_id" = v_id;
+      INSERT INTO "nps_render_polygon" (
+        SELECT
+          "osm_id" AS "osm_id",
+          "version" AS "version",
+          "name" AS "name",
+          "fcat" AS "type",
+          "nps_fcat" AS "nps_type",
+          "tags" AS "tags",
+          "created" AS "rendered",
+          "way" AS "the_geom",
+          "z_order" AS "z_order",
+          "unit_code" AS "unit_code"
+        FROM "nps_planet_osm_polygon_view"
+        WHERE "osm_id" = v_id
+      );
 
-    DELETE FROM "nps_render_line" WHERE osm_id = v_id;
-    INSERT INTO "nps_render_line" (
-      SELECT
-        "osm_id" AS "osm_id",
-        "version" AS "version",
-        "name" AS "name",
-        "fcat" AS "type",
-        "nps_fcat" AS "nps_type",
-        "tags" AS "tags",
-        "created" AS "rendered",
-        "way" AS "the_geom",
-        "z_order" AS "z_order",
-        "unit_code" AS "unit_code"
-      FROM "nps_planet_osm_line_view"
-      WHERE "osm_id" = v_id
-    );
+      DELETE FROM "nps_render_line" WHERE osm_id = v_id;
+      INSERT INTO "nps_render_line" (
+        SELECT
+          "osm_id" AS "osm_id",
+          "version" AS "version",
+          "name" AS "name",
+          "fcat" AS "type",
+          "nps_fcat" AS "nps_type",
+          "tags" AS "tags",
+          "created" AS "rendered",
+          "way" AS "the_geom",
+          "z_order" AS "z_order",
+          "unit_code" AS "unit_code"
+        FROM "nps_planet_osm_line_view"
+        WHERE "osm_id" = v_id
+      );
+    END IF;
 
-  RETURN true;
+    RETURN true;
   END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
