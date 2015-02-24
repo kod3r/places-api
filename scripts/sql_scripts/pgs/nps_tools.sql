@@ -140,17 +140,18 @@ COMMENT ON VIEW public.nps_cartodb_point_view
 -- View: nps_tilemill_point_view
 
 -- DROP VIEW nps_tilemill_point_view;
-CREATE OR REPLACE VIEW nps_tilemill_point_view AS 
- SELECT nps_render_point.osm_id,
-    nps_render_point.name,
-    nps_render_point.nps_type AS type,
-    nps_render_point.the_geom,
-    nps_render_point.z_order,
-    nps_render_point.unit_code,
-    render_park_polys.minzoompoly
-   FROM nps_render_point
-     LEFT JOIN render_park_polys ON lower(nps_render_point.unit_code) = lower(render_park_polys.unit_code::text);
------------------------------------------------------------------------
+CREATE OR REPLACE VIEW "nps_tilemill_point_view" AS 
+  SELECT "nps_render_point"."osm_id",
+    "nps_render_point"."name",
+    "nps_render_point"."nps_type" AS "type",
+    "nps_render_point"."the_geom",
+    "nps_render_point"."z_order",
+    "nps_render_point"."unit_code",
+    "render_park_polys"."minzoompoly"
+   FROM
+     "nps_render_point"
+     LEFT JOIN "render_park_polys" ON lower("nps_render_point"."unit_code") = lower("render_park_polys"."unit_code"::text)
+   WHERE "nps_render_point"."type" IS NOT NULL;-----------------------------------------------------------------------
 
 -----------------------------------------------------------------------
 CREATE OR REPLACE VIEW public.nps_cartodb_polygon_view AS
