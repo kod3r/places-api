@@ -144,7 +144,7 @@ CREATE OR REPLACE VIEW "nps_tilemill_point_view" AS
   SELECT "nps_render_point"."osm_id",
     "nps_render_point"."name",
     "nps_render_point"."nps_type" AS "type",
-    "nps_render_point"."the_geom",
+    "nps_render_point"."the_geom" AS "way",
     "nps_render_point"."z_order",
     "nps_render_point"."unit_code",
     "render_park_polys"."minzoompoly"
