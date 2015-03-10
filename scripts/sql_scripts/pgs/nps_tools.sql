@@ -277,18 +277,19 @@ IF v_tag_count > 0 THEN
   FROM (
     SELECT
       CASE 
-        WHEN max("geometry") && v_geometry_type THEN "name"
+        WHEN "geometry" && v_geometry_type THEN "name"
         ELSE null
       END as "name",
       max("hstore_len") AS "hstore_len",
       count(*) AS "match_count",
       max("matchscore") as "matchscore",
-      "available_tags",
+      "all_tags",
       bool_and("searchable") as "searchable"
     FROM (
       SELECT
         "name",
         "available_tags",
+        "all_tags",
         "searchable",
         "matchscore",
         "geometry",
@@ -298,6 +299,7 @@ IF v_tag_count > 0 THEN
         SELECT
           "name",
           each("tags") AS "available_tags",
+          "tags" as "all_tags",
           "searchable",
           "matchscore",
           "geometry",
@@ -335,8 +337,9 @@ IF v_tag_count > 0 THEN
       "available_tags" = "input_tags"  OR
       (hstore(available_tags)->'value' = '*' AND hstore(available_tags)->'key' = hstore(input_tags)->'key')
     GROUP BY
+      "all_tags",
       "name",
-      "available_tags"
+      "geometry"
     ) "counted_tags"
   WHERE
     "hstore_len" = "match_count"
@@ -344,7 +347,7 @@ IF v_tag_count > 0 THEN
     "match_count" DESC,
     "searchable" DESC,
     "matchscore" DESC,
-    (hstore("available_tags")) ->'value' = '*'
+    avals("all_tags") && ARRAY['*']
   LIMIT
     1
   INTO
