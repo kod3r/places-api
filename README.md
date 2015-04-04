@@ -26,11 +26,14 @@ The following steps are designed to be copied and pasted directly into your CLI.
 \#This guide will detail the steps to installing the PostGIS database on an ubuntu machine.
 \#There is a [guide for windows](https://github.com/nationalparkservice/places-api/blob/places-api/scripts/tools/windowsInstall.txt) as well.
 
-####\#1. Run the postgresql 9.3 and PostGIS 2.1 install script here:
+####\#1. Change to the API directory
+  `cd ./node_modules/places-api/`
+
+####\#2. Run the postgresql 9.3 and PostGIS 2.1 install script here:
   `sh ./scripts/install_postgres_9.3.sh`
 
   \# postgresql 9.4 should work as well, but it has not been tested
-####\#2. Either clone an existing set of places_api databases or run the database setup script:
+####\#3. Either clone an existing set of places_api databases or run the database setup script:
   `sh ./scripts/create_osm_db.sh`
 
 ## Usage
