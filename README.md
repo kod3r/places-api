@@ -30,10 +30,10 @@ The following steps are designed to be copied and pasted directly into your CLI.
   `cd ./node_modules/places-api/`
 
 ####\#2. Run the postgresql 9.4 and PostGIS 2.1 install script here:
-  `sh ./scripts/install_postgres_9.4.sh`
+  `bash ./scripts/install_postgres_9.4.sh`
 
 ####\#3. Either clone an existing set of places_api databases or run the database setup script:
-  `sh ./scripts/create_osm_db.sh`
+  `bash ./scripts/create_osm_db.sh`
 
 ## Usage
 
