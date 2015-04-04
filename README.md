@@ -10,7 +10,7 @@ The [places-website](https://github.com/nationalparkservice/places-website) is d
 The following steps are designed to be copied and pasted directly into your CLI.
 
 ####\#1. Clone the [places-website](https://github.com/nationalparkservice/places-website)
-  `clone https://github.com/nationalparkservice/places-website.git`
+  `git clone https://github.com/nationalparkservice/places-website.git`
 ####\#2. Change directory to places-website
   `cd places-website`
 ####\#3. Install the components
