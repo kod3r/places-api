@@ -20,6 +20,11 @@ CREATE OR REPLACE FUNCTION new_session(
       v_secret
     );
 
+    DELETE FROM
+      sessions
+    WHERE
+      created_time < NOW() - INTERVAL '2 days';
+
     RETURN v_secret;
   END;
 $new_session$ LANGUAGE plpgsql;
