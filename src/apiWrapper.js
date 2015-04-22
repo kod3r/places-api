@@ -246,7 +246,7 @@ var bodyParser = require('body-parser'),
       };
     },
     reportError: function(config) {
-      return function(err, req, res) {
+      return function(err, req, res, next) {
         if (!res.headersSent) {
           errorLogger.debug('apiWrapper.reportError', err);
           req.query = req.query || {};
@@ -257,7 +257,7 @@ var bodyParser = require('body-parser'),
             }, 'txt', {
               'wrapType': 'Error'
             });
-          })(req, res);
+          })(req, res, next);
         }
       };
     }
