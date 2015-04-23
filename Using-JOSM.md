@@ -39,14 +39,15 @@ You can download JOSM from [this link](https://josm.openstreetmap.de/wiki/Downlo
 The validate button doesn't work with Places.
 
 ###\#6 Create a new Access Token
-1. Click the `New Acces Token` button
-2. From the `Please select an authorization procedure` dropdown, select `Manual`
-3. Next to `Access Token Key`, enter the access token key from your query in step one
-4. Next to `Access Token Secret`, enter the access token secret from your query in step one
-5. Make sure the `Save Access Token in preferences` checkbox is checked
-6. Click `Test Access Token`, your username should be displayed
-7. If that works, click the `Accept Access Token` button
-8. Press `Ok` on the Preferences screen, and you are read to start editing Places with JOSM
+1. Click the "Use Oauth" radio button
+2. Click the `New Access Token` button
+3. From the `Please select an authorization procedure` dropdown, select `Manual`
+4. Next to `Access Token Key`, enter the access token key from your query in step one
+5. Next to `Access Token Secret`, enter the access token secret from your query in step one
+6. Make sure the `Save Access Token in preferences` checkbox is checked
+7. Click `Test Access Token`, your username should be displayed
+8. If that works, click the `Accept Access Token` button
+9. Press `Ok` on the Preferences screen, and you are read to start editing Places with JOSM
 
 ###\#7 TODO: JOSM Tutorial 
 In the meantime, there are some great JOSM tutorials online.
