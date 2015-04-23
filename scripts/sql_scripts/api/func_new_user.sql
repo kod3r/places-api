@@ -44,7 +44,7 @@ CREATE OR REPLACE FUNCTION new_user(
     FROM
       users
     WHERE
-      id = v_id
+      description = v_description
     INTO
       v_user_count;
 
