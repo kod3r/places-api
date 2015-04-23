@@ -54,7 +54,7 @@ CREATE OR REPLACE FUNCTION new_user(
       users
     WHERE
       display_name = v_display_name AND
-      id != v_id
+      description != v_description
     INTO
       v_user_name_count;
 
