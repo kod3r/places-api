@@ -795,6 +795,38 @@ $BODY$
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
+  
+--------------------------------
+-- Render a full changeset
+CREATE OR REPLACE FUNCTION public.pgs_update()
+  RETURNS boolean[] AS
+$BODY$
+  DECLARE
+    v_return_value boolean[];
+  BEGIN
+    SELECT array_agg(not o2p_render_changeset(all_types.changeset_id) && ARRAY[false]) FROM (
+      SELECT tstamp, changeset_id from nodes
+      UNION ALL 
+      SELECT tstamp, changeset_id from ways
+      UNION ALL
+      SELECT tstamp, changeset_id from relations
+    ) all_types
+    WHERE all_types.tstamp > (
+      SELECT max(all_types_rendered.rendered) FROM (
+        SELECT rendered from nps_render_point
+        UNION ALL
+        SELECT rendered from nps_render_line
+        UNION ALL
+        SELECT rendered from nps_render_polygon
+      ) all_types_rendered)
+    GROUP BY all_types.changeset_id
+    INTO v_return_value;
+    
+    RETURN v_return_value;
+  END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
 
 ---------------------------
 -- Foreign Data
