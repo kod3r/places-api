@@ -5,7 +5,7 @@ CREATE OR REPLACE FUNCTION close_changeset(
 
  DECLARE
     v_changeset_id ALIAS FOR $1;
-    v_return_values boolean[];
+    v_return_values boolean;
     v_changeset_exists boolean;
     BEGIN
   
