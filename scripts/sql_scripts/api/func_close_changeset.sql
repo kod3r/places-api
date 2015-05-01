@@ -38,7 +38,7 @@ CREATE OR REPLACE FUNCTION close_changeset(
   INTO v_changeset_exists;
   
   -- Update the changeset in the pgsnapshot db (this no longer fully renders the data, just copies it)
-  SELECT res FROM nps_dblink_pgs('SELECT count(*)>0 FROM pgs_update_changeset(' || quote_literal(v_changeset_id) || ')') as res;
+  SELECT res FROM nps_dblink_pgs('SELECT count(*)>0 FROM pgs_update_changeset(' || quote_literal(v_changeset_id) || ')') as res INTO v_return_values;
 
     RETURN v_changeset_exists;
   END;
