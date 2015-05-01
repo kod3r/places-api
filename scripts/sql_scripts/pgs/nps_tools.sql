@@ -1,3 +1,15 @@
+------------------------------
+-- Keeps track of changes to geometries so they can be removed from old maps
+CREATE TABLE public.nps_change_log
+(
+  osm_id bigint,
+  version integer,
+  member_type character(1),
+  way geometry,
+  rendered timestamp without time zone,
+  change_time timestamp without time zone
+);
+
 -----------------------------------------------------------------------
 -- nps render tables
 
