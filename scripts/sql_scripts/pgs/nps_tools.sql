@@ -696,7 +696,7 @@ $BODY$
           "way" AS "the_geom",
           "z_order" AS "z_order",
           "unit_code" AS "unit_code"
-        FROM "nps_render_point_view"
+        FROM "nps_planet_osm_point_view"
         WHERE "osm_id" = v_id
       );
     ELSE
@@ -743,7 +743,7 @@ $BODY$
           "way" AS "the_geom",
           "z_order" AS "z_order",
           "unit_code" AS "unit_code"
-        FROM "nps_render_polygon_view"
+        FROM "nps_planet_osm_polygon_view"
         WHERE "osm_id" = v_id
       );
 
@@ -760,7 +760,7 @@ $BODY$
           "way" AS "the_geom",
           "z_order" AS "z_order",
           "unit_code" AS "unit_code"
-        FROM "nps_render_line_view"
+        FROM "nps_planet_osm_line_view"
         WHERE "osm_id" = v_id
       );
     END IF;
