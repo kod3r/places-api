@@ -771,6 +771,31 @@ $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
 
+--------------------------------
+-- Render a full changeset
+CREATE OR REPLACE FUNCTION public.o2p_render_changeset(bigint)
+  RETURNS boolean[] AS
+$BODY$
+  DECLARE
+    v_changeset_id ALIAS FOR $1;
+    v_return_value boolean[];
+  BEGIN
+    SELECT array_agg(o2p_render_element(all_types.id, all_types.member_type)) FROM (
+      SELECT id, 'N'::character as member_type, changeset_id from nodes 
+      UNION ALL
+      SELECT id, 'W'::character as member_type, changeset_id from ways
+      UNION ALL
+      SELECT id, 'R'::character as member_type, changeset_id from relations
+    ) all_types
+    WHERE all_types.changeset_id = v_changeset_id
+    INTO v_return_value;
+
+    RETURN v_return_value;
+  END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
 ---------------------------
 -- Foreign Data
 ---------------------------
