@@ -1,16 +1,21 @@
-CREATE OR REPLACE FUNCTION pgs_update_changeset(bigint)
-RETURNS bigint AS $pgs_update$
+-- Function: public.pgs_update_changeset(bigint)
+
+-- DROP FUNCTION public.pgs_update_changeset(bigint);
+
+CREATE OR REPLACE FUNCTION public.pgs_update_changeset(bigint)
+  RETURNS bigint AS
+$BODY$
   DECLARE
-    v_last_changeset ALIAS for $1;
+    v_changeset_id ALIAS for $1;
     v_changes bigint;
   BEGIN
   
     SELECT count(*) FROM (
-    SELECT pgs_upsert_node(id, lat, lon, changeset, visible, timestamp, tag, version, uid) FROM api_nodes WHERE changeset > v_last_changeset
+    SELECT pgs_upsert_node(id, lat, lon, changeset, visible, timestamp, tag, version, uid) FROM api_nodes WHERE changeset = v_changeset_id
     UNION ALL
-    SELECT pgs_upsert_way(id, changeset, visible, timestamp, nd, tag, version, uid) FROM api_ways WHERE changeset > v_last_changeset
+    SELECT pgs_upsert_way(id, changeset, visible, timestamp, nd, tag, version, uid) FROM api_ways WHERE changeset = v_changeset_id
     UNION ALL
-    SELECT pgs_upsert_relation(id, changeset, visible, member, tag, timestamp, version, uid) FROM api_relations WHERE changeset > v_last_changeset)
+    SELECT pgs_upsert_relation(id, changeset, visible, member, tag, timestamp, version, uid) FROM api_relations WHERE changeset = v_changeset_id)
     changes INTO v_changes;
 
     -- Update the users
@@ -18,7 +23,9 @@ RETURNS bigint AS $pgs_update$
 
     RETURN v_changes;
     END;
-$pgs_update$ LANGUAGE plpgsql;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
 
 -- Render Functions
 --DROP FUNCTION pgs_upsert_node(bigint, double precision, double precision, bigint, boolean, timestamp without time zone, json, bigint, bigint);
