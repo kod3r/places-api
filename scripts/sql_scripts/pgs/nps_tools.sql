@@ -629,11 +629,11 @@ WHERE
 
 ----------------------------------------
 
--- Function: public.nps_pgs_update_o2p(bigint, character)
+-- Function: public.o2p_render_element(bigint, character)
 
--- DROP FUNCTION public.nps_pgs_update_o2p(bigint, character);
+-- DROP FUNCTION public.o2p_render_element(bigint, character);
 
-CREATE OR REPLACE FUNCTION public.nps_pgs_update_o2p(bigint, character)
+CREATE OR REPLACE FUNCTION public.o2p_render_element(bigint, character)
   RETURNS boolean AS
 $BODY$
   DECLARE
@@ -641,6 +641,11 @@ $BODY$
     v_member_type ALIAS FOR $2;
     v_rel_id BIGINT;
   BEGIN
+
+  -- We make relation ids negative so they don't stomp on the namespace for ways
+    IF UPPER(v_member_type) = 'R' THEN
+      SELECT v_id * -1 INTO v_id;
+    END IF;
   
   -- Add any information that will be deleting / changing
   -- to the change log, which is used to keep the renderers synchronized
@@ -672,14 +677,14 @@ $BODY$
           "osm_id" AS "osm_id",
           "version" AS "version",
           "name" AS "name",
-          "fcat" AS "type",
-          "nps_fcat" AS "nps_type",
+          "type" AS "type",
+          "nps_type" AS "nps_type",
           "tags" AS "tags",
           "created" AS "rendered",
           "way" AS "the_geom",
           "z_order" AS "z_order",
           "unit_code" AS "unit_code"
-        FROM "nps_planet_osm_point_view"
+        FROM "nps_render_point_view"
         WHERE "osm_id" = v_id
       );
     ELSE
@@ -719,14 +724,14 @@ $BODY$
           "osm_id" AS "osm_id",
           "version" AS "version",
           "name" AS "name",
-          "fcat" AS "type",
-          "nps_fcat" AS "nps_type",
+          "type" AS "type",
+          "nps_type" AS "nps_type",
           "tags" AS "tags",
           "created" AS "rendered",
           "way" AS "the_geom",
           "z_order" AS "z_order",
           "unit_code" AS "unit_code"
-        FROM "nps_planet_osm_polygon_view"
+        FROM "nps_render_polygon_view"
         WHERE "osm_id" = v_id
       );
 
@@ -736,14 +741,14 @@ $BODY$
           "osm_id" AS "osm_id",
           "version" AS "version",
           "name" AS "name",
-          "fcat" AS "type",
-          "nps_fcat" AS "nps_type",
+          "type" AS "type",
+          "nps_type" AS "nps_type",
           "tags" AS "tags",
           "created" AS "rendered",
           "way" AS "the_geom",
           "z_order" AS "z_order",
           "unit_code" AS "unit_code"
-        FROM "nps_planet_osm_line_view"
+        FROM "nps_render_line_view"
         WHERE "osm_id" = v_id
       );
     END IF;
@@ -753,8 +758,6 @@ $BODY$
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
-ALTER FUNCTION public.nps_pgs_update_o2p(bigint, character)
-  OWNER TO osm;
 
 ---------------------------
 -- Foreign Data
