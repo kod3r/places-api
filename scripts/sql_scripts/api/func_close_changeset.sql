@@ -24,119 +24,8 @@ CREATE OR REPLACE FUNCTION close_changeset(
       ) counts)
   WHERE
     "id" = v_changeset_id;
-    
--- Update Changed nodes in pgs
-  SELECT array_agg((SELECT
-    res
-  FROM
-    nps_dblink_pgs(
-      'select * from pgs_upsert_node(' || quote_literal("changed_nodes"."id") || ', ' || quote_literal("changed_nodes"."lat") || ', ' || quote_literal("changed_nodes"."lon") || ', ' || quote_literal("changed_nodes"."changeset_id") || ', ' || quote_literal("changed_nodes"."visible") || ', ' || quote_literal("changed_nodes"."timestamp") || ', ' || quote_literal("changed_nodes"."tags") || ', ' || quote_literal("changed_nodes"."version") || ', ' || quote_literal("changed_nodes"."user_id") || ')'
-      ) AS res))
-  FROM (
-  SELECT
-    "pgs_current_node"."id",
-    "pgs_current_node"."lat",
-    "pgs_current_node"."lon",
-    "pgs_current_node"."changeset_id",
-    "pgs_current_node"."visible",
-    "pgs_current_node"."timestamp",
-    "pgs_current_node"."tags",
-    "pgs_current_node"."version",
-    "pgs_current_node"."user_id"
-  FROM
-    "pgs_current_node"
-  WHERE
-    "pgs_current_node"."id" IN (
-      -- Get updated Ways
-     SELECT
-        "nodes"."node_id"
-      FROM
-        "nodes"
-      WHERE
-        "nodes"."changeset_id" = v_changeset_id
-    ) ) "changed_nodes"
-    INTO v_return_values;
-
-    
--- Update Changed Ways in pgs
-  SELECT
-   array_agg((SELECT
-    res
-  FROM
-    nps_dblink_pgs(
-      'SELECT * FROM pgs_upsert_way(' || quote_literal("changed_ways"."id") || ', ' || quote_literal("changed_ways"."changeset_id") || ', ' || quote_literal("changed_ways"."visible") || ', ' || quote_literal("changed_ways"."timestamp") || ', ' || quote_literal("changed_ways"."nodes") || ', ' || quote_literal("changed_ways"."tags") || ', ' || quote_literal("changed_ways"."version") || ', ' || quote_literal("changed_ways"."user_id") || ')'
-      ) AS res))
-  FROM (
-  SELECT
-    "pgs_current_way"."id",
-    "pgs_current_way"."version",
-    "pgs_current_way"."visible",
-    "pgs_current_way"."user_id",
-    "pgs_current_way"."timestamp",
-    "pgs_current_way"."changeset_id",
-    "pgs_current_way"."tags",
-    "pgs_current_way"."nodes"
-  FROM
-    "pgs_current_way"
-  WHERE
-    "pgs_current_way"."id" IN (
-      -- Get updated Ways
-     SELECT
-        "ways"."way_id"
-      FROM
-        "ways"
-      WHERE
-        "ways"."changeset_id" = v_changeset_id
-      UNION ALL
-      -- Get ways that have nodes that have been changed
-      SELECT
-        "way_nodes"."way_id"
-      FROM
-        "nodes" JOIN "way_nodes" ON
-          "nodes"."node_id" = "way_nodes"."node_id"
-      WHERE
-        "nodes"."changeset_id" = v_changeset_id
-    ) ) "changed_ways"
-    INTO v_return_values;
-
   
-  -- Update Changed Relations
-   SELECT
-    array_agg((SELECT res FROM nps_dblink_pgs(
-      'SELECT * FROM pgs_upsert_relation(' || quote_literal("pgs_current_relation"."id") || ', ' || quote_literal("pgs_current_relation"."changeset_id") || ', ' || quote_literal("pgs_current_relation"."visible") || ', ' || quote_literal("pgs_current_relation"."members") || ', ' || quote_literal("pgs_current_relation"."tags") || ', ' || quote_literal("pgs_current_relation"."timestamp") || ', '  || quote_literal("pgs_current_relation"."version") || ', ' || quote_literal("pgs_current_relation"."user_id") || ')'
-    ) as res))
-  FROM "pgs_current_relation" WHERE "pgs_current_relation"."id" IN 
-  (
-    SELECT
-      "relation_members"."relation_id"
-    FROM
-      "nodes" JOIN "relation_members" ON
-        "nodes"."node_id" = "relation_members"."member_id"
-    WHERE
-      lower("relation_members"."member_type"::text) = 'node' AND
-      "nodes"."changeset_id" = v_changeset_id
-    UNION ALL 
-    SELECT
-      "relation_members"."relation_id"
-    FROM
-      "ways" JOIN "relation_members" ON
-        "ways"."way_id" = "relation_members"."member_id"
-    WHERE
-      lower("relation_members"."member_type"::text) = 'way' AND
-      "ways"."changeset_id" = v_changeset_id
-    UNION ALL
-    SELECT
-      "relation_members"."relation_id"
-    FROM
-      "nodes" JOIN "way_nodes" ON 
-        "nodes"."node_id" = "way_nodes"."node_id" JOIN "relation_members" ON
-        "relation_members"."member_id" = "way_nodes"."way_id"
-    WHERE 
-      "nodes"."changeset_id" = v_changeset_id AND
-      lower("relation_members"."member_type"::text) = 'way'
-  )
-  INTO v_return_values;
-
+  -- Just verify that the changeset was added
   SELECT
     EXISTS(
       SELECT
@@ -150,5 +39,4 @@ CREATE OR REPLACE FUNCTION close_changeset(
 
     RETURN v_changeset_exists;
   END;
-  
 $close_changeset$ LANGUAGE plpgsql;
