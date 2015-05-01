@@ -1,8 +1,31 @@
---DROP FUNCTION pgs_upsert_node(bigint, integer, integer, bigint, boolean, timestamp without time zone, json, bigint, bigint);
+CREATE OR REPLACE FUNCTION pgs_update_changeset(bigint)
+RETURNS bigint AS $pgs_update$
+  DECLARE
+    v_last_changeset ALIAS for $1;
+    v_changes bigint;
+  BEGIN
+  
+    SELECT count(*) FROM (
+    SELECT pgs_upsert_node(id, lat, lon, changeset, visible, timestamp, tag, version, uid) FROM api_nodes WHERE changeset > v_last_changeset
+    UNION ALL
+    SELECT pgs_upsert_way(id, changeset, visible, timestamp, nd, tag, version, uid) FROM api_ways WHERE changeset > v_last_changeset
+    UNION ALL
+    SELECT pgs_upsert_relation(id, changeset, visible, member, tag, timestamp, version, uid) FROM api_relations WHERE changeset > v_last_changeset)
+    changes INTO v_changes;
+
+    -- Update the users
+    INSERT INTO users SELECT id, display_name AS name FROM api_users WHERE id NOT IN (SELECT id FROM users);
+
+    RETURN v_changes;
+    END;
+$pgs_update$ LANGUAGE plpgsql;
+
+-- Render Functions
+--DROP FUNCTION pgs_upsert_node(bigint, double precision, double precision, bigint, boolean, timestamp without time zone, json, bigint, bigint);
 CREATE OR REPLACE FUNCTION pgs_upsert_node(
   bigint,
-  integer,
-  integer,
+  double precision,
+  double precision,
   bigint,
   boolean,
   timestamp without time zone,
@@ -20,13 +43,9 @@ CREATE OR REPLACE FUNCTION pgs_upsert_node(
     v_tags ALIAS FOR $7;
     v_version ALIAS FOR $8;
     v_userid ALIAS FOR $9;
-    v_newlat float;
-    v_newlon float;
     v_X boolean;
     BEGIN
   -- Delete the current nodes and tags
-    v_newlat := v_lat::float / 10000000;
-    v_newlon := v_lon::float / 10000000;
     DELETE from nodes where id = v_id;
 
     IF v_visible THEN
@@ -46,13 +65,11 @@ CREATE OR REPLACE FUNCTION pgs_upsert_node(
           v_timestamp,
           v_changeset,
           (select hstore(array_agg(k), array_agg(v)) from json_populate_recordset(null::new_hstore,v_tags)),
-          ST_SetSRID(ST_MakePoint(v_newlon, v_newlat),4326)
+          ST_SetSRID(ST_MakePoint(v_lon, v_lat),4326)
         );
     END IF;
     
-    -- This is the default OSM style, we will use the NPS style(s) instead
-    --SELECT pgs_update_o2p(v_id, 'N') into v_X;
-    SELECT nps_pgs_update_o2p(v_id, 'N') into v_X;
+    SELECT true into v_X; --TODO these should be more useful
 
     RETURN v_X;
     END;
@@ -122,8 +139,7 @@ CREATE OR REPLACE FUNCTION pgs_upsert_way(
          );
       END IF;
       
-      --SELECT pgs_update_o2p(v_id, 'W') into v_X;
-      SELECT nps_pgs_update_o2p(v_id, 'W') into v_X;
+    SELECT true into v_X; --TODO these should be more useful
 
     RETURN v_X;
     END;
@@ -192,8 +208,7 @@ CREATE OR REPLACE FUNCTION pgs_upsert_relation(
         );
     END IF;
     
-    --SELECT pgs_update_o2p(v_id, 'R') into v_X;
-    SELECT nps_pgs_update_o2p(v_id, 'R') into v_X;
+    SELECT true into v_X; --TODO these should be more useful
 
     RETURN v_X;
     END;
