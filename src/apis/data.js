@@ -22,7 +22,7 @@ module.exports = function(config) {
         'WHERE',
         '  ST_Within(ST_Transform(ST_SetSrid(ST_MakePoint(\'{{lon}}\',\'{{lat}}\'),4326),3857),poly_geom)',
         'ORDER BY',
-        '  minzoompoly DESC',
+        '  minzoompoly DESC,',
         '  area DESC'
       ];
 
