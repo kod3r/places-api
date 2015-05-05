@@ -83,9 +83,6 @@ cd $this_dir
 # Set up iD to work with the new IP
 bash $website_dir/node_modules/poi-api/scripts/tools/updateiDPaths.sh $ipaddress $port $website_dir/node_modules/iD/
 
-# Add the DOMParser to the osm-and-geojson project
-bash $website_dir/node_modules/poi-api/scripts/tools/addDomParser.sh $website_dir/node_modules/osm-and-geojson
-
 # Set up this app to use the specified port
 sed -i "s/process.env.PORT || 3000);/process.env.PORT || $port);/g" $website_dir/app.js
 

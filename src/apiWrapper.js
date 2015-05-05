@@ -1,7 +1,7 @@
 var bodyParser = require('body-parser'),
   errorList = require('./errorList'),
   errorLogger = require('./errorLogger'),
-  osmGeojson = require('osm-and-geojson'),
+  osmGeojson= require('./osmGeojson'),
   zlib = require('zlib'),
   xmlJs = require('xmljs_trans_js'),
   fns = {
@@ -59,7 +59,7 @@ var bodyParser = require('body-parser'),
                   response.render = 'map'; //options.title;
                   options.geojsonLink = '..' + req.url.replace('.html', '.json');
                   options.geojson = wrapResponse(result, params);
-                  options.geojson = JSON.stringify(osmGeojson.osm2geojson(xmlJs.xmlify(options.geojson), true));
+                  options.geojson = JSON.stringify(osmGeojson(xmlJs.xmlify(options.geojson), true));
 
                   if (JSON.stringify(req.query).length > 2) {
                     options.subtitle = JSON.stringify(req.query, null, 2);
@@ -89,7 +89,7 @@ var bodyParser = require('body-parser'),
                 },
                 'geojson': function() {
                   result = wrapResponse(result, params);
-                  result = osmGeojson.osm2geojson(xmlJs.xmlify(result, {
+                  result = osmGeojson(xmlJs.xmlify(result, {
                     'prettyPrint': indent
                   }), true);
                   response.contentType = 'application/json';

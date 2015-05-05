@@ -9,18 +9,21 @@ module.exports = function(config) {
     'description': 'Takes lat, lon, and a optional buffer and returns a park code or park codes.',
     'format': 'url',
     'method': 'GET',
-    'path': 'park',
+    'path': 'park/:lon/:lat/:buffer',
     'process': function(req, res) {
       // lat: latitude of a point in WGS84
       // lon: longitude of a point in WGS84
-
+      // buffer: buffer area in meters
+      //
+      req.params.buffer = req.params.buffer === '0' ? '1' : req.params.buffer;
       var queryArray = [
         'SELECT',
-        '  unit_code',
+        '  LOWER(unit_code) AS unit_code,',
+        '  long_name',
         'FROM',
         '  render_park_polys',
         'WHERE',
-        '  ST_Within(ST_Transform(ST_SetSrid(ST_MakePoint(\'{{lon}}\',\'{{lat}}\'),4326),3857),poly_geom)',
+        '  ST_Intersects(ST_Buffer(ST_Transform(ST_SetSrid(ST_MakePoint(\'{{lon}}\',\'{{lat}}\'),4326),3857),\'{{buffer}}\'), poly_geom)',
         'ORDER BY',
         '  minzoompoly DESC,',
         '  area DESC'
@@ -30,11 +33,19 @@ module.exports = function(config) {
 
       var query = queryArray.join(' ');
       database(req, res).query(query, 'park', function(expressRes, dbResult) {
-        if (dbResult && dbResult.data && dbResult.data.point && dbResult.data.point[0]) {
+        console.log(dbResult);
+        if (dbResult && dbResult.data && dbResult.data.park && dbResult.data.park[0]) {
           // Remove the 'park' layer so the result is uniform with all the other results
           dbResult.data = apiFunctions.deleteEmptyTags(dbResult.data.park[0]);
 
           apiFunctions.respond(expressRes, dbResult);
+        } else {
+          apiFunctions.respond(res, {
+            'error': {
+              'code': 404,
+              'description': 'Not Found'
+            }
+          });
         }
       });
 
@@ -129,8 +140,8 @@ module.exports = function(config) {
             // Remove the 'point' layer so the result is uniform with all the other results
             dbResult.data = apiFunctions.deleteEmptyTags(dbResult.data.point[0]);
           }
-            // TODO: limits need to be added to the point query
-            apiFunctions.respond(expressRes, dbResult);
+          // TODO: limits need to be added to the point query
+          apiFunctions.respond(expressRes, dbResult);
         });
       } else {
         res.status({
