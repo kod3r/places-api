@@ -182,7 +182,39 @@ module.exports = function(config) {
             delete dbResult.data.limits;
           }
         }
-        apiFunctions.respond(expressRes, dbResult);
+        apiFunctions.respond(expressRes, dbResult, req);
+      });
+    }
+  }, {
+    'name': 'GET changeset/data/#id',
+    'description': 'Returns All nodes, ways, and relations that were changes and all nodes, ways within those ways and relations.',
+    'method': 'GET',
+    'path': 'changeset/data/:id(\\d+)',
+    'process': function(req, res) {
+
+      var query = 'SELECT bounds, node, way, relation, limits FROM getChangeset(\'{{id}}\', \'{{wayNodes}}\')';
+      req.params.wayNodes = config.capabilities.waynodes.maximum;
+
+      database(req, res).query(query, 'changeset_data', function(expressRes, dbResult) {
+        if (dbResult && dbResult.data && dbResult.data.map && dbResult.data.map[0]) {
+          // Remove the 'map' layer so the result is uniform with all the other results
+          dbResult.data = apiFunctions.deleteEmptyTags(dbResult.data.map[0]);
+
+          // Check it we went over our limit
+          if (dbResult.data.limits && dbResult.data.limits[0].reached) {
+            dbResult = {
+              'error': {
+                'code': '509',
+                'description': {
+                  'limit': dbResult.data.limits
+                }
+              }
+            };
+          } else if (dbResult.data.limits) {
+            delete dbResult.data.limits;
+          }
+        }
+        apiFunctions.respond(expressRes, dbResult, req);
       });
     }
   }, {
@@ -223,7 +255,7 @@ module.exports = function(config) {
             delete dbResult.data.limits;
           }
         }
-        apiFunctions.respond(expressRes, dbResult);
+        apiFunctions.respond(expressRes, dbResult, req);
       });
     }
   }];
