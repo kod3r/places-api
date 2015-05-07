@@ -207,7 +207,7 @@ var bodyParser = require('body-parser'),
                 fns.reportError(config)(e, req, res, next);
               }
             }
-            errorLogger.error(error);
+            if (error.statusCode !== 200) errorLogger.error(error); // Don't report suppressed errors
           }
         };
       };
