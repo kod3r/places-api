@@ -186,7 +186,7 @@ module.exports = function(config) {
       });
     }
   }, {
-    'name': 'GET changeset/data/#id',
+    'name': 'GET changeset/data/#id/full',
     'description': 'Returns All nodes, ways, and relations that were changes and all nodes, ways within those ways and relations.',
     'method': 'GET',
     'path': 'changeset/data/:id(\\d+)',
