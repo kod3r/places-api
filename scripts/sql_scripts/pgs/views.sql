@@ -212,6 +212,7 @@ CREATE OR REPLACE FUNCTION getBbox (numeric, numeric, numeric, numeric, numeric)
 $getBbox$ LANGUAGE plpgsql;
 
 -- Changeset function
+-- Changeset function
 CREATE OR REPLACE FUNCTION getChangeset (bigint, bigint) RETURNS osmMap AS $getChangeset$
   DECLARE
     v_changeset_id ALIAS FOR $1;
@@ -241,7 +242,14 @@ CREATE OR REPLACE FUNCTION getChangeset (bigint, bigint) RETURNS osmMap AS $getC
       FROM
         ways
       WHERE
-        ways.changeset_id = v_changeset_id;
+        ways.changeset_id = v_changeset_id
+      UNION
+      SELECT DISTINCT
+        way_id AS way_id
+      FROM
+        way_nodes
+        JOIN nodes_in_changeset
+          ON way_nodes.node_id = nodes_in_changeset.node_id;
 
       CREATE LOCAL TEMP TABLE nodes_in_ways_in_changeset ON COMMIT DROP AS
       SELECT DISTINCT
