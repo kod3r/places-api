@@ -110,7 +110,7 @@ module.exports = function(config) {
             'code': 404,
             'description': 'Not a valid path'
           }
-        });
+        }, req);
       }
     }
   }, {
@@ -217,7 +217,7 @@ module.exports = function(config) {
           'error': {
             'code': 404
           }
-        });
+        }, req);
       }
     }
   }, {
@@ -342,7 +342,7 @@ module.exports = function(config) {
           'error': {
             'code': 404
           }
-        });
+        }, req);
       }
     }
   }, {
@@ -391,7 +391,7 @@ module.exports = function(config) {
             'code': 404,
             'description': 'Not a valid path'
           }
-        });
+        }, req);
       }
 
       // TODO: Make sure id is a number
@@ -518,7 +518,7 @@ module.exports = function(config) {
             delete dbResult.data.limits;
           }
         }
-        apiFunctions.respond(expressRes, dbResult);
+        apiFunctions.respond(expressRes, dbResult, req);
       });
     }
   }, {
@@ -621,7 +621,7 @@ module.exports = function(config) {
             delete dbResult.data.limits;
           }
         }
-        apiFunctions.respond(expressRes, dbResult);
+        apiFunctions.respond(expressRes, dbResult, req);
       });
     }
   }];
