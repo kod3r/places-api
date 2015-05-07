@@ -19,6 +19,7 @@ module.exports = function(config) {
       var queryArray = [
         'SELECT',
         '  LOWER(unit_code) AS unit_code,',
+        '  short_name AS short_name,',
         '  long_name',
         'FROM',
         '  render_park_polys',
@@ -38,14 +39,14 @@ module.exports = function(config) {
           // Remove the 'park' layer so the result is uniform with all the other results
           dbResult.data = apiFunctions.deleteEmptyTags(dbResult.data.park[0]);
 
-          apiFunctions.respond(expressRes, dbResult);
+          apiFunctions.respond(expressRes, dbResult, req);
         } else {
           apiFunctions.respond(res, {
             'error': {
               'code': 404,
               'description': 'Not Found'
             }
-          });
+          }, req);
         }
       });
 
@@ -141,7 +142,7 @@ module.exports = function(config) {
             dbResult.data = apiFunctions.deleteEmptyTags(dbResult.data.point[0]);
           }
           // TODO: limits need to be added to the point query
-          apiFunctions.respond(expressRes, dbResult);
+          apiFunctions.respond(expressRes, dbResult, req);
         });
       } else {
         res.status({
