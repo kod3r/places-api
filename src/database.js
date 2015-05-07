@@ -135,10 +135,10 @@ module.exports = function(dbtype, config) {
             Bluebird.all(requestList).then(function(newResult) {
               done();
               if (callback) {
-                callback(res, databaseTools.processResponse(newResult));
+                callback(res, databaseTools.processResponse(newResult), req);
               }
             }).catch(function(e) {
-              callback(res, e);
+              callback(res, e, req);
             });
           }
 
