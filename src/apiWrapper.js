@@ -191,7 +191,7 @@ var bodyParser = require('body-parser'),
 
               // Ignore the status code if the 'suppress_response_codes' tag is set
               var suppressStatusCodes = 'suppress_status_codes'; // Hack to keep JSHint from bugging me about camel case
-              if (error.query[suppressStatusCodes]) {
+              if (error.query && error.query[suppressStatusCodes]) {
                 error.statusCode = 200;
               }
 
