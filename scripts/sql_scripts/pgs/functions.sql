@@ -9,6 +9,11 @@ $BODY$
     v_changeset_id ALIAS for $1;
     v_changes bigint;
   BEGIN
+
+    -- Clear out the items in our rendered table to deal with nodes that are deleted (not usual, but it can happen)
+    DELETE FROM nodes WHERE changeset_id = v_changeset_id;
+    DELETE FROM ways WHERE changeset_id = v_changeset_id;
+    DELETE FROM relations WHERE changeset_id = v_changeset_id;
   
     SELECT count(*) FROM (
     SELECT pgs_upsert_node(id, lat, lon, changeset, visible, timestamp, tag, version, uid) FROM api_nodes WHERE changeset = v_changeset_id
