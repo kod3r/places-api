@@ -189,7 +189,7 @@ module.exports = function(config) {
     'name': 'GET changeset/data/#id/full',
     'description': 'Returns All nodes, ways, and relations that were changes and all nodes, ways within those ways and relations.',
     'method': 'GET',
-    'path': 'changeset/data/:id(\\d+)',
+    'path': 'changeset/data/:id(\\d+)/full',
     'process': function(req, res) {
 
       var query = 'SELECT bounds, node, way, relation, limits FROM getChangeset(\'{{id}}\', \'{{wayNodes}}\')';
