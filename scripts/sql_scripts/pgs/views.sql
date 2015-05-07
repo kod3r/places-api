@@ -211,6 +211,140 @@ CREATE OR REPLACE FUNCTION getBbox (numeric, numeric, numeric, numeric, numeric)
   END;
 $getBbox$ LANGUAGE plpgsql;
 
+-- Changeset function
+CREATE OR REPLACE FUNCTION getChangeset (bigint, bigint) RETURNS osmMap AS $getChangeset$
+  DECLARE
+    v_changeset_id ALIAS FOR $1;
+    v_node_limit ALIAS FOR $2;
+    v_bounds json;
+    v_nodes json;
+    v_ways json;
+    v_relations json;
+    v_limit_reached json;
+    v_max_number_of_nodes bigint;
+  BEGIN
+    v_max_number_of_nodes := v_node_limit;
+
+    CREATE LOCAL TEMP TABLE nodes_in_changeset ON COMMIT DROP AS
+    SELECT DISTINCT
+      nodes.id as node_id
+    FROM
+      nodes
+    WHERE
+      nodes.changeset_id = v_changeset_id;
+
+    IF (SELECT COUNT(*)<v_max_number_of_nodes FROM nodes_in_changeset) THEN
+
+      CREATE LOCAL TEMP TABLE ways_in_changeset ON COMMIT DROP AS
+      SELECT DISTINCT
+        ways.id AS way_id
+      FROM
+        ways
+      WHERE
+        ways.changeset_id = v_changeset_id;
+
+      CREATE LOCAL TEMP TABLE nodes_in_ways_in_changeset ON COMMIT DROP AS
+      SELECT DISTINCT
+        node_id
+      FROM
+        way_nodes
+        JOIN ways_in_changeset
+          ON way_nodes.way_id = ways_in_changeset.way_id;
+
+      CREATE LOCAL TEMP TABLE nodes_in_query ON COMMIT DROP AS
+      SELECT DISTINCT
+        node_id
+      FROM (
+       SELECT node_id from nodes_in_ways_in_changeset
+       UNION
+       SELECT node_id from nodes_in_changeset
+      ) nodes_in_query_union;
+
+      SELECT
+        to_json(changesetBounds)
+      FROM
+        (
+        SELECT
+          ST_YMin(extent.newGeom) as minLat,
+          ST_XMin(extent.newGeom) as minLon,
+          ST_YMax(extent.newGeom) as maxLat,
+          ST_XMax(extent.newGeom) as maxLon
+        FROM
+          (
+          SELECT
+            ST_Extent(geom) AS newGeom
+          FROM
+            nodes_in_query
+              JOIN nodes
+              ON nodes_in_query.node_id = nodes.id
+          ) extent
+        ) changesetBounds INTO v_bounds;
+
+      CREATE LOCAL TEMP TABLE relations_in_changeset ON COMMIT DROP AS
+      SELECT DISTINCT
+        relation_members.relation_id
+      FROM
+        relation_members
+        JOIN ways_in_changeset
+          ON ways_in_changeset.way_id = relation_members.member_id
+          AND UPPER(relation_members.member_type) = 'W'
+      UNION
+        SELECT DISTINCT
+          relation_members.relation_id
+        FROM
+          relation_members
+          JOIN nodes_in_query
+            ON nodes_in_query.node_id = relation_members.member_id
+            and UPPER(relation_members.member_type) = 'N';
+
+      SELECT json_agg(to_json(changesetNodes)) FROM (
+      SELECT
+        pgs_current_nodes.*
+      FROM
+        pgs_current_nodes
+        JOIN nodes_in_query
+          ON pgs_current_nodes.id = nodes_in_query.node_id
+      ) changesetNodes
+      INTO v_nodes;
+
+      SELECT json_agg(to_json(changesetWays)) FROM (
+      SELECT
+        pgs_current_ways.*
+      FROM
+        pgs_current_ways
+        JOIN ways_in_changeset
+          ON pgs_current_ways.id = ways_in_changeset.way_id
+      ) changesetWays
+      INTO v_ways;
+
+      SELECT json_agg(to_json(changesetRelations)) FROM (
+      SELECT
+        pgs_current_relations.*
+      FROM
+        pgs_current_relations
+        JOIN relations_in_changeset
+          ON pgs_current_relations.id = relations_in_changeset.relation_id
+      ) changesetRelations
+      INTO v_relations;
+    END IF;
+
+    SELECT json_agg(to_json(max_limit)) FROM (
+    SELECT
+      count(*) >= v_max_number_of_nodes AS reached,
+      v_max_number_of_nodes as max,
+      count(*) as nodes
+    FROM
+      nodes_in_changeset
+    ) max_limit
+    INTO
+      v_limit_reached;
+
+    RETURN (v_bounds, v_nodes, v_ways, v_relations, v_limit_reached);
+
+
+  END;
+$getChangeset$ LANGUAGE plpgsql;
+
 -- This should be a new file, maybe call it tables?
 -- Table: public.planet_osm_line
 
