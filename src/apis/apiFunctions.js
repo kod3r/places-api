@@ -3,10 +3,10 @@
 var Bluebird = require('bluebird'),
   xmlJs = require('xmljs_trans_js'),
   queries = require('./sql/apiSql');
-  var errorLogger = require('../errorLogger');
+var errorLogger = require('../errorLogger');
 
 exports = module.exports = {
-  respond: function(res, dbResult) {
+  respond: function(res, dbResult, req) {
     var fields = 0,
       emptyFields = 0;
     // Check for results
@@ -32,10 +32,14 @@ exports = module.exports = {
         dbResult.details.errorMessage = dbResult.details.message;
       }
       res.status({
-        'statusCode': dbResult.error.code,
-        'description': dbResult.error.description,
-        'details': dbResult.details
-      });
+          'statusCode': dbResult.error.code,
+          'description': dbResult.error.description,
+          'details': dbResult.details,
+          'format': req.params.format,
+          'query': req.query,
+          'params': req.params
+        }, req.params.format,
+        req.params);
     } else {
       res.send(dbResult.data);
     }
@@ -92,48 +96,49 @@ exports = module.exports = {
           return new Bluebird(function(resolve, reject) {
             var queryList, query;
 
-          change.tag = exports.valToArray(change.tag);
-          if (change.lon) {
-            change.lon = Math.round(change.lon * 10000000);
-          } else {
-            change.lon = -1;
-          }
-          if (change.lat) {
-            change.lat = Math.round(change.lat * 10000000);
-          } else {
-            change.lat = -1;
-          }
+            change.tag = exports.valToArray(change.tag);
+            if (change.lon) {
+              change.lon = Math.round(change.lon * 10000000);
+            } else {
+              change.lon = -1;
+            }
+            if (change.lat) {
+              change.lat = Math.round(change.lat * 10000000);
+            } else {
+              change.lat = -1;
+            }
 
-          // If deleting a way, it basically just creates an empty way and doesn't send us a way, so let's assume all ways are empty ways unless otherwise specified.
-          change.nd = change.nd || '[]';
+            // If deleting a way, it basically just creates an empty way and doesn't send us a way, so let's assume all ways are empty ways unless otherwise specified.
+            change.nd = change.nd || '[]';
 
-          queryList = {
-            'changeset': 'SELECT upsert_changeset(\'{{id}}\', \'{{user_id}}\', \'{{tag}}\') AS changeset',
-            'node': 'SELECT to_json(upsert_node(\'{{id}}\', \'{{lat}}\', \'{{lon}}\', \'{{changeset}}\', \'{{visible}}\', \'{{tag}}\')) AS node',
-            'way': 'SELECT to_json(upsert_way(\'{{id}}\', \'{{changeset}}\', \'{{visible}}\', \'{{nd}}\', \'{{tag}}\')) AS way',
-            'relation': 'SELECT to_json(upsert_relation(\'{{id}}\', \'{{changeset}}\', \'{{visible}}\', \'{{member}}\', \'{{tag}}\')) AS relation'
-          };
+            queryList = {
+              'changeset': 'SELECT upsert_changeset(\'{{id}}\', \'{{user_id}}\', \'{{tag}}\') AS changeset',
+              'node': 'SELECT to_json(upsert_node(\'{{id}}\', \'{{lat}}\', \'{{lon}}\', \'{{changeset}}\', \'{{visible}}\', \'{{tag}}\')) AS node',
+              'way': 'SELECT to_json(upsert_way(\'{{id}}\', \'{{changeset}}\', \'{{visible}}\', \'{{nd}}\', \'{{tag}}\')) AS way',
+              'relation': 'SELECT to_json(upsert_relation(\'{{id}}\', \'{{changeset}}\', \'{{visible}}\', \'{{member}}\', \'{{tag}}\')) AS relation'
+            };
 
-          if (queryList[type]) {
-            query = database().addParams(queryList[type], type, change);
+            if (queryList[type]) {
+              query = database().addParams(queryList[type], type, change);
 
-            database().query(query, type, function(_, queryRes) {
-              if (queryRes && queryRes.data && queryRes.data[type]) {
-                if (!returnData[type]) {
-                  returnData[type] = [];
+              database().query(query, type, function(_, queryRes) {
+                if (queryRes && queryRes.data && queryRes.data[type]) {
+                  if (!returnData[type]) {
+                    returnData[type] = [];
+                  }
+                  queryRes.data[type].map(function(record) {
+                    returnData[type].push(record[type]);
+                  });
+                  resolve(queryRes);
+                } else {
+                  queryRes.params = change;
+                  reject(queryRes);
                 }
-                queryRes.data[type].map(function(record) {
-                  returnData[type].push(record[type]);
-                });
-                resolve(queryRes);
-              } else {
-                queryRes.params = change;
-                reject(queryRes);
-              }
-            });
-          } else {
-            reject('Invalid Type');
-          }});
+              });
+            } else {
+              reject('Invalid Type');
+            }
+          });
         },
         processRequests = function(type) {
           var action, changeIndex, change;
