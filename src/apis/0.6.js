@@ -351,7 +351,7 @@ module.exports = function(config) {
     'method': 'GET',
     'path': 'relations',
     'process': function(req, res) {
-      apiFunctions.queryMultipleElements(req, res, 'relations', database);
+      apiFunctions.queryMultipleElements(req, res, 'relation', database);
     }
   }, {
     'name': 'PUT changeset/create',
