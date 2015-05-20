@@ -16,16 +16,10 @@ $BODY$
     v_new_version bigint;
     v_user_id bigint;
     v_res boolean;
-    v_uuid_field text;
-    v_uuid text;
-    v_unitcode_field text;
-    v_unitcode text;
     BEGIN
       -- Set some values
         v_timestamp := now();
         v_tile := tile_for_point(v_lat, v_lon);
-        v_uuid_field := 'nps:places_id';
-        v_unitcode_field := 'nps:unit_code';
         SELECT
           changesets.user_id
         FROM
@@ -84,25 +78,6 @@ $BODY$
        v_tile,
        v_new_version
      );
-
-
--- uuid
-  v_uuid := nps_get_value(v_uuid_field, v_tags);
-  IF v_uuid IS NULL THEN
-   SELECT
-     nps_update_value(v_uuid_field, uuid_generate_v4()::text, v_tags)
-   INTO
-     v_tags;
-  END IF;
-
--- Unit Code
-  v_unitcode := nps_get_value(v_unitcode_field, v_tags);
-  IF v_unitcode IS NULL THEN
-   SELECT
-     nps_update_value(v_unitcode_field, nps_get_unitcode(v_lat, v_lon), v_tags)
-   INTO
-     v_tags;
-  END IF;
      
 -- Tags
      INSERT INTO

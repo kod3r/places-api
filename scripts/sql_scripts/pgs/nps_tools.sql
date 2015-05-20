@@ -781,11 +781,11 @@ $BODY$
     v_return_value boolean[];
   BEGIN
     SELECT array_agg(o2p_render_element(all_types.id, all_types.member_type)) FROM (
-      SELECT id, 'N'::character as member_type, changeset_id from nodes 
+      SELECT id, 'N'::character as member_type, changeset_id from api_nodes 
       UNION ALL
-      SELECT id, 'W'::character as member_type, changeset_id from ways
+      SELECT id, 'W'::character as member_type, changeset_id from api_ways
       UNION ALL
-      SELECT id, 'R'::character as member_type, changeset_id from relations
+      SELECT id, 'R'::character as member_type, changeset_id from api_relations
     ) all_types
     WHERE all_types.changeset_id = v_changeset_id
     INTO v_return_value;
